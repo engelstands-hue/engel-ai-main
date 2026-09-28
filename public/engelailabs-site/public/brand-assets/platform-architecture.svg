@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 820 760" role="img" aria-labelledby="title desc">
+  <title id="title">Engel AI Labs public platform architecture</title>
+  <desc id="desc">A vertical conceptual stack from Engel AI Main through Engel Core, Agents, Remote Workers, and Applications.</desc>
+  <defs>
+    <linearGradient id="edge" x1="110" y1="80" x2="700" y2="680" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#22C8FF"/><stop offset="1" stop-color="#42F5A7"/>
+    </linearGradient>
+    <filter id="glow"><feGaussianBlur stdDeviation="5" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  </defs>
+  <rect width="820" height="760" rx="40" fill="#06101D"/>
+  <path d="M410 145v70m0 90v70m0 90v70m0 90v70" stroke="url(#edge)" stroke-width="3" stroke-dasharray="7 10"/>
+  <g font-family="Arial, Helvetica, sans-serif" text-anchor="middle">
+    <g transform="translate(110 65)"><rect width="600" height="90" rx="20" fill="#0A1729" stroke="#22C8FF" stroke-width="2"/><text x="300" y="55" fill="#EAF7FF" font-size="27" font-weight="700">Engel AI Main</text></g>
+    <g transform="translate(140 215)"><rect width="540" height="90" rx="20" fill="#0A1729" stroke="#2CD9DE" stroke-width="2"/><text x="270" y="55" fill="#EAF7FF" font-size="27" font-weight="700">Engel Core</text></g>
+    <g transform="translate(170 375)"><rect width="480" height="90" rx="20" fill="#0A1729" stroke="#35E4C0" stroke-width="2"/><text x="240" y="55" fill="#EAF7FF" font-size="27" font-weight="700">Agents</text></g>
+    <g transform="translate(140 535)"><rect width="540" height="90" rx="20" fill="#0A1729" stroke="#3DEFAF" stroke-width="2"/><text x="270" y="55" fill="#EAF7FF" font-size="27" font-weight="700">Remote Workers</text></g>
+    <g transform="translate(110 695)"><rect width="600" height="50" rx="18" fill="url(#edge)" filter="url(#glow)"/><text x="300" y="34" fill="#06101D" font-size="23" font-weight="800">Applications</text></g>
+  </g>
+</svg>

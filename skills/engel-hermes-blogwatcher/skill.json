@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-26T00:45:20Z",
+  "created_by": "hermes-root-catalog-import-20260825",
+  "description": "Monitor blogs and RSS/Atom feeds via blogwatcher-cli tool.",
+  "name": "Engel Hermes blogwatcher",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-hermes-blogwatcher",
+  "skill_md_sha256": "8aa2923ef3006b3fcdfc3cd5a6421eb6773717c723b0fdbee270451314423416",
+  "source": "engel-ai-main-server",
+  "updated_at_utc": "2026-08-26T00:45:20Z"
+}

@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-26T00:56:15Z",
+  "created_by": "hermes-optional-catalog-import-20260825",
+  "description": "Build fully-integrated 3-statement models (IS, BS, CF) in Excel with working capital schedules, D&A roll-forwards, debt schedule, and the plugs that make cash and retained earnings tie. Pairs with excel-author.",
+  "name": "Engel 3 Statement Model",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-hermes-3-statement-model",
+  "skill_md_sha256": "f17aff08a4a3da629efd93f63237d194d042e937b0f9978e1fc17fe4aa1d12c6",
+  "source": "engel-ai-main-server",
+  "updated_at_utc": "2026-08-26T00:56:15Z"
+}

@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-26T00:45:19Z",
+  "created_by": "hermes-root-catalog-import-20260825",
+  "description": "Infographics: 21 layouts x 21 styles (信息图, 可视化).",
+  "name": "Engel Hermes baoyu-infographic",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-hermes-baoyu-infographic",
+  "skill_md_sha256": "236b9ec60ef1cf2f8bab34996a4b5485466d27d63e6d4e63770c658ebe4c2cb5",
+  "source": "engel-ai-main-server",
+  "updated_at_utc": "2026-08-26T00:45:19Z"
+}

@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-26T00:56:16Z",
+  "created_by": "hermes-optional-catalog-import-20260825",
+  "description": "Free meta-search via SearXNG — aggregates results from 70+ search engines. Self-hosted or use a public instance. No API key needed. Falls back automatically when the web search toolset is unavailable.",
+  "name": "Engel Searxng Search",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-hermes-searxng-search",
+  "skill_md_sha256": "1731bea6aeb10273be984851ed458f225f032d43c58efee0c54714a488a4e117",
+  "source": "engel-ai-main-server",
+  "updated_at_utc": "2026-08-26T00:56:16Z"
+}

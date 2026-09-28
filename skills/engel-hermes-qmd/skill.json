@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-26T00:56:16Z",
+  "created_by": "hermes-optional-catalog-import-20260825",
+  "description": "Search personal knowledge bases, notes, docs, and meeting transcripts locally using qmd — a hybrid retrieval engine with BM25, vector search, and LLM reranking. Supports CLI and MCP integration.",
+  "name": "Engel Qmd",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-hermes-qmd",
+  "skill_md_sha256": "4494f70ed59d93416e1dce10be62244210fe2033a002344704e63f503681b26b",
+  "source": "engel-ai-main-server",
+  "updated_at_utc": "2026-08-26T00:56:16Z"
+}

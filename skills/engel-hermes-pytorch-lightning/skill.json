@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-26T00:56:15Z",
+  "created_by": "hermes-optional-catalog-import-20260825",
+  "description": "High-level PyTorch framework with Trainer class, automatic distributed training (DDP/FSDP/DeepSpeed), callbacks system, and minimal boilerplate. Scales from laptop to supercomputer with same code. Use when you want clean training loops with built-in best practices.",
+  "name": "Engel Pytorch Lightning",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-hermes-pytorch-lightning",
+  "skill_md_sha256": "66f7c31d0a5b3d99402645e16207613ebb51a04a859f6a355b0b67555fd7d485",
+  "source": "engel-ai-main-server",
+  "updated_at_utc": "2026-08-26T00:56:15Z"
+}

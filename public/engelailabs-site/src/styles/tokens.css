@@ -1,0 +1,16 @@
+:root {
+  color-scheme: dark;
+  --void: #06101d;
+  --space: #0a1729;
+  --panel: #0d2035;
+  --ice: #eaf7ff;
+  --muted: #8ea9bd;
+  --blue: #22c8ff;
+  --green: #42f5a7;
+  --line: rgba(132, 188, 218, .14);
+  --line-strong: rgba(132, 188, 218, .28);
+  --line-bright: rgba(34, 200, 255, .48);
+  --gradient: linear-gradient(135deg, var(--blue), var(--green));
+  --gradient-vertical: linear-gradient(var(--blue), var(--green));
+  --radius: 18px;
+}

@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-26T00:56:14Z",
+  "created_by": "hermes-optional-catalog-import-20260825",
+  "description": "Configure and use Honcho memory with Engel -- cross-session user modeling, multi-profile peer isolation, observation config, dialectic reasoning, session summaries, and context budget enforcement. Use when setting up Honcho, troubleshooting memory, managing profiles with Honcho peers, or tuning observation, recall, and dialectic settings.",
+  "name": "Engel Honcho",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-hermes-honcho",
+  "skill_md_sha256": "20eb45e00c4bcfe78d3bff0645a69a2b140450b3804ca58ed1aacb969dc433b3",
+  "source": "engel-ai-main-server",
+  "updated_at_utc": "2026-08-26T00:56:14Z"
+}

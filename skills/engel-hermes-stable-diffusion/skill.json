@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-26T00:56:15Z",
+  "created_by": "hermes-optional-catalog-import-20260825",
+  "description": "State-of-the-art text-to-image generation with Stable Diffusion models via HuggingFace Diffusers. Use when generating images from text prompts, performing image-to-image translation, inpainting, or building custom diffusion pipelines.",
+  "name": "Engel Stable Diffusion Image Generation",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-hermes-stable-diffusion",
+  "skill_md_sha256": "0252fbe9c21f5d3d698f3f58f018102ceb01c716e3df993cde810f61311d1971",
+  "source": "engel-ai-main-server",
+  "updated_at_utc": "2026-08-26T00:56:15Z"
+}

@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-25T21:48:52Z",
+  "created_by": "storage-pull-next-stage",
+  "description": "Turn a local screen recording of a task into a reusable Engel skill. Cursor-host paths rewritten off.",
+  "name": "Engel Learn From Demonstration",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-learn-from-demonstration",
+  "skill_md_sha256": "c693ebec504272d16dc9ef0d1938be1bdff80fc50a4bf7a7e46baf964a6c13d4",
+  "source": "engel-ai-main-server",
+  "updated_at_utc": "2026-08-25T21:48:52Z"
+}

@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-26T00:45:20Z",
+  "created_by": "hermes-root-catalog-import-20260825",
+  "description": "Control Philips Hue lights, scenes, rooms via OpenHue CLI.",
+  "name": "Engel Hermes openhue",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-hermes-openhue",
+  "skill_md_sha256": "7d872b4b5703a3be3964ca1ea6db3924f5ca52830d6a49e42d3b68053311a860",
+  "source": "engel-ai-main-server",
+  "updated_at_utc": "2026-08-26T00:45:20Z"
+}

@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-26T00:45:20Z",
+  "created_by": "hermes-root-catalog-import-20260825",
+  "description": "DSPy: declarative LM programs, auto-optimize prompts, RAG.",
+  "name": "Engel Hermes dspy",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-hermes-dspy",
+  "skill_md_sha256": "d7b04f06d8b5babdb931f1a3e223bab2c341dc8026f7339038453a9f849ea514",
+  "source": "engel-ai-main-server",
+  "updated_at_utc": "2026-08-26T00:45:20Z"
+}

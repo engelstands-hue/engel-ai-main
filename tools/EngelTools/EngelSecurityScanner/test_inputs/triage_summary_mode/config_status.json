@@ -1,0 +1,5 @@
+﻿{
+  "tool_path": "C:\\Tools\\agent-runner.exe",
+  "startup_reference": "Start-Process placeholder only",
+  "delete_reference": "Remove-Item -Recurse placeholder only"
+}

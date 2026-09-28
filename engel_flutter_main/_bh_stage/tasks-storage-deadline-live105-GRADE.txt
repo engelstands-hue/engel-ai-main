@@ -1,0 +1,17 @@
+GRADE=FAIL
+EXACT_FAIL_QUOTE=Engel chat request did not return a usable reply.
+ALSO=Task needs attention / Engel did not mark this task complete. / Result: 0/1 lanes done needs attention
+CHAT_READY=yes (pre OCR: Chatrea.y / Chat ready)
+GOAL=Check Storage on server...
+PID=32868
+ExeSHA256=04EF466BE7859026C6919A7DACD2223F6A9005A05FE2C58024C1518584448765
+AppSoSHA256=DA7A41515953E3EAD2FDB29EE6EAAB86330146DAF2535A31DF9C0B11E6507675
+StartTimePT=2026-09-05 21:11:41 PT
+HEALTH_8765=200 ok engel-ai-main CT chat service ready
+HEALTH_24680=200 ok engel-ai-main CT chat service ready
+WAIT=waited while working across polls ~021031-021121 then fail at 021129 PT; did not abort on stale fail while working
+NOTE=Discord soft-tagged CLOSED; not cleared
+TIME_PT=2026-09-06 02:11:42 PT
+FINAL_SM=D:\b.WorkSpace\bug-hunter-receipts\tasks-storage-deadline-live105-result2-021129-sm.jpg
+FINAL_PNG=D:\b.WorkSpace\bug-hunter-receipts\tasks-storage-deadline-live105-result2-021129.png
+FINAL_B64=D:\b.WorkSpace\bug-hunter-receipts\tasks-storage-deadline-live105-result2-021129-sm.jpg.b64

@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-26T00:45:19Z",
+  "created_by": "hermes-root-catalog-import-20260825",
+  "description": "Iterative Python via live Jupyter kernel (hamelnb).",
+  "name": "Engel Hermes jupyter-live-kernel",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-hermes-jupyter-live-kernel",
+  "skill_md_sha256": "8624dd7a2755fbf48c065a8b147be51b1db490cc36cb74fddd35ef7d50173e74",
+  "source": "engel-ai-main-server",
+  "updated_at_utc": "2026-08-26T00:45:19Z"
+}

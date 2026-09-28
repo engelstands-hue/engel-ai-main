@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-26T00:45:21Z",
+  "created_by": "hermes-root-catalog-import-20260825",
+  "description": "Write implementation plans: bite-sized tasks, paths, code.",
+  "name": "Engel Hermes writing-plans",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-hermes-writing-plans",
+  "skill_md_sha256": "14a5d459fbd9fbbfef7853143245d1f1b6ee7dc6f1cdf76d4f108b716f3aeaae",
+  "source": "engel-ai-main-server",
+  "updated_at_utc": "2026-08-26T00:45:21Z"
+}

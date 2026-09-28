@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-26T00:56:15Z",
+  "created_by": "hermes-optional-catalog-import-20260825",
+  "description": "Reserved and on-demand GPU cloud instances for ML training and inference. Use when you need dedicated GPU instances with simple SSH access, persistent filesystems, or high-performance multi-node clusters for large-scale training.",
+  "name": "Engel Lambda Labs Gpu Cloud",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-hermes-lambda-labs",
+  "skill_md_sha256": "35780c02fea58f67a46ad6abe21101d660e448e53d2bb3774ed256bda80a2870",
+  "source": "engel-ai-main-server",
+  "updated_at_utc": "2026-08-26T00:56:15Z"
+}

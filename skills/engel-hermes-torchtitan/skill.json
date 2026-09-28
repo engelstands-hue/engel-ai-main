@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-26T00:56:15Z",
+  "created_by": "hermes-optional-catalog-import-20260825",
+  "description": "Provides PyTorch-native distributed LLM pretraining using torchtitan with 4D parallelism (FSDP2, TP, PP, CP). Use when pretraining Llama 3.1, DeepSeek V3, or custom models at scale from 8 to 512+ GPUs with Float8, torch.compile, and distributed checkpointing.",
+  "name": "Engel Distributed Llm Pretraining Torchtitan",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-hermes-torchtitan",
+  "skill_md_sha256": "7612224976d5d5fdf2447ecceea150eeb1820983a41bcf3b2f1c9690e576d9eb",
+  "source": "engel-ai-main-server",
+  "updated_at_utc": "2026-08-26T00:56:15Z"
+}

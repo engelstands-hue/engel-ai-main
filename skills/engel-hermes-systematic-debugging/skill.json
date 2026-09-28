@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-26T00:45:21Z",
+  "created_by": "hermes-root-catalog-import-20260825",
+  "description": "4-phase root cause debugging: understand bugs before fixing.",
+  "name": "Engel Hermes systematic-debugging",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-hermes-systematic-debugging",
+  "skill_md_sha256": "cae81626cb060ffbc24de4808fb3d0c67f5958d459d5a431f2a9186a0c6096e8",
+  "source": "engel-ai-main-server",
+  "updated_at_utc": "2026-08-26T00:45:21Z"
+}

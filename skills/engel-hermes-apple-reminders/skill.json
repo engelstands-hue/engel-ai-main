@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-26T00:45:19Z",
+  "created_by": "hermes-root-catalog-import-20260825",
+  "description": "Apple Reminders via remindctl: add, list, complete.",
+  "name": "Engel Hermes apple-reminders",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-hermes-apple-reminders",
+  "skill_md_sha256": "8c4fe8e929386b061746cda9ebd0e86dd03b55e611be6a25ee3275210c8b8d51",
+  "source": "engel-ai-main-server",
+  "updated_at_utc": "2026-08-26T00:45:19Z"
+}

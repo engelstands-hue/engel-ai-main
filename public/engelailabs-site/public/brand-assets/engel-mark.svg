@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-labelledby="title desc">
+  <title id="title">Engel AI Labs constellation mark</title>
+  <desc id="desc">A luminous four-point star connected to three orbit nodes.</desc>
+  <defs>
+    <linearGradient id="signal" x1="20" y1="18" x2="108" y2="112" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#22C8FF"/>
+      <stop offset="1" stop-color="#42F5A7"/>
+    </linearGradient>
+  </defs>
+  <rect width="128" height="128" rx="28" fill="#06101D"/>
+  <g fill="none" stroke="url(#signal)" stroke-width="3">
+    <path d="M32 92 61 65 96 84M61 65 83 32" opacity=".75"/>
+    <circle cx="32" cy="92" r="7"/>
+    <circle cx="96" cy="84" r="7"/>
+    <circle cx="83" cy="32" r="7"/>
+  </g>
+  <path d="m61 38 7 20 20 7-20 7-7 20-7-20-20-7 20-7 7-20Z" fill="url(#signal)"/>
+</svg>

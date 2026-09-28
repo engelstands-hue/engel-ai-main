@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-26T00:45:20Z",
+  "created_by": "hermes-root-catalog-import-20260825",
+  "description": "Spotify: play, search, queue, manage playlists and devices.",
+  "name": "Engel Hermes spotify",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-hermes-spotify",
+  "skill_md_sha256": "0a3e6400d3bfc1e6a5d1af8afa8baa8595f3862bd31ddf930cc3ea67e8d63b44",
+  "source": "engel-ai-main-server",
+  "updated_at_utc": "2026-08-26T00:45:20Z"
+}

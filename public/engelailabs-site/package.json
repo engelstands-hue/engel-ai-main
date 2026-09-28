@@ -1,0 +1,41 @@
+{
+  "name": "engelailabs-site",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build && node scripts/render-route-shells.mjs",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "typecheck": "tsc -b",
+    "verify:edge": "wrangler types edge/www-redirect/worker-configuration.d.ts --config edge/www-redirect/wrangler.jsonc --check && tsc --noEmit -p edge/www-redirect/tsconfig.json",
+    "verify:archive": "node scripts/verify-archive.mjs",
+    "verify:boundary": "node scripts/verify-public-boundary.mjs",
+    "verify": "npm run typecheck && npm run test && npm run verify:edge && npm run build && npm run verify:archive && npm run verify:boundary",
+    "deploy:cloudflare": "npm run verify && wrangler pages deploy dist --project-name engelailabs-site --branch main",
+    "deploy:edge": "npm run verify:edge && wrangler deploy --config edge/www-redirect/wrangler.jsonc",
+    "deploy:production": "npm run deploy:cloudflare && npm run deploy:edge"
+  },
+  "dependencies": {
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
+    "react-markdown": "10.1.0",
+    "react-router-dom": "7.18.2"
+  },
+  "devDependencies": {
+    "@testing-library/jest-dom": "7.0.1",
+    "@testing-library/react": "16.3.2",
+    "@types/react": "19.2.18",
+    "@types/react-dom": "19.2.4",
+    "@vitejs/plugin-react": "6.0.5",
+    "jsdom": "30.0.1",
+    "typescript": "6.0.2",
+    "vite": "8.2.1",
+    "vitest": "4.1.10",
+    "wrangler": "4.142.0"
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-26T00:45:19Z",
+  "created_by": "hermes-root-catalog-import-20260825",
+  "description": "Delegate coding to Claude Code CLI (features, PRs).",
+  "name": "Engel Hermes claude-code",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-hermes-claude-code",
+  "skill_md_sha256": "a8ebe22f6650d763574ff85d8d161225b277e8ed36ebfd78867c6a23e7e712ba",
+  "source": "engel-ai-main-server",
+  "updated_at_utc": "2026-08-26T00:45:19Z"
+}

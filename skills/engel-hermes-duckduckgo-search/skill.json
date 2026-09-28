@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-26T00:56:16Z",
+  "created_by": "hermes-optional-catalog-import-20260825",
+  "description": "Free web search via DuckDuckGo — text, news, images, videos. No API key needed. Prefer the `ddgs` CLI when installed; use the Python DDGS library only after verifying that `ddgs` is available in the current runtime.",
+  "name": "Engel Duckduckgo Search",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-hermes-duckduckgo-search",
+  "skill_md_sha256": "3f55cf19542d0dbaebef08662550614ab98a8edd3f4c176d4d61b3e23287fe22",
+  "source": "engel-ai-main-server",
+  "updated_at_utc": "2026-08-26T00:56:16Z"
+}

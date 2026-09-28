@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-26T00:45:20Z",
+  "created_by": "hermes-root-catalog-import-20260825",
+  "description": "Exploratory QA of web apps: find bugs, evidence, reports.",
+  "name": "Engel Hermes dogfood",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-hermes-dogfood",
+  "skill_md_sha256": "ea6786f9b52ef235eca8e994b2235d5b34e49cfd755fc586721f968947190276",
+  "source": "engel-ai-main-server",
+  "updated_at_utc": "2026-08-26T00:45:20Z"
+}

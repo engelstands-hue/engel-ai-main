@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-26T00:56:14Z",
+  "created_by": "hermes-optional-catalog-import-20260825",
+  "description": "Zero-install localhost tunnels over SSH via Pinggy.",
+  "name": "Engel Pinggy Tunnel",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-hermes-pinggy-tunnel",
+  "skill_md_sha256": "becef9a42bd1ecb2e903211ad2412c754d6a9aa0955b7517ff57bb7c7b0c2074",
+  "source": "engel-ai-main-server",
+  "updated_at_utc": "2026-08-26T00:56:14Z"
+}

@@ -1,0 +1,11 @@
+﻿{
+    "source":  "engel-ai-main-server",
+    "skillKey":  "engel-sub-engel-collab-align",
+    "skill_md_sha256":  "3c80ee48336866d9505866dcc5b5a8b7a4fc7f8ae9f4cbe454fe4ac4bc610fff",
+    "description":  "Keep Engel AI Main and Sub-Engel aligned: share complementary missing pieces, not clones.",
+    "name":  "Engel Sub-Engel Collab Align",
+    "created_at_utc":  "2026-08-26T15:20:00Z",
+    "schema":  "engel_saved_skill_manifest_v1",
+    "updated_at_utc":  "2026-08-26T15:20:00Z",
+    "created_by":  "engel-ai-main-collab"
+}

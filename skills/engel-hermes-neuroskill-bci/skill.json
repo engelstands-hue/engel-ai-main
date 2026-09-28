@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-26T00:56:15Z",
+  "created_by": "hermes-optional-catalog-import-20260825",
+  "description": "Optional Hermes skill neuroskill-bci recreated for Engel AI Main.",
+  "name": "Engel Neuroskill Bci",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-hermes-neuroskill-bci",
+  "skill_md_sha256": "6466b681ee520151d29d0ae1d13c14f9b37c8de997e7be8c46d7e6a3461291de",
+  "source": "engel-ai-main-server",
+  "updated_at_utc": "2026-08-26T00:56:15Z"
+}

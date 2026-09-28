@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-26T00:45:19Z",
+  "created_by": "hermes-root-catalog-import-20260825",
+  "description": "ASCII art: pyfiglet, cowsay, boxes, image-to-ascii.",
+  "name": "Engel Hermes ascii-art",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-hermes-ascii-art",
+  "skill_md_sha256": "0fee92e91d58b83fa14de3aa1eb829cdcc174f19d65705b3e0a0de1dd221ae5e",
+  "source": "engel-ai-main-server",
+  "updated_at_utc": "2026-08-26T00:45:19Z"
+}

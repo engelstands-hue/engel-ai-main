@@ -1,0 +1,5 @@
+Contact: https://engelailabs.com/contact
+Expires: 2027-08-13T00:00:00Z
+Canonical: https://engelailabs.com/.well-known/security.txt
+Policy: https://engelailabs.com/security
+Preferred-Languages: en

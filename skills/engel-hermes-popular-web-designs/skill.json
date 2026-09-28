@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-26T00:45:19Z",
+  "created_by": "hermes-root-catalog-import-20260825",
+  "description": "54 real design systems (Stripe, Linear, Vercel) as HTML/CSS.",
+  "name": "Engel Hermes popular-web-designs",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-hermes-popular-web-designs",
+  "skill_md_sha256": "41dc97e9a561dea623287eb320a27066400510ca7b5e93897cfa91d504500d44",
+  "source": "engel-ai-main-server",
+  "updated_at_utc": "2026-08-26T00:45:19Z"
+}

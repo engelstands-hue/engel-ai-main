@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-26T00:45:19Z",
+  "created_by": "hermes-root-catalog-import-20260825",
+  "description": "Article illustrations: type × style × palette consistency.",
+  "name": "Engel Hermes baoyu-article-illustrator",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-hermes-baoyu-article-illustrator",
+  "skill_md_sha256": "cf2828e9cdfbd132d8bd2cf2dbc5562c390fbbf78adc99e58ee5e2d9bfb4b06c",
+  "source": "engel-ai-main-server",
+  "updated_at_utc": "2026-08-26T00:45:19Z"
+}

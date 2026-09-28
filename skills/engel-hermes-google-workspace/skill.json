@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-26T00:45:20Z",
+  "created_by": "hermes-root-catalog-import-20260825",
+  "description": "Gmail, Calendar, Drive, Docs, Sheets via gws CLI or Python.",
+  "name": "Engel Hermes google-workspace",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-hermes-google-workspace",
+  "skill_md_sha256": "132b05837f5d5f29a0cebc1139f655ebc2a82d27d9c238f541e971dd080a60ee",
+  "source": "engel-ai-main-server",
+  "updated_at_utc": "2026-08-26T00:45:20Z"
+}

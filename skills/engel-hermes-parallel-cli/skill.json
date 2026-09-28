@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-26T00:56:16Z",
+  "created_by": "hermes-optional-catalog-import-20260825",
+  "description": "Optional vendor skill for Parallel CLI — agent-native web search, extraction, deep research, enrichment, FindAll, and monitoring. Prefer JSON output and non-interactive flows.",
+  "name": "Engel Parallel Cli",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-hermes-parallel-cli",
+  "skill_md_sha256": "4a8155f5da6b7bbdad4e4cd2ab0c6070f99bb63f64c552dd45a81f046bb2675e",
+  "source": "engel-ai-main-server",
+  "updated_at_utc": "2026-08-26T00:56:16Z"
+}

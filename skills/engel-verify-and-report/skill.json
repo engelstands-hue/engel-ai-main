@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-04T14:56:01Z",
+  "created_by": "claude-cowork + engel-skill-creator",
+  "description": "The required Engel work pattern: read handoffs, make small safe changes, run verifiers, write a codex_bridge report. Use for every job \u2014 and especially whenever a request mentions verifying, the sweep, smoke tests, finishing a job, reports, or whether a change is safe to apply.",
+  "name": "Engel Verify and Report",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-verify-and-report",
+  "skill_md_sha256": "7090cdf75b89eb0b837523c02068876db0dae85e5478bfed1fad107242189eed",
+  "source": "claude-skill-creator",
+  "updated_at_utc": "2026-08-04T14:56:01Z"
+}

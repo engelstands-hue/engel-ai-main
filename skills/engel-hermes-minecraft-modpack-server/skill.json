@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-26T00:45:20Z",
+  "created_by": "hermes-root-catalog-import-20260825",
+  "description": "Host modded Minecraft servers (CurseForge, Modrinth).",
+  "name": "Engel Hermes minecraft-modpack-server",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-hermes-minecraft-modpack-server",
+  "skill_md_sha256": "881180ce7ca0014f31872648b327016e8d99c612c8b024fe63a912c25403f45d",
+  "source": "engel-ai-main-server",
+  "updated_at_utc": "2026-08-26T00:45:20Z"
+}

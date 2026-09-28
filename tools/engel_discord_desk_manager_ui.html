@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Engel Desk Manager</title>
+<style>
+  :root {
+    --bg: #140608;
+    --glass: rgba(62, 12, 18, 0.55);
+    --glass-2: rgba(28, 6, 10, 0.62);
+    --line: rgba(255, 170, 170, 0.28);
+    --ink: #f6e8e8;
+    --muted: #c9a3a6;
+    --red: #ff4d5a;
+    --gold: #e7c56a;
+    --cool: #f0b429;
+    --sentiment: #7ec8ff;
+    --topic: #7dffa8;
+    --inactive: #e7c56a;
+    --combined: #d7b4ff;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; min-height: 100%; }
+  body {
+    color: var(--ink);
+    font: 15px/1.4 "Segoe UI", sans-serif;
+    background:
+      radial-gradient(900px 480px at 15% -10%, rgba(180, 24, 40, 0.45), transparent 60%),
+      radial-gradient(700px 420px at 100% 0%, rgba(90, 8, 16, 0.55), transparent 55%),
+      var(--bg);
+  }
+  main { max-width: 1080px; margin: 0 auto; padding: 28px 20px 48px; }
+  header { display: flex; justify-content: space-between; gap: 16px; align-items: end; margin-bottom: 18px; }
+  h1 { font-size: 22px; font-weight: 650; margin: 0; letter-spacing: 0.02em; }
+  .sub { color: var(--muted); margin: 4px 0 0; font-size: 13px; }
+  .desks { display: flex; flex-wrap: wrap; gap: 8px; }
+  .desks button, .spike {
+    border: 1px solid var(--line);
+    background: rgba(80, 16, 24, 0.45);
+    color: var(--ink);
+    border-radius: 999px;
+    padding: 8px 14px;
+    cursor: pointer;
+    backdrop-filter: blur(16px);
+  }
+  .desks button[aria-pressed="true"] {
+    background: rgba(180, 28, 42, 0.72);
+    border-color: rgba(255, 160, 160, 0.7);
+  }
+  .panel {
+    background: linear-gradient(180deg, rgba(92, 18, 28, 0.42), var(--glass-2));
+    border: 1px solid var(--line);
+    border-radius: 22px;
+    box-shadow: inset 0 1px 0 rgba(255, 220, 220, 0.16), 0 18px 50px rgba(0, 0, 0, 0.35);
+    backdrop-filter: blur(22px);
+    padding: 18px;
+  }
+  .stage { display: grid; grid-template-columns: 1fr 150px; gap: 16px; }
+  .chart-wrap { position: relative; height: 280px; }
+  canvas { width: 100%; height: 100%; display: block; }
+  .chart-title {
+    position: absolute; top: 8px; left: 12px; right: 12px;
+    display: flex; justify-content: space-between; color: #f3d0d0; font-size: 13px;
+  }
+  .meter {
+    display: flex; flex-direction: column; align-items: center; justify-content: flex-end;
+    background: rgba(20, 4, 8, 0.45);
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    padding: 12px 8px;
+    position: relative;
+  }
+  .bar-track {
+    width: 54px; height: 210px; border-radius: 12px;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 180, 180, 0.2);
+    position: relative; overflow: hidden;
+  }
+  .bar-fill {
+    position: absolute; left: 0; right: 0; bottom: 0;
+    background: linear-gradient(180deg, #ffd0d4, #c81e3a 45%, #6a1020);
+    border-radius: 10px;
+  }
+  .limit {
+    position: absolute; left: -8px; right: -8px; height: 0;
+    border-top: 2px solid var(--red);
+  }
+  .limit span {
+    position: absolute; left: 62px; top: -10px; color: var(--red); font-size: 12px; white-space: nowrap;
+  }
+  .score-label { margin-top: 8px; font-size: 13px; color: var(--muted); }
+  .legend { display: flex; flex-wrap: wrap; gap: 14px; margin: 14px 2px; font-size: 13px; color: var(--muted); }
+  .swatch { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 6px; }
+  .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 8px 0 16px; }
+  .stat {
+    background: rgba(40, 8, 12, 0.4);
+    border: 1px solid rgba(255, 180, 180, 0.14);
+    border-radius: 16px;
+    padding: 14px 16px;
+  }
+  .stat b { display: block; font-size: 28px; font-weight: 650; margin-top: 4px; }
+  .stat .k { color: var(--muted); font-size: 13px; }
+  .cooldown b { color: var(--cool); }
+  .negative b { color: #ff8d96; }
+  .controls { display: grid; grid-template-columns: 1fr 1fr 1fr auto; gap: 16px; align-items: end; }
+  label { display: block; color: var(--muted); font-size: 13px; }
+  input[type="range"] { width: 100%; accent-color: #c81e3a; }
+  .val { color: var(--ink); float: right; }
+  .spike {
+    background: linear-gradient(180deg, #ff5a66, #9d1828);
+    border: 0;
+    border-radius: 999px;
+    padding: 12px 18px;
+    font-weight: 650;
+  }
+  .read {
+    margin-top: 14px; color: var(--muted); font-size: 13px;
+  }
+  @media (max-width: 800px) {
+    .stage, .stats, .controls { grid-template-columns: 1fr; }
+    header { flex-direction: column; align-items: start; }
+  }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <div>
+      <h1>Engel desk initiative</h1>
+      <p class="sub">Each bot weighs the room, then speaks only when the margin is positive. Josh silence still wins.</p>
+    </div>
+    <div class="desks" id="desks"></div>
+  </header>
+  <section class="panel">
+    <div class="stage">
+      <div class="chart-wrap">
+        <div class="chart-title"><span>Metrics timeline</span><span id="gate-label">Evaluation gateway</span></div>
+        <canvas id="chart" width="860" height="280"></canvas>
+      </div>
+      <div class="meter">
+        <div class="bar-track" id="track">
+          <div class="bar-fill" id="fill"></div>
+          <div class="limit" id="limit"><span id="limit-label">Limit</span></div>
+        </div>
+        <div class="score-label" id="score-label">Score</div>
+      </div>
+    </div>
+    <div class="legend">
+      <span><i class="swatch" style="background:#7ec8ff"></i>Sentiment shift</span>
+      <span><i class="swatch" style="background:#7dffa8"></i>Topic relevance</span>
+      <span><i class="swatch" style="background:#e7c56a"></i>Inactivity interval</span>
+      <span><i class="swatch" style="background:#d7b4ff"></i>Engel combined priority</span>
+    </div>
+    <div class="stats">
+      <div class="stat"><span class="k">Initiative score</span><b id="score">0</b></div>
+      <div class="stat" id="state-card"><span class="k">Evaluation state</span><b id="state">Hold</b></div>
+      <div class="stat" id="margin-card"><span class="k">Activation margin</span><b id="margin">0</b></div>
+    </div>
+    <div class="controls">
+      <label>Activation threshold <span class="val" id="th-val">61%</span>
+        <input id="threshold" type="range" min="40" max="90" value="61" />
+      </label>
+      <label>Sentiment weight <span class="val" id="se-val">0.20</span>
+        <input id="sentiment" type="range" min="0" max="80" value="20" />
+      </label>
+      <label>Topic relevance weight <span class="val" id="to-val">0.60</span>
+        <input id="topic" type="range" min="10" max="80" value="60" />
+      </label>
+      <button class="spike" id="spike" type="button">Simulate activity metric spike</button>
+    </div>
+    <p class="read" id="read"></p>
+  </section>
+</main>
+<script>
+const DESKS = {
+  research: { name: "Engel Research", line: "Public hackathons this week: LaunchHacks V, ForgeHacks, Hack Apertus." },
+  product: { name: "Engel Product", line: "Roadmap feature priority for the Flutter app cosmic swarm MVP." },
+  community: { name: "Engel Community", line: "Welcome the guest and keep the house event tone warm." },
+  support: { name: "Engel Support", line: "The chat line is broken with an error. Need a fix and repro steps." },
+  sales: { name: "Engel Sales", line: "Public AI credit offer: Kaggle GPU hours and a pricing quote." },
+  ops: { name: "Engel Ops", line: "CT246 service health, deploy readiness, and the vault mount." }
+};
+const N = 42;
+const history = { sentiment: [], topic: [], inactivity: [], combined: [] };
+let desk = "product";
+let cooldownUntil = 0;
+let spike = 0;
+
+function seed() {
+  for (let i = 0; i < N; i++) {
+    const t = i / (N - 1);
+    history.sentiment.push(0.72 + Math.sin(t * 9) * 0.08);
+    history.topic.push(0.78 + Math.cos(t * 7) * 0.06);
+    history.inactivity.push(t < 0.62 ? 0.28 + t * 0.22 : 0.04 + (t - 0.62) * 0.18);
+    pushCombined(history.sentiment[i], history.topic[i], history.inactivity[i], false);
+  }
+}
+function weights() {
+  const sentiment = Number(document.getElementById("sentiment").value) / 100;
+  const topic = Number(document.getElementById("topic").value) / 100;
+  const inactivity = Math.max(0, 1 - sentiment - topic);
+  const threshold = Number(document.getElementById("threshold").value);
+  return { sentiment, topic, inactivity, threshold };
+}
+function pushCombined(s, t, i, shift) {
+  const w = weights();
+  const scale = w.sentiment + w.topic + w.inactivity || 1;
+  const combined = ((s * w.sentiment) + (t * w.topic) + (i * w.inactivity)) / scale;
+  if (shift) {
+    history.sentiment.shift(); history.topic.shift(); history.inactivity.shift(); history.combined.shift();
+  }
+  if (shift) {
+    history.sentiment.push(s); history.topic.push(t); history.inactivity.push(i);
+  }
+  history.combined.push(combined);
+  if (history.combined.length > N) history.combined.shift();
+}
+function recompute() {
+  history.combined = [];
+  for (let i = 0; i < history.sentiment.length; i++) {
+    const w = weights();
+    const scale = w.sentiment + w.topic + w.inactivity || 1;
+    history.combined.push(((history.sentiment[i] * w.sentiment) + (history.topic[i] * w.topic) + (history.inactivity[i] * w.inactivity)) / scale);
+  }
+}
+function current() {
+  const i = history.sentiment.length - 1;
+  const s = history.sentiment[i];
+  const t = history.topic[i];
+  const inn = history.inactivity[i];
+  const score = Math.round(history.combined[i] * 1000) / 10;
+  const w = weights();
+  const raw = Math.round((score - w.threshold) * 10) / 10;
+  const cooling = Date.now() < cooldownUntil;
+  let state = "Hold";
+  let margin = raw;
+  if (cooling) { state = "Cooldown"; margin = -Math.abs(raw || 1); }
+  else if (raw >= 0 && t > 0) state = "Activate";
+  return { score, state, margin, s, t, inn };
+}
+function draw() {
+  const canvas = document.getElementById("chart");
+  const ctx = canvas.getContext("2d");
+  const dpr = window.devicePixelRatio || 1;
+  const rect = canvas.getBoundingClientRect();
+  canvas.width = rect.width * dpr;
+  canvas.height = rect.height * dpr;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const w = rect.width, h = rect.height;
+  ctx.clearRect(0, 0, w, h);
+  const left = 36, right = 12, top = 36, bottom = 28;
+  const iw = w - left - right, ih = h - top - bottom;
+  ctx.strokeStyle = "rgba(255,180,180,0.18)";
+  ctx.fillStyle = "rgba(255,210,210,0.55)";
+  ctx.font = "11px Segoe UI";
+  ctx.textAlign = "right";
+  for (const pct of [0, 50, 100]) {
+    const y = top + ih - (pct / 100) * ih;
+    ctx.beginPath(); ctx.moveTo(left, y); ctx.lineTo(w - right, y); ctx.stroke();
+    ctx.fillText(pct + "%", left - 6, y + 4);
+  }
+  const wts = weights();
+  const yLimit = top + ih - (wts.threshold / 100) * ih;
+  ctx.strokeStyle = "rgba(255,77,90,0.85)";
+  ctx.setLineDash([5, 5]);
+  ctx.beginPath(); ctx.moveTo(left, yLimit); ctx.lineTo(w - right, yLimit); ctx.stroke();
+  ctx.setLineDash([]);
+  const gate = Math.floor(N * 0.62);
+  const xGate = left + (gate / (N - 1)) * iw;
+  ctx.strokeStyle = "rgba(255,220,220,0.25)";
+  ctx.beginPath(); ctx.moveTo(xGate, top); ctx.lineTo(xGate, top + ih); ctx.stroke();
+  function stroke(series, color, width) {
+    ctx.beginPath();
+    series.forEach((v, i) => {
+      const x = left + (i / (N - 1)) * iw;
+      const y = top + ih - Math.max(0, Math.min(1, v)) * ih;
+      if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+    });
+    ctx.strokeStyle = color; ctx.lineWidth = width; ctx.stroke();
+  }
+  stroke(history.sentiment, "#7ec8ff", 2);
+  stroke(history.topic, "#7dffa8", 2);
+  stroke(history.inactivity, "#e7c56a", 2);
+  stroke(history.combined, "#d7b4ff", 2.6);
+  ctx.fillStyle = "rgba(255,210,210,0.7)";
+  ctx.textAlign = "left";
+  ctx.fillText("0", left, h - 8);
+  ctx.textAlign = "right";
+  ctx.fillText("latest turn", w - right, h - 8);
+  ctx.textAlign = "center";
+  ctx.fillText("room time", left + iw / 2, h - 8);
+}
+function paint() {
+  recompute();
+  const now = current();
+  document.getElementById("score").textContent = now.score.toFixed(1);
+  document.getElementById("state").textContent = now.state;
+  document.getElementById("margin").textContent = (now.margin > 0 ? "+" : "") + now.margin.toFixed(1);
+  document.getElementById("state-card").className = "stat" + (now.state === "Cooldown" ? " cooldown" : "");
+  document.getElementById("margin-card").className = "stat" + (now.margin < 0 ? " negative" : "");
+  document.getElementById("score-label").textContent = "Score: " + now.score.toFixed(1);
+  const w = weights();
+  document.getElementById("th-val").textContent = w.threshold + "%";
+  document.getElementById("se-val").textContent = w.sentiment.toFixed(2);
+  document.getElementById("to-val").textContent = w.topic.toFixed(2);
+  document.getElementById("limit-label").textContent = "Limit (" + w.threshold + ")";
+  const fill = document.getElementById("fill");
+  fill.style.height = Math.max(4, Math.min(100, now.score)) + "%";
+  document.getElementById("limit").style.bottom = w.threshold + "%";
+  const row = DESKS[desk];
+  const speak = now.state === "Activate" ? "may speak" : "stays quiet";
+  document.getElementById("read").textContent =
+    row.name + " read: “" + row.line + "” Sentiment " + now.s.toFixed(2) +
+    ", topic " + now.t.toFixed(2) + ", inactivity " + now.inn.toFixed(2) +
+    ". Inactivity weight " + w.inactivity.toFixed(2) + ". This desk " + speak + ".";
+  draw();
+}
+function selectDesk(id) {
+  desk = id;
+  document.querySelectorAll(".desks button").forEach((btn) => {
+    btn.setAttribute("aria-pressed", btn.dataset.desk === id ? "true" : "false");
+  });
+  const bump = { research: 0.86, product: 0.9, community: 0.7, support: 0.84, sales: 0.8, ops: 0.88 }[id];
+  history.topic[history.topic.length - 1] = bump;
+  paint();
+}
+document.getElementById("desks").innerHTML = Object.entries(DESKS).map(([id, row]) =>
+  '<button type="button" data-desk="' + id + '"' + (id === desk ? ' aria-pressed="true"' : ' aria-pressed="false"') + '>' + row.name.replace("Engel ", "") + "</button>"
+).join("");
+document.getElementById("desks").addEventListener("click", (event) => {
+  const btn = event.target.closest("button");
+  if (btn) selectDesk(btn.dataset.desk);
+});
+["threshold", "sentiment", "topic"].forEach((id) => {
+  document.getElementById(id).addEventListener("input", paint);
+});
+document.getElementById("spike").addEventListener("click", () => {
+  spike = 8;
+  const step = () => {
+    if (spike <= 0) return;
+    const hot = spike > 4;
+    const s = hot ? 0.96 : 0.8;
+    const t = hot ? 0.98 : 0.84;
+    const i = hot ? 0.02 : 0.08 + (4 - Math.min(spike, 4)) * 0.04;
+    history.sentiment.shift(); history.topic.shift(); history.inactivity.shift();
+    history.sentiment.push(s); history.topic.push(t); history.inactivity.push(i);
+    if (hot) cooldownUntil = Date.now() + 6000;
+    spike -= 1;
+    paint();
+    if (spike > 0) setTimeout(step, 280);
+  };
+  step();
+});
+window.addEventListener("resize", paint);
+seed();
+paint();
+</script>
+</body>
+</html>

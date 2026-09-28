@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-26T00:56:16Z",
+  "created_by": "hermes-optional-catalog-import-20260825",
+  "description": "Public-records OSINT investigation framework — SEC EDGAR filings, USAspending contracts, Senate lobbying, OFAC sanctions, ICIJ offshore leaks, NYC property records (ACRIS), OpenCorporates registries, CourtListener court records, Wayback Machine archives, Wikipedia + Wikidata, GDELT news monitoring. Entity resolution across sources, cross-link analysis, timing correlation, evidence chains. Python s",
+  "name": "Engel Osint Investigation",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-hermes-osint-investigation",
+  "skill_md_sha256": "0f323acf83fefdd62e25f1e846e071abd7fe0c432d699d7bda595d698edc113e",
+  "source": "engel-ai-main-server",
+  "updated_at_utc": "2026-08-26T00:56:16Z"
+}

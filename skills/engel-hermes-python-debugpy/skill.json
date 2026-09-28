@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-26T00:45:20Z",
+  "created_by": "hermes-root-catalog-import-20260825",
+  "description": "Debug Python: pdb REPL + debugpy remote (DAP).",
+  "name": "Engel Hermes python-debugpy",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-hermes-python-debugpy",
+  "skill_md_sha256": "3e0fa6fbbd20013f4e68dd903896e16f17fa9990780272b66119019113253c17",
+  "source": "engel-ai-main-server",
+  "updated_at_utc": "2026-08-26T00:45:20Z"
+}

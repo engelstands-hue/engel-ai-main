@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-26T00:56:16Z",
+  "created_by": "hermes-optional-catalog-import-20260825",
+  "description": "Embed alibaba/page-agent into your own web application — a pure-JavaScript in-page GUI agent that ships as a single <script> tag or npm package and lets end-users of your site drive the UI with natural language (\"click login, fill username as John\"). No Python, no headless browser, no extension required. Use this skill when the user is a web developer who wants to add an AI copilot to their SaaS /",
+  "name": "Engel Page Agent",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-hermes-page-agent",
+  "skill_md_sha256": "cd2ee4e26d773569a8b7ccedac3311047017d0c0ba07e3ad738f37ed2bd9ad1d",
+  "source": "engel-ai-main-server",
+  "updated_at_utc": "2026-08-26T00:56:16Z"
+}

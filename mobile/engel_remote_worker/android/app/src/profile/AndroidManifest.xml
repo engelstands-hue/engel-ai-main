@@ -1,0 +1,3 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Engel Remote Worker scaffold: no network permission in profile mode. -->
+</manifest>

@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-26T00:56:15Z",
+  "created_by": "hermes-optional-catalog-import-20260825",
+  "description": "Simplest distributed training API. 4 lines to add distributed support to any PyTorch script. Unified API for DeepSpeed/FSDP/Megatron/DDP. Automatic device placement, mixed precision (FP16/BF16/FP8). Interactive config, single launch command. HuggingFace ecosystem standard.",
+  "name": "Engel Huggingface Accelerate",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-hermes-accelerate",
+  "skill_md_sha256": "3473bd3973f472cb87a4dc10af6178d19f0a1f6b6bbd290e825df99174c0ec0b",
+  "source": "engel-ai-main-server",
+  "updated_at_utc": "2026-08-26T00:56:15Z"
+}

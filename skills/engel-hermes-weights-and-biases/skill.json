@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-26T00:45:20Z",
+  "created_by": "hermes-root-catalog-import-20260825",
+  "description": "W&B: log ML experiments, sweeps, model registry, dashboards.",
+  "name": "Engel Hermes weights-and-biases",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-hermes-weights-and-biases",
+  "skill_md_sha256": "634203604cf403f817590bc3dbdfb1c4ab5d7d038efdca648af2e22b0c55a8c4",
+  "source": "engel-ai-main-server",
+  "updated_at_utc": "2026-08-26T00:45:20Z"
+}

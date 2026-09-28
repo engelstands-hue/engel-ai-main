@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-26T00:56:14Z",
+  "created_by": "hermes-optional-catalog-import-20260825",
+  "description": "Manage Docker containers, images, volumes, networks, and Compose stacks — lifecycle ops, debugging, cleanup, and Dockerfile optimization.",
+  "name": "Engel Docker Management",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-hermes-docker-management",
+  "skill_md_sha256": "11211177420cc446f18706704e309def7b5be4e2d6c984b546ba96901ba06daa",
+  "source": "engel-ai-main-server",
+  "updated_at_utc": "2026-08-26T00:56:14Z"
+}

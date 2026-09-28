@@ -1,0 +1,10 @@
+{
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "icm-architect",
+  "name": "ICM Architect",
+  "description": "Apply ICM Architect from D:\\b.WorkSpace\\icm-architect-main to Engel AI Main.",
+  "source": "icm-architect-main",
+  "created_at_utc": "2026-08-17T00:00:00Z",
+  "updated_at_utc": "2026-08-17T00:00:00Z",
+  "created_by": "engel-icm-on-app"
+}

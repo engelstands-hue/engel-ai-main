@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-26T00:56:15Z",
+  "created_by": "hermes-optional-catalog-import-20260825",
+  "description": "Managed vector database for production AI applications. Fully managed, auto-scaling, with hybrid search (dense + sparse), metadata filtering, and namespaces. Low latency (<100ms p95). Use for production RAG, recommendation systems, or semantic search at scale. Best for serverless, managed infrastructure.",
+  "name": "Engel Pinecone",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-hermes-pinecone",
+  "skill_md_sha256": "33f3da979ea5f90b8372e6eb4ca8d579feeb72aea414d2b06f04cf86dbc10b36",
+  "source": "engel-ai-main-server",
+  "updated_at_utc": "2026-08-26T00:56:15Z"
+}

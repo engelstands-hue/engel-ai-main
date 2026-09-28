@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-26T00:56:15Z",
+  "created_by": "hermes-optional-catalog-import-20260825",
+  "description": "Provides guidance for LLM post-training with RL using slime, a Megatron+SGLang framework. Use when training GLM models, implementing custom data generation workflows, or needing tight Megatron-LM integration for RL scaling.",
+  "name": "Engel Slime Rl Training",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-hermes-slime",
+  "skill_md_sha256": "986fffe6289f15b4f289b7837fbdaa5f18be30564875cce87b0f65fcd0f2095b",
+  "source": "engel-ai-main-server",
+  "updated_at_utc": "2026-08-26T00:56:15Z"
+}

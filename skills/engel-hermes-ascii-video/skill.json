@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-26T00:45:19Z",
+  "created_by": "hermes-root-catalog-import-20260825",
+  "description": "ASCII video: convert video/audio to colored ASCII MP4/GIF.",
+  "name": "Engel Hermes ascii-video",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-hermes-ascii-video",
+  "skill_md_sha256": "497b6c83e850c5c8c9446467a1d4ec25c3b69bc757177eaeda44a20beecd9f0d",
+  "source": "engel-ai-main-server",
+  "updated_at_utc": "2026-08-26T00:45:19Z"
+}

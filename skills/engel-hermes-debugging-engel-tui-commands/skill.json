@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-26T00:45:20Z",
+  "created_by": "hermes-root-catalog-import-20260825",
+  "description": "Debug Engel TUI slash commands: Python, gateway, Ink UI.",
+  "name": "Engel Hermes debugging-engel-tui-commands",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-hermes-debugging-engel-tui-commands",
+  "skill_md_sha256": "4ff829d7558b301fd423d65fab1a4dd22811bba9fee9c7297897dd76f2473ea6",
+  "source": "engel-ai-main-server",
+  "updated_at_utc": "2026-08-26T00:45:20Z"
+}

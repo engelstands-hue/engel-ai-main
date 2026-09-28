@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-26T00:45:20Z",
+  "created_by": "hermes-root-catalog-import-20260825",
+  "description": "HuggingFace hf CLI: search/download/upload models, datasets.",
+  "name": "Engel Hermes huggingface-hub",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-hermes-huggingface-hub",
+  "skill_md_sha256": "154d03423416e2bb9146ab486aa859b055b10b56b2a2f881d45ccf47a092d659",
+  "source": "engel-ai-main-server",
+  "updated_at_utc": "2026-08-26T00:45:20Z"
+}

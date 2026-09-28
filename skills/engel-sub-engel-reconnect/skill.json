@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-25T21:48:52Z",
+  "created_by": "storage-pull-next-stage",
+  "description": "Sub-Engel reconnect and proof contract from the Hermes patch: health URLs, proof JSON keys, no-C rule.",
+  "name": "Engel Sub-Engel Reconnect",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-sub-engel-reconnect",
+  "skill_md_sha256": "6d94f48290d414addc563f3736a636ccbfa5d2c875773eddcd30331a36a1b38b",
+  "source": "engel-ai-main-server",
+  "updated_at_utc": "2026-08-25T21:48:52Z"
+}

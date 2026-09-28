@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-26T00:45:20Z",
+  "created_by": "hermes-root-catalog-import-20260825",
+  "description": "lm-eval-harness: benchmark LLMs (MMLU, GSM8K, etc.).",
+  "name": "Engel Hermes evaluating-llms-harness",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-hermes-lm-evaluation-harness",
+  "skill_md_sha256": "dfd17de405bdd9c9186ae76296eecc909e6ab6f0793664dbe8b4b8c05a119f6d",
+  "source": "engel-ai-main-server",
+  "updated_at_utc": "2026-08-26T00:45:20Z"
+}

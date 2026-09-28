@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-26T00:45:20Z",
+  "created_by": "hermes-root-catalog-import-20260825",
+  "description": "X/Twitter via xurl CLI: post, search, DM, media, v2 API.",
+  "name": "Engel Hermes xurl",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-hermes-xurl",
+  "skill_md_sha256": "4a8f71e00054b9a8e944ec634aa94f04620292abab5b042a6c5ca35fb650bc27",
+  "source": "engel-ai-main-server",
+  "updated_at_utc": "2026-08-26T00:45:20Z"
+}

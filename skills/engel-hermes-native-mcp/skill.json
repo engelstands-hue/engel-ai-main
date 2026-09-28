@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-26T00:45:20Z",
+  "created_by": "hermes-root-catalog-import-20260825",
+  "description": "MCP client: connect servers, register tools (stdio/HTTP).",
+  "name": "Engel Hermes native-mcp",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-hermes-native-mcp",
+  "skill_md_sha256": "5f12799b348ff7af9e9fff8307d09fe74daaa58233feced63812f8d17fe69b1e",
+  "source": "engel-ai-main-server",
+  "updated_at_utc": "2026-08-26T00:45:20Z"
+}

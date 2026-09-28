@@ -1,0 +1,561 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Engel User Manual</title>
+<style>
+:root {
+  --bg: #0a0a0a;
+  --surface: #111111;
+  --border: #2a2a2a;
+  --text: #cccccc;
+  --dim: #777777;
+  --green: #00ff88;
+  --amber: #ffaa00;
+  --blue: #44aaff;
+  --red: #ff4444;
+}
+
+@page {
+  size: A4;
+  margin: 18mm 18mm 22mm 18mm;
+  background: var(--bg);
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'JetBrains Mono', 'Cascadia Mono', Consolas, 'Courier New', monospace;
+  font-size: 10pt;
+  line-height: 1.55;
+  margin: 0;
+  padding: 0;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  color: var(--green);
+  font-weight: 900;
+  letter-spacing: 1.5px;
+  margin: 1.6em 0 0.6em 0;
+  page-break-after: avoid;
+}
+
+h1 { font-size: 22pt; letter-spacing: 4px; border-bottom: 1px solid var(--border); padding-bottom: 0.4em; }
+h2 { font-size: 15pt; letter-spacing: 2.5px; border-bottom: 1px solid var(--border); padding-bottom: 0.3em; }
+h3 { font-size: 12pt; color: var(--blue); letter-spacing: 1px; }
+h4 { font-size: 11pt; color: var(--amber); letter-spacing: 1px; }
+
+p { margin: 0.6em 0; }
+
+a { color: var(--blue); text-decoration: none; border-bottom: 1px dotted var(--blue); }
+
+strong { color: #ffffff; font-weight: 700; }
+em { color: var(--dim); font-style: normal; }
+
+code {
+  background: var(--surface);
+  color: var(--green);
+  padding: 1px 5px;
+  border: 1px solid var(--border);
+  border-radius: 0;
+  font-size: 9pt;
+}
+
+pre {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--green);
+  padding: 10px 12px;
+  margin: 0.8em 0;
+  font-size: 8.5pt;
+  line-height: 1.4;
+  overflow-x: auto;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  color: var(--text);
+  page-break-inside: avoid;
+}
+
+pre code {
+  background: transparent;
+  border: 0;
+  padding: 0;
+  color: var(--text);
+  font-size: inherit;
+}
+
+table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 0.8em 0;
+  font-size: 9pt;
+  page-break-inside: avoid;
+}
+
+th, td {
+  border: 1px solid var(--border);
+  padding: 6px 9px;
+  text-align: left;
+  vertical-align: top;
+}
+
+th {
+  background: #161616;
+  color: var(--green);
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+td code { font-size: 8.5pt; }
+
+blockquote {
+  border-left: 3px solid var(--amber);
+  background: #141414;
+  margin: 0.8em 0;
+  padding: 0.4em 0.9em;
+  color: var(--text);
+}
+
+hr {
+  border: 0;
+  border-top: 1px solid var(--border);
+  margin: 2em 0;
+}
+
+ul, ol { padding-left: 1.4em; margin: 0.5em 0; }
+li { margin: 0.2em 0; }
+
+img {
+  max-width: 100%;
+  border: 1px solid var(--border);
+  margin: 0.6em 0;
+  page-break-inside: avoid;
+}
+
+.cover {
+  text-align: center;
+  margin-top: 2em;
+}
+
+.cover pre {
+  border: 0;
+  border-left: 0;
+  background: transparent;
+  color: var(--green);
+  font-size: 7pt;
+  line-height: 1.1;
+  padding: 0;
+}
+
+@media print {
+  h1, h2, h3 { page-break-after: avoid; }
+  pre, table, img { page-break-inside: avoid; }
+}
+</style>
+</head>
+<body>
+<h1>ENGEL · USER MANUAL</h1>
+<blockquote>A local AI companion that lives on your desktop. Everything runs on your machine. Nothing leaves without your say-so.</blockquote>
+<pre><code>  ██████╗ ███╗   ██╗ ██████╗ ███████╗██╗
+ ██╔════╝ ████╗  ██║██╔════╝ ██╔════╝██║
+ ██║  ███╗██╔██╗ ██║██║  ███╗█████╗  ██║
+ ██║   ██║██║╚██╗██║██║   ██║██╔══╝  ██║
+ ╚██████╔╝██║ ╚████║╚██████╔╝███████╗███████╗
+  ╚═════╝ ╚═╝  ╚═══╝ ╚═════╝ ╚══════╝╚══════╝</code></pre>
+<hr />
+<h2>TABLE OF CONTENTS</h2>
+<ol>
+<li><a href="#1-what-engel-is">What Engel is</a></li>
+<li><a href="#2-installing--launching">Installing &amp; launching</a></li>
+<li><a href="#3-the-companion-window">The Companion window</a></li>
+<li><a href="#4-chat-commands-you-can-type">Chat commands you can type</a></li>
+<li><a href="#5-the-super-swarm-hive-dashboard">The Super Swarm Hive dashboard</a></li>
+<li><a href="#6-mobile-apps">Mobile apps</a></li>
+<li><a href="#7-troubleshooting">Troubleshooting</a></li>
+</ol>
+<hr />
+<h2>1. WHAT ENGEL IS</h2>
+<p>Engel is a desktop AI companion. Three things make it different:</p>
+<table>
+<tr><th>Property</th><th>What it means</th></tr>
+<tr><td><strong>Local-first</strong></td><td>The desktop app, chat history, and most actions run on your machine. No cloud account.</td></tr>
+<tr><td><strong>Bridges-not-integrations</strong></td><td>Type <code>browser ai connect chatgpt</code> to talk to ChatGPT, <code>evolve list</code> to use Imbue&#x27;s evolver, <code>ephify build</code> to map a project. Each external thing is one chat command.</td></tr>
+<tr><td><strong>Read-only by default</strong></td><td>The &quot;AI plan&quot; lane shows what would happen before anything runs. You proceed manually. No autonomous file writes.</td></tr>
+</table>
+<p>There are two executables:</p>
+<ul>
+<li><strong><code>Engel.exe</code></strong> — the everyday companion (orb on desktop, chat window).</li>
+<li><strong><code>EngelSuperSwarmHive3D.exe</code></strong> — the power-user dashboard with the colony hives, queens, expansion charts, permissions.</li>
+</ul>
+<hr />
+<h2>2. INSTALLING &amp; LAUNCHING</h2>
+<h3>First-time setup</h3>
+<ol>
+<li>Copy <code>Engel.exe</code> and <code>EngelSuperSwarmHive3D.exe</code> to any folder.</li>
+<li>Make sure Python 3.10+ is installed if you want the chat bridges to call Playwright/Ephify/Evolver. (The exe runs without them, the bridges fail gracefully.)</li>
+<li>For browser-AI bridges (Claude/ChatGPT/Gemini in a real browser), once:</li>
+</ol>
+<p>   ```</p>
+<p>   python -m playwright install chromium</p>
+<p>   ```</p>
+<h3>Launching</h3>
+<p>Double-click <code>Engel.exe</code>. A small orb appears in the upper-right of your screen with a tray icon.</p>
+<p><img alt="Engel orb on desktop" src="screenshots/01-companion-orb.png" /></p>
+<p><em>Closed mode — a small floating orb. Drag to move. Double-click to open the chat window.</em></p>
+<hr />
+<h2>3. THE COMPANION WINDOW</h2>
+<h3>3.1 Closed (orb) mode</h3>
+<p>When closed, Engel sits as a small frameless orb that stays on top of other windows. You can:</p>
+<ul>
+<li><strong>Drag</strong> anywhere to move it</li>
+<li><strong>Double-click</strong> to expand into the chat window</li>
+<li><strong>Drop a file or folder</strong> onto the orb — Engel will summarize it (if the path is allowed)</li>
+<li><strong>Right-click the tray icon</strong> to quit cleanly</li>
+</ul>
+<h3>3.2 Open (chat) mode</h3>
+<p>Double-click the orb. The window expands into the full companion view.</p>
+<p><img alt="Companion expanded" src="screenshots/02-companion-open.png" /></p>
+<pre><code>┌─────────────────────────────────────────────────────────────────┬─────────────────────┐
+│ ENGEL COMPANION                                                 │       SAFE / IDLE   │
+├─────────────────────────────────────────────────────────────────┤                     │
+│ LOCAL · GUARDS ON · PROVIDER OFF                                │   ┌──────────────┐  │
+├─────────────────────────────────────────────────────────────────┤   │ Mobile OFF   │  │
+│                                                                 │   ├──────────────┤  │
+│  System: Engel is awake. Double-click me to talk. Drop          │   │ Research OFF │  │
+│          approved files or folders onto me and I&#x27;ll summarize.  │   ├──────────────┤  │
+│                                                                 │   │ Hive         │  │
+│  You: browser ai connect duck                                   │   ├──────────────┤  │
+│                                                                 │   │ Code         │  │
+│  Engel: # Browser AI Connected — DuckDuckGo AI Chat             │   └──────────────┘  │
+│         A browser window opened.                                │                     │
+│         Log in if prompted (session is saved for next time).    │  PLAN BODY RECEIPTS │
+│         Type your messages here in Engel...                     │       MOBILE GROWTH │
+│                                                                 │  ┌────────────────┐ │
+│                                                                 │  │ ENGEL AI PLAN  │ │
+│                                                                 │  │                │ │
+│                                                                 │  │ Request:       │ │
+│                                                                 │  │ ┌────────────┐ │ │
+│                                                                 │  │ │ ...        │ │ │
+│                                                                 │  │ └────────────┘ │ │
+│                                                                 │  │                │ │
+│                                                                 │  │ [Plan]         │ │
+│                                                                 │  │ [Classify]     │ │
+│                                                                 │  │ [Planner...]   │ │
+│                                                                 │  └────────────────┘ │
+├─────────────────────────────────────────────────────────────────┤                     │
+│ Talk to Engel...                                                │           ready     │
+└─────────────────────────────────────────────────────────────────┴─────────────────────┘</code></pre>
+<h4>The header strip</h4>
+<table>
+<tr><th>Element</th><th>Meaning</th></tr>
+<tr><td><code>ENGEL COMPANION</code></td><td>Big green title</td></tr>
+<tr><td><code>Drop files to summarize · type to talk</code></td><td>One-line hint (replaces the old buzzword subtitle)</td></tr>
+<tr><td><code>LOCAL · GUARDS ON · PROVIDER OFF</code></td><td>Status rail. Tells you Engel is local-only, guards are active, and whether a brain provider is wired.</td></tr>
+</table>
+<h4>The chat area</h4>
+<ul>
+<li>Scrollback shows every message: <code>System:</code> (Engel telling you something), <code>You:</code> (your input), <code>Engel:</code> (response from a bridge or the brain provider).</li>
+<li>Type in the input box at the bottom and press Enter.</li>
+<li>If something is unrecognized, Engel forwards it to the connected brain provider (browser AI / local LLM).</li>
+</ul>
+<h4>The right column</h4>
+<p><strong>Status pill</strong> (top right):</p>
+<ul>
+<li><code>SAFE / IDLE</code> — nothing happening</li>
+<li><code>MOBILE ON</code> — mobile bridge is up</li>
+<li><code>RESEARCHING</code> — overnight research worker is active</li>
+<li><code>SPEAKING</code> — currently responding</li>
+<li><code>CAUTION</code> — approval-gated action pending</li>
+<li><code>ERROR</code> — something failed; check the chat</li>
+</ul>
+<p><strong>4 launcher buttons:</strong></p>
+<table>
+<tr><th>Button</th><th>What it does</th></tr>
+<tr><td><strong>Mobile OFF / ON</strong></td><td>Toggle the local mobile bridge so the mobile apps can pair</td></tr>
+<tr><td><strong>Research OFF / ON</strong></td><td>Toggle the overnight candidate-only research worker mode</td></tr>
+<tr><td><strong>Hive</strong></td><td>Open the Colony Hive dashboard (separate window)</td></tr>
+<tr><td><strong>Code</strong></td><td>Open the standalone Code Companion window</td></tr>
+</table>
+<p><strong>5 audit tabs</strong> (replace 13 from before):</p>
+<h4>PLAN tab</h4>
+<p><img alt="PLAN tab" src="screenshots/03-tab-plan.png" /></p>
+<p>Where you turn a request into a read-only plan before running it.</p>
+<ul>
+<li>Type a request in the <strong>Request</strong> box</li>
+<li>Hit <strong>Plan</strong> → Engel builds a structured plan (intent, route, risk, approval, guardian)</li>
+<li>Hit <strong>Classify</strong> → just shows what intent Engel sees</li>
+<li>Hit <strong>Planner Status</strong> → diagnostics</li>
+<li><strong>Proceed</strong> is gated. It only runs <em>approval-free allowlisted deterministic routes</em>. Anything risky stays at &quot;Plan only.&quot;</li>
+</ul>
+<h4>BODY tab</h4>
+<p>The &quot;what&#x27;s happening now&quot; panel. Shows the active running action / route, if any. When idle, shows zero state.</p>
+<h4>RECEIPTS tab</h4>
+<p>Audit log of past plans. Two buttons:</p>
+<ul>
+<li><strong>Refresh Receipts</strong> — reload the list from disk</li>
+<li><strong>Open Selected</strong> — open the receipt details</li>
+</ul>
+<h4>MOBILE tab</h4>
+<p>Read-only view of:</p>
+<ul>
+<li>Whether the mobile bridge is on</li>
+<li>Which mobile contract/design docs exist on disk (a table)</li>
+</ul>
+<p><strong>No action buttons</strong> — anything you can do for the mobile bridge is on the <strong>Mobile OFF/ON</strong> button up top. (The old &quot;Future Disabled Actions&quot; section of 10 placeholder buttons was removed.)</p>
+<h4>GROWTH tab</h4>
+<p><img alt="GROWTH tab" src="screenshots/04-tab-growth.png" /></p>
+<p>Single dropdown picks which read-only AI-growth surface to show. 9 surfaces consolidated into 1 tab:</p>
+<table>
+<tr><th>Surface</th><th>What it shows</th></tr>
+<tr><td>AI Growth</td><td>Dashboard of Engel&#x27;s growth signals</td></tr>
+<tr><td>Self-Learning</td><td>Status of the self-learning loop</td></tr>
+<tr><td>Candidate Review</td><td>Pending candidate changes for review</td></tr>
+<tr><td>Code Companion Review</td><td>Code Companion candidate + patch status</td></tr>
+<tr><td>Global Safety</td><td>Password / global safety action status</td></tr>
+<tr><td>System Integration</td><td>System integration status</td></tr>
+<tr><td>Self-Fix</td><td>Low-risk self-fix dry-run + receipts</td></tr>
+<tr><td>Memory Promotion</td><td>Memory promotion candidate status</td></tr>
+<tr><td>Research-to-Fix</td><td>Research-to-fix loop status</td></tr>
+</table>
+<p>All are <strong>read-only</strong>. There are no &quot;Apply&quot; buttons in this tab — by design.</p>
+<hr />
+<h2>4. CHAT COMMANDS YOU CAN TYPE</h2>
+<p>The chat input understands a set of bridge commands. Each command has its own <code>status</code> subcommand that explains what&#x27;s missing if anything.</p>
+<h3>4.1 Browser AI bridge</h3>
+<p>Talk to Claude, ChatGPT, Gemini, etc. through a real browser session. No API keys.</p>
+<pre><code>browser ai connect chatgpt    # opens chatgpt.com in a browser; log in if prompted
+browser ai connect claude     # claude.ai
+browser ai connect duck       # duck.ai (no login, FREE)
+browser ai connect google     # gemini.google.com (needs Google login)
+browser ai disconnect         # close the session
+browser ai switch &lt;provider&gt;  # disconnect + connect a different provider</code></pre>
+<p>Once connected, type any message in Engel chat and it&#x27;s sent to that AI. The response comes back into the chat.</p>
+<p><strong>Requires:</strong> <code>pip install playwright &amp;&amp; python -m playwright install chromium</code> (once).</p>
+<h3>4.2 Evolve (darwinian evolver + evolver-main)</h3>
+<pre><code>evolve status                       # bridge state
+evolve list                         # list darwinian problems
+evolve run &lt;problem&gt; [iters]        # start a darwinian evolution as subprocess
+evolve node &lt;subcommand&gt;            # call evolver-main (Node.js) directly
+evolve stop                         # terminate current run
+evolve tail                         # last 50 lines of running output</code></pre>
+<p><strong>Requires:</strong> Python 3.11+ for <code>evolve run</code> (3.10 works for <code>list</code>). Node.js for <code>evolve node</code>.</p>
+<h3>4.3 Ephify</h3>
+<p>Build a queryable knowledge graph from any folder of code/docs/PDFs.</p>
+<pre><code>ephify status                # bridge + dependency state
+ephify build [path]          # build graph (default: cwd) -&gt; graph.html / GRAPH_REPORT.md / graph.json
+ephify query &lt;question&gt;      # query the current graph
+ephify explain &lt;topic&gt;       # explain a topic
+ephify export callflow-html  # generate Mermaid call-flow diagram
+ephify install-deps          # install upstream dependency package</code></pre>
+<h3>4.4 Sandbox (CubeSandbox client)</h3>
+<p>E2B-compatible client. Needs a remote Linux+KVM host running CubeSandbox.</p>
+<pre><code>sandbox status                  # bridge + health check
+sandbox endpoint &lt;url&gt;          # point at your CubeSandbox server
+sandbox key &lt;api_key&gt;           # auth header
+sandbox list                    # list sandboxes
+sandbox create [template]       # create a sandbox
+sandbox info &lt;id&gt;               # get details
+sandbox kill &lt;id&gt;               # destroy
+sandbox use &lt;id&gt;                # set active sandbox
+sandbox pause / connect &lt;id&gt;    # pause / resume</code></pre>
+<h3>4.5 jcode</h3>
+<p>Rust-based AI coding agent. Runs as subprocess if you build/install the binary.</p>
+<pre><code>jcode status                # bridge + binary detection
+jcode build                 # cargo build --release (10+ min first time)
+jcode version / help        # print version / CLI help
+jcode run &lt;prompt&gt;          # run jcode with a prompt
+jcode &lt;anything&gt;            # anything else is treated as a prompt
+jcode stop / tail           # control &amp; inspect</code></pre>
+<h3>4.6 Cursor kit</h3>
+<p>Library of agent personas / workflows / skills curated for Cursor IDE. Read-only.</p>
+<pre><code>cursor status              # kit summary
+cursor list                # list everything
+cursor agents              # 5 personas
+cursor workflows           # 4 workflows
+cursor skills              # 7 skills
+cursor show &lt;name&gt;         # print full file content
+cursor prompt &lt;name&gt;       # wrap as system prompt for paste-into-brain-provider
+cursor search &lt;term&gt;       # search markdown across the kit</code></pre>
+<h3>4.7 OpenHuman</h3>
+<p>Same shape as cursor — read-only library of agent personas + docs.</p>
+<pre><code>openhuman status              # bridge + counts
+openhuman agents              # 14 Claude personas
+openhuman commands            # /commands (e.g. ship-and-babysit)
+openhuman docs                # 14 internal docs
+openhuman show &lt;name&gt;         # print full file
+openhuman prompt &lt;name&gt;       # wrap as system prompt
+openhuman search &lt;term&gt;       # full-text search</code></pre>
+<h3>4.8 Humanizer</h3>
+<p>Strip AI tells from text.</p>
+<pre><code>humanize status     # bridge state
+humanize show       # print the full SKILL.md
+humanize &lt;text&gt;     # wrap the skill around your text, ready to send to a brain provider</code></pre>
+<p>The bridge returns a structured prompt — you then send it to whatever LLM you&#x27;re connected to via browser AI.</p>
+<h3>4.9 LocalSend</h3>
+<p>Real protocol implementation. Discover + send files to LocalSend devices on your LAN.</p>
+<pre><code>localsend status              # bridge state + known devices
+localsend scan [seconds]      # UDP multicast scan (default 5s)
+localsend list                # list discovered devices
+localsend info &lt;ip[:port]&gt;    # fetch device info
+localsend send &lt;ip[:port]&gt; &lt;file&gt;  # send a file
+localsend forget              # clear device list</code></pre>
+<h3>4.10 Eng3d</h3>
+<p>Next.js + React-Three-Fiber &quot;AI office&quot; web app. Bridge runs the dev server and opens the browser.</p>
+<pre><code>eng3d status               # bridge + dependency check
+eng3d install              # npm install (slow first time)
+eng3d dev                  # start dev server on localhost:3000
+eng3d demo                 # start built-in demo gateway adapter
+eng3d open                 # open the 3D office in your browser
+eng3d docs                 # list 28 internal spec docs
+eng3d show &lt;name&gt;          # print a spec doc
+eng3d stop / tail          # control &amp; inspect</code></pre>
+<hr />
+<h2>5. THE SUPER SWARM HIVE DASHBOARD</h2>
+<p>Launch <code>EngelSuperSwarmHive3D.exe</code>. This is the <strong>power-user dashboard</strong> — completely separate window with 8 tabs.</p>
+<pre><code>┌────────────────────────────────────────────────────────────────────────────────┐
+│ ENGEL COLONY HIVE - SUPER SWARM VIEW                                  GUARDIAN │
+├────────────────────────────────────────────────────────────────────────────────┤
+│ [Colony Hive] [Super Swarm Hive] [Colonies] [Queens] [Connections]             │
+│ [Communication Queen] [Expansion] [Engel Permissions]                          │
+├────────────────────────────────────────────────────────────────────────────────┤
+│                                                                                │
+│   &lt;tab content&gt;                                                                │
+│                                                                                │
+└────────────────────────────────────────────────────────────────────────────────┘</code></pre>
+<h3>5.1 Colony Hive tab</h3>
+<p><img alt="Colony Hive tab" src="screenshots/05-superswarm-colony-hive.png" /></p>
+<p>Single-colony view. Pick a colony from the picker, see its 3D map, layers, and stats.</p>
+<table>
+<tr><th>Section</th><th>Contents</th></tr>
+<tr><td>Top bar</td><td><code>COLONY HIVE</code> title · colony picker · <code>FOCUS</code> · <code>FIT</code> buttons</td></tr>
+<tr><td>Left rail</td><td>LAYERS (5 toggles: Workers / Trails / Queens / Signals / Guardian) + LEGEND (5 colored items)</td></tr>
+<tr><td>Center</td><td>3D colony map — drag to pan, scroll to zoom, click a node to inspect</td></tr>
+<tr><td>Metric bar</td><td>5 cards: QUEENS · NESTS · WORKERS · SIGNALS · READINESS</td></tr>
+<tr><td>Bottom</td><td>3 panels: DETAILS · SIGNALS · ACTIVITY</td></tr>
+</table>
+<h3>5.2 Super Swarm Hive tab</h3>
+<p><img alt="Super Swarm Hive tab" src="screenshots/06-superswarm-super-swarm.png" /></p>
+<p>Multi-colony aggregate view. Reads the local Engel Hive snapshot.</p>
+<table>
+<tr><th>Section</th><th>Contents</th></tr>
+<tr><td>Top bar</td><td><code>SUPER SWARM HIVE</code> title · <code>RESET</code> · <code>FIT</code> · <code>FOCUS</code> buttons · local status pill</td></tr>
+<tr><td>Left rail</td><td>LEGEND (6 items) · LAYER TOGGLES (7) · LABEL READABILITY (2 checkboxes) · VIEW PRESETS (3 buttons: Overview / Communication Queen / Signal Flow)</td></tr>
+<tr><td>Center</td><td>Full 3D swarm map — pan/zoom/rotate</td></tr>
+<tr><td>Summary cards</td><td>8 cards across the bottom (LOCAL COLONIES / TOTAL NESTS / WORKER EVENTS / REMOTE QUEENS / COMMUNICATION QUEEN / GROWTH PATHS / TELEMETRY EVENTS / LOCAL READINESS)</td></tr>
+<tr><td>Lower panels</td><td>3 detail boxes: SELECTED / SIGNALS / ACTIVITY</td></tr>
+</table>
+<p>Also has 5 <strong>section sub-tabs</strong> inside: <code>Overview</code>, <code>Signals</code>, <code>Messages</code>, <code>Commands</code>, <code>Alerts</code>. Use them to drill into the live local snapshot.</p>
+<h3>5.3 Colonies tab</h3>
+<p><img alt="Colonies tab" src="screenshots/07-superswarm-colonies.png" /></p>
+<p>Table of all colonies in the local registry.</p>
+<ul>
+<li>Search box and status filter at the top</li>
+<li>Table with 8 columns showing colony attributes</li>
+<li>Click a row to drill into it</li>
+</ul>
+<h3>5.4 Queens tab</h3>
+<p><img alt="Queens tab" src="screenshots/08-superswarm-queens.png" /></p>
+<p>Card grid of every queen across all colonies.</p>
+<ul>
+<li>Metric bar: TOTAL / READY / UNAVAILABLE</li>
+<li>Filter dropdown: All / Local Artifact Ready / Local Artifact Unavailable</li>
+<li>Each card shows the queen&#x27;s label, status, progress</li>
+</ul>
+<h3>5.5 Connections tab</h3>
+<p><img alt="Connections tab" src="screenshots/09-superswarm-connections.png" /></p>
+<p>Graph view of inter-colony connections (signal routes, registry links).</p>
+<h3>5.6 Communication Queen tab</h3>
+<p><img alt="Communication Queen tab" src="screenshots/10-superswarm-comm-queen.png" /></p>
+<p>The local contract node — central message hub.</p>
+<ul>
+<li>Big SIGNAL MAP on the left</li>
+<li>ENGEL status dock on the right with detail panel</li>
+<li><code>Analyze ↗</code> button jumps to the Signal Analyzer</li>
+</ul>
+<h3>5.7 Expansion tab</h3>
+<p><img alt="Expansion tab" src="screenshots/11-superswarm-expansion.png" /></p>
+<p>Growth-path queue + telemetry view.</p>
+<ul>
+<li>Header metrics: GROWTH PATHS · REMOTE REGISTRY · TELEMETRY</li>
+<li>Left: growth chart over time</li>
+<li>Right: queue table (ID / Source / Target / Evidence / Status)</li>
+</ul>
+<h3>5.8 Engel Permissions tab</h3>
+<p><img alt="Permissions tab" src="screenshots/12-superswarm-permissions.png" /></p>
+<p>Session-local permission records. <strong>GUI/session state only — does not grant runtime authority.</strong></p>
+<ul>
+<li>Table of users/agents with role, access level, assigned colonies</li>
+<li>Add / Edit / Bulk-assign dialogs</li>
+<li>All changes stay in this session unless explicitly exported</li>
+</ul>
+<hr />
+<h2>6. MOBILE APPS</h2>
+<p>Two Flutter apps live in <code>mobile/</code>:</p>
+<h3>6.1 Engel Remote Worker (<code>mobile/engel_remote_worker</code>)</h3>
+<p>Companion app that pairs with your desktop Engel via LAN.</p>
+<ul>
+<li>8 tabs: Dashboard / Status / Mobile / Logs / Settings / Bridge / Notifications / <strong>Chat</strong></li>
+<li>Auto-discovers Engel on the LAN via UDP broadcast (port 8766)</li>
+<li>Chat tab talks to Engel through the <code>/chat</code> LAN endpoint</li>
+<li>Dark terminal theme</li>
+</ul>
+<h3>6.2 Engel Monitor (<code>mobile/engel_monitor</code>)</h3>
+<p>Phone-as-system-monitor for the desktop.</p>
+<ul>
+<li>CPU load + temp · GPU load + temp meters</li>
+<li>Latest screenshot viewer</li>
+<li>Limp Mode button (hold 3 seconds to toggle emergency power throttle)</li>
+<li>Chat to Engel</li>
+<li>Auto-discovers Engel via UDP</li>
+</ul>
+<h3>Pairing</h3>
+<ol>
+<li>Make sure the desktop Engel has <strong>Mobile ON</strong> (button in the right column)</li>
+<li>Open either mobile app on a phone on the same Wi-Fi</li>
+<li>The app auto-discovers <code>engel:1</code> beacons and auto-fills host/port/pairing-code</li>
+<li>Confirm; you&#x27;re paired</li>
+</ol>
+<hr />
+<h2>7. TROUBLESHOOTING</h2>
+<h3>&quot;Browser AI connect failed: Executable doesn&#x27;t exist at ...\\chromium-1223\\chrome-win64\\chrome.exe&quot;</h3>
+<p>Playwright is bundled but the actual browser is not (200MB). Run once in a terminal:</p>
+<pre><code>python -m playwright install chromium</code></pre>
+<p>Then retry <code>browser ai connect ...</code>.</p>
+<h3>Mobile app doesn&#x27;t find Engel on Wi-Fi</h3>
+<ul>
+<li>Make sure both devices are on the same Wi-Fi network</li>
+<li>Check that <strong>Mobile ON</strong> is enabled in Engel&#x27;s right column</li>
+<li>Some routers block UDP multicast; try restarting the router or moving the phone closer</li>
+</ul>
+<h3>A bridge command says &quot;X not installed&quot;</h3>
+<p>Each bridge&#x27;s <code>status</code> subcommand prints the exact pip / cargo / npm command needed. Example:</p>
+<pre><code>ephify status</code></pre>
+<p>Will tell you <code>ephify install-deps</code> is needed if it is.</p>
+<h3>Engel chat says &quot;I didn&#x27;t recognize that&quot;</h3>
+<p>If you get this on a free-form message (not a command), the command router may be over-strict. Try typing it as a clear sentence, or connect a browser AI first (<code>browser ai connect duck</code>) so the brain provider catches it.</p>
+<h3>Want to start fresh</h3>
+<p>Quit Engel from the tray icon, then delete <code>browser_profile/</code> in the Engel folder to clear all saved browser sessions.</p>
+<hr />
+<h2>QUICK REFERENCE CARD</h2>
+<pre><code>─── COMPANION ─────────────────────────────────────────
+  Double-click orb              → open chat
+  Drop file/folder onto orb     → summarize
+  Type in chat                  → talk
+  Drag orb                      → move on screen
+
+─── BUTTONS (right column) ────────────────────────────
+  Mobile ON/OFF · Research ON/OFF · Hive · Code
+
+─── AUDIT TABS ────────────────────────────────────────
+  PLAN · BODY · RECEIPTS · MOBILE · GROWTH
+
+─── BRIDGES ───────────────────────────────────────────
+  browser ai connect chatgpt    cursor agents
+  evolve list                   openhuman prompt taskmaster
+  ephify build                  humanize &lt;text&gt;
+  sandbox status                localsend scan
+  jcode help                    eng3d dev</code></pre>
+</body>
+</html>

@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-26T00:45:20Z",
+  "created_by": "hermes-root-catalog-import-20260825",
+  "description": "Himalaya CLI: IMAP/SMTP email from terminal.",
+  "name": "Engel Hermes himalaya",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-hermes-himalaya",
+  "skill_md_sha256": "bcd165896179c8e142661501b8d33f264301d26f4337798ce32c0e47285260b0",
+  "source": "engel-ai-main-server",
+  "updated_at_utc": "2026-08-26T00:45:20Z"
+}

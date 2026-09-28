@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-26T00:56:15Z",
+  "created_by": "hermes-optional-catalog-import-20260825",
+  "description": "Serverless GPU cloud platform for running ML workloads. Use when you need on-demand GPU access without infrastructure management, deploying ML models as APIs, or running batch jobs with automatic scaling.",
+  "name": "Engel Modal Serverless Gpu",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-hermes-modal",
+  "skill_md_sha256": "6f3bd450946bdb039862b4d265ae2c172d8d62574302b4405ee2f4351e508a86",
+  "source": "engel-ai-main-server",
+  "updated_at_utc": "2026-08-26T00:56:15Z"
+}

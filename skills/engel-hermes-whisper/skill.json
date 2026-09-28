@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-26T00:56:16Z",
+  "created_by": "hermes-optional-catalog-import-20260825",
+  "description": "OpenAI's general-purpose speech recognition model. Supports 99 languages, transcription, translation to English, and language identification. Six model sizes from tiny (39M params) to large (1550M params). Use for speech-to-text, podcast transcription, or multilingual audio processing. Best for robust, multilingual ASR.",
+  "name": "Engel Whisper",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-hermes-whisper",
+  "skill_md_sha256": "7e85ca5f94f50286f80ad4f6cce187d5db207eb2564d97a89b5987a6bf94e214",
+  "source": "engel-ai-main-server",
+  "updated_at_utc": "2026-08-26T00:56:16Z"
+}

@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-26T00:56:15Z",
+  "created_by": "hermes-optional-catalog-import-20260825",
+  "description": "Open-source embedding database for AI applications. Store embeddings and metadata, perform vector and full-text search, filter by metadata. Simple 4-function API. Scales from notebooks to production clusters. Use for semantic search, RAG applications, or document retrieval. Best for local development and open-source projects.",
+  "name": "Engel Chroma",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-hermes-chroma",
+  "skill_md_sha256": "113a9f52742ba448a51cde757201a4d39fb9ed174a64515028422845c822e430",
+  "source": "engel-ai-main-server",
+  "updated_at_utc": "2026-08-26T00:56:15Z"
+}

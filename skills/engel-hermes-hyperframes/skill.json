@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-26T00:56:14Z",
+  "created_by": "hermes-optional-catalog-import-20260825",
+  "description": "Create HTML-based video compositions, animated title cards, social overlays, captioned talking-head videos, audio-reactive visuals, and shader transitions using HyperFrames. HTML is the source of truth for video. Use when the user wants a rendered MP4/WebM from an HTML composition, wants to animate text/logos/charts over media, needs captions synced to audio, wants TTS narration, or wants to conve",
+  "name": "Engel Hyperframes",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-hermes-hyperframes",
+  "skill_md_sha256": "b2fbd38f02039a5c94ef38fee5fc9df79b6f197db6d0a29165b6f3ca7d21aecc",
+  "source": "engel-ai-main-server",
+  "updated_at_utc": "2026-08-26T00:56:14Z"
+}

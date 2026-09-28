@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-26T00:56:15Z",
+  "created_by": "hermes-optional-catalog-import-20260825",
+  "description": "Outlines: structured JSON/regex/Pydantic LLM generation.",
+  "name": "Engel Outlines",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-hermes-outlines",
+  "skill_md_sha256": "7e34b472660fb1712dee900f01ef0f9bf68e436f73c05f817f13f4b8696f891c",
+  "source": "engel-ai-main-server",
+  "updated_at_utc": "2026-08-26T00:56:15Z"
+}

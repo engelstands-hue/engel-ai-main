@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-26T00:45:19Z",
+  "created_by": "hermes-root-catalog-import-20260825",
+  "description": "Hand-drawn Excalidraw JSON diagrams (arch, flow, seq).",
+  "name": "Engel Hermes excalidraw",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-hermes-excalidraw",
+  "skill_md_sha256": "d7291ebfb731f17163997644d6d8be01a3b7477f89b0e5f32e28447058240eee",
+  "source": "engel-ai-main-server",
+  "updated_at_utc": "2026-08-26T00:45:19Z"
+}

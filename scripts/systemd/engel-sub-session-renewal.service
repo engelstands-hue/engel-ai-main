@@ -1,0 +1,9 @@
+[Unit]
+Description=Engel AI Main CT246 Sub-Engel Session Renewal
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=/opt/engel
+ExecStart=/opt/engel/.venv/bin/python /opt/engel/tools/engel_renew_sub_sessions.py

@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-26T00:56:16Z",
+  "created_by": "hermes-optional-catalog-import-20260825",
+  "description": "Shopify Admin & Storefront GraphQL APIs via curl. Products, orders, customers, inventory, metafields.",
+  "name": "Engel Shopify",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-hermes-shopify",
+  "skill_md_sha256": "1f67dbcfbdb084823c4187206a34b37a9205339da42e0aec87988ba958c3885d",
+  "source": "engel-ai-main-server",
+  "updated_at_utc": "2026-08-26T00:56:16Z"
+}

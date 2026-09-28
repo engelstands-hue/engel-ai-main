@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-26T00:45:19Z",
+  "created_by": "hermes-root-catalog-import-20260825",
+  "description": "Dark-themed SVG architecture/cloud/infra diagrams as HTML.",
+  "name": "Engel Hermes architecture-diagram",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-hermes-architecture-diagram",
+  "skill_md_sha256": "ed3e7979d1f26db492649dcb51ff0e52b2ec9a40caf1b3500c3a5f5a39856332",
+  "source": "engel-ai-main-server",
+  "updated_at_utc": "2026-08-26T00:45:19Z"
+}

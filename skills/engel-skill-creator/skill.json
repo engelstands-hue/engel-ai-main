@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-06-29T05:06:34Z",
+  "created_by": "engel-ai-main-server",
+  "description": "Creates, saves, lists, and verifies Engel AI Main skills from real chat or HTTP requests.",
+  "name": "Engel Skill Creator",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-skill-creator",
+  "skill_md_sha256": "d6284d5b57a5a45989bdecbc1adeb5c31a0f4acb56f3514b2715182bc8c82998",
+  "source": "engel-ai-main-server",
+  "updated_at_utc": "2026-06-29T05:06:34Z"
+}

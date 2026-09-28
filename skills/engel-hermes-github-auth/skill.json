@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-26T00:45:20Z",
+  "created_by": "hermes-root-catalog-import-20260825",
+  "description": "GitHub auth setup: HTTPS tokens, SSH keys, gh CLI login.",
+  "name": "Engel Hermes github-auth",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-hermes-github-auth",
+  "skill_md_sha256": "20cbcf62f0d6e81db7788d460ef120ac0994ac68d9f1e9353a14fca1db0f9df7",
+  "source": "engel-ai-main-server",
+  "updated_at_utc": "2026-08-26T00:45:20Z"
+}

@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-26T00:56:14Z",
+  "created_by": "hermes-optional-catalog-import-20260825",
+  "description": "Query Solana blockchain data with USD pricing — wallet balances, token portfolios with values, transaction details, NFTs, whale detection, and live network stats. Uses Solana RPC + CoinGecko. No API key required.",
+  "name": "Engel Solana",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-hermes-solana",
+  "skill_md_sha256": "0ea43259fa04336c5cc7e8efe45acc9d21fe16a95f9d32a38f8cf921f38251e8",
+  "source": "engel-ai-main-server",
+  "updated_at_utc": "2026-08-26T00:56:14Z"
+}

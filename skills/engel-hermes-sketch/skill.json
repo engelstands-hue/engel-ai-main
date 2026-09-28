@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-26T00:45:19Z",
+  "created_by": "hermes-root-catalog-import-20260825",
+  "description": "Throwaway HTML mockups: 2-3 design variants to compare.",
+  "name": "Engel Hermes sketch",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-hermes-sketch",
+  "skill_md_sha256": "22846459f016451f930f0903a301d58901c04d87115dfebd8e2383efbc0b7a68",
+  "source": "engel-ai-main-server",
+  "updated_at_utc": "2026-08-26T00:45:19Z"
+}

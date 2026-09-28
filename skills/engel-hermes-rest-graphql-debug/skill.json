@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-26T00:56:16Z",
+  "created_by": "hermes-optional-catalog-import-20260825",
+  "description": "Debug REST/GraphQL APIs: status codes, auth, schemas, repro.",
+  "name": "Engel Rest Graphql Debug",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-hermes-rest-graphql-debug",
+  "skill_md_sha256": "067c4bab45d35aaa57ccc4ba0e620ad4497c62fceb759516dfe744194810f667",
+  "source": "engel-ai-main-server",
+  "updated_at_utc": "2026-08-26T00:56:16Z"
+}

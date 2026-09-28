@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-26T00:56:16Z",
+  "created_by": "hermes-optional-catalog-import-20260825",
+  "description": "Passive domain reconnaissance using Python stdlib. Subdomain discovery, SSL certificate inspection, WHOIS lookups, DNS records, domain availability checks, and bulk multi-domain analysis. No API keys required.",
+  "name": "Engel Domain Intel",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-hermes-domain-intel",
+  "skill_md_sha256": "a1db0d49b0c16f8413f9f478c78d699fa893c864495416c3bdd8cc5a609c8f57",
+  "source": "engel-ai-main-server",
+  "updated_at_utc": "2026-08-26T00:56:16Z"
+}

@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-26T00:56:15Z",
+  "created_by": "hermes-optional-catalog-import-20260825",
+  "description": "Optimizes transformer attention with Flash Attention for 2-4x speedup and 10-20x memory reduction. Use when training/running transformers with long sequences (>512 tokens), encountering GPU memory issues with attention, or need faster inference. Supports PyTorch native SDPA, flash-attn library, H100 FP8, and sliding window attention.",
+  "name": "Engel Optimizing Attention Flash",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-hermes-flash-attention",
+  "skill_md_sha256": "1da18aa710e69eae56c33242fa80e6f282831afd4954d1ba5701af225ab1d182",
+  "source": "engel-ai-main-server",
+  "updated_at_utc": "2026-08-26T00:56:15Z"
+}

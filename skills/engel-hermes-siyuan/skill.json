@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-26T00:56:16Z",
+  "created_by": "hermes-optional-catalog-import-20260825",
+  "description": "SiYuan Note API for searching, reading, creating, and managing blocks and documents in a self-hosted knowledge base via curl.",
+  "name": "Engel Siyuan",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-hermes-siyuan",
+  "skill_md_sha256": "630ed1e84c1a57039c9a5588bb2f9a9db5a61632c3e594fe1d0eadb1842578b2",
+  "source": "engel-ai-main-server",
+  "updated_at_utc": "2026-08-26T00:56:16Z"
+}

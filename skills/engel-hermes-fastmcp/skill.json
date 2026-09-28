@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-26T00:56:15Z",
+  "created_by": "hermes-optional-catalog-import-20260825",
+  "description": "Build, test, inspect, install, and deploy MCP servers with FastMCP in Python. Use when creating a new MCP server, wrapping an API or database as MCP tools, exposing resources or prompts, or preparing a FastMCP server for Claude Code, Cursor, or HTTP deployment.",
+  "name": "Engel Fastmcp",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-hermes-fastmcp",
+  "skill_md_sha256": "b47b9ff8deb7b0b6111fee47666b26b7a3e824c65884acbfa0f73024229f4cee",
+  "source": "engel-ai-main-server",
+  "updated_at_utc": "2026-08-26T00:56:15Z"
+}

@@ -1,0 +1,40 @@
+{
+  "schema_version": "1.0",
+  "revision": "0.2.0",
+  "updated_at": "2026-08-14T12:19:04Z",
+  "collection_id": "engel-genesis-archive-edition-i",
+  "public_name": "Engel Genesis Archive: Edition I",
+  "phase": "design_study",
+  "indexed": false,
+  "for_sale": false,
+  "collectible_eligible": false,
+  "candidate_sequence_is_permanent": false,
+  "disclaimer": "Concept only. No token, contract, wallet, mint, price, supply, marketplace, release date, ownership right, access right, or investment right exists.",
+  "candidates": [
+    { "record_id": "EGA-EI-001", "title": "The First Light", "status": "evidence_pending" },
+    { "record_id": "EGA-EI-002", "title": "The Spine", "status": "evidence_pending" },
+    { "record_id": "EGA-EI-003", "title": "The Hive", "status": "evidence_pending" },
+    { "record_id": "EGA-EI-004", "title": "The First Worker", "status": "evidence_pending" },
+    { "record_id": "EGA-EI-005", "title": "The Companion", "status": "evidence_pending" }
+  ],
+  "artwork": {
+    "record_id": "EGA-EI-002",
+    "role": "artistic_interpretation",
+    "path": "/archive-editions/edition-i/v0.2.0/artifact-002-the-spine-concept.1fad820ed61e5b5e.png",
+    "sha256": "1fad820ed61e5b5e9deecd20648b037147e8bf024448768a84fb61192c9f8444"
+  },
+  "artworks": [
+    {
+      "record_id": "EGA-EI-001",
+      "role": "artistic_interpretation",
+      "path": "/archive-editions/edition-i/v0.2.0/artifact-001-the-first-light-concept.d68c6142e8b94190.png",
+      "sha256": "d68c6142e8b941906ee3e21898f6fa14ef91eb4a28b3e99f29f983aa30a13b33"
+    },
+    {
+      "record_id": "EGA-EI-002",
+      "role": "artistic_interpretation",
+      "path": "/archive-editions/edition-i/v0.2.0/artifact-002-the-spine-concept.1fad820ed61e5b5e.png",
+      "sha256": "1fad820ed61e5b5e9deecd20648b037147e8bf024448768a84fb61192c9f8444"
+    }
+  ]
+}

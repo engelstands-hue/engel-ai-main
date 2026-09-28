@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-26T00:56:15Z",
+  "created_by": "hermes-optional-catalog-import-20260825",
+  "description": "Large Language and Vision Assistant. Enables visual instruction tuning and image-based conversations. Combines CLIP vision encoder with Vicuna/LLaMA language models. Supports multi-turn image chat, visual question answering, and instruction following. Use for vision-language chatbots or image understanding tasks. Best for conversational image analysis.",
+  "name": "Engel Llava",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-hermes-llava",
+  "skill_md_sha256": "977925f49781ec7124dfd9825812a61527141e45fee9904008219a0bf075c6fa",
+  "source": "engel-ai-main-server",
+  "updated_at_utc": "2026-08-26T00:56:15Z"
+}

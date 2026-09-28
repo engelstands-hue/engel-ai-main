@@ -1,0 +1,12 @@
+[Unit]
+Description=Check CT246 Sub-Engel sessions twice daily
+
+[Timer]
+OnBootSec=10min
+OnUnitActiveSec=12h
+RandomizedDelaySec=5min
+Persistent=true
+Unit=engel-sub-session-renewal.service
+
+[Install]
+WantedBy=timers.target

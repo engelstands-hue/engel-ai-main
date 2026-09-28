@@ -1,0 +1,22 @@
+{
+  "packet_version": "1",
+  "packet_id": "engel-review-001",
+  "created_by": "Engel Core",
+  "trust_level": "untrusted_until_reviewed",
+  "task_type": "review_status",
+  "target_system": "Engel",
+  "review_mode": "manual_draft_only",
+  "title": "Review Engel verifier summary",
+  "instructions": "Draft observations only. Do not apply fixes or execute commands.",
+  "source_summary": "Human-approved summary of Engel status goes here.",
+  "allowed_outputs": ["draft_result_json", "review_notes"],
+  "blocked_actions": [
+    "execute_commands",
+    "write_trusted_memory",
+    "mutate_queue",
+    "mutate_routes",
+    "mutate_source",
+    "control_engel",
+    "auto_apply_fixes"
+  ]
+}

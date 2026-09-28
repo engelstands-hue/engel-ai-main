@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-26T00:56:16Z",
+  "created_by": "hermes-optional-catalog-import-20260825",
+  "description": "Publish static sites to {slug}.here.now and store private files in cloud Drives for agent-to-agent handoff.",
+  "name": "Engel Here.Now",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-hermes-here-now",
+  "skill_md_sha256": "a228f9791a6e6f5513509a94819dea25a02ad65ffb7bface8538e6d84afbfc41",
+  "source": "engel-ai-main-server",
+  "updated_at_utc": "2026-08-26T00:56:16Z"
+}

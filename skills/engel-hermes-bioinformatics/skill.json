@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-26T00:56:16Z",
+  "created_by": "hermes-optional-catalog-import-20260825",
+  "description": "Gateway to 400+ bioinformatics skills from bioSkills and ClawBio. Covers genomics, transcriptomics, single-cell, variant calling, pharmacogenomics, metagenomics, structural biology, and more. Fetches domain-specific reference material on demand.",
+  "name": "Engel Bioinformatics",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-hermes-bioinformatics",
+  "skill_md_sha256": "2ac690a44e64f27c72470ecee2e7363167a6758820cb2714d7b0f7b53704866e",
+  "source": "engel-ai-main-server",
+  "updated_at_utc": "2026-08-26T00:56:16Z"
+}

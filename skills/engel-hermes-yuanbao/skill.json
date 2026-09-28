@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-26T00:45:21Z",
+  "created_by": "hermes-root-catalog-import-20260825",
+  "description": "Yuanbao (元宝) groups: @mention users, query info/members.",
+  "name": "Engel Hermes yuanbao",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-hermes-yuanbao",
+  "skill_md_sha256": "86c9c51afb7bc32f87c87581d639038a0d612d06f0c389124dc93ba5715a50f1",
+  "source": "engel-ai-main-server",
+  "updated_at_utc": "2026-08-26T00:45:21Z"
+}

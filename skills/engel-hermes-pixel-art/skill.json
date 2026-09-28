@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-26T00:45:19Z",
+  "created_by": "hermes-root-catalog-import-20260825",
+  "description": "Pixel art w/ era palettes (NES, Game Boy, PICO-8).",
+  "name": "Engel Hermes pixel-art",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-hermes-pixel-art",
+  "skill_md_sha256": "cd8892218a727bad4ad34ad236d7fa7b34a1c93588250b1e9dd9bf65041f14ee",
+  "source": "engel-ai-main-server",
+  "updated_at_utc": "2026-08-26T00:45:19Z"
+}

@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-26T00:45:20Z",
+  "created_by": "hermes-root-catalog-import-20260825",
+  "description": "llama.cpp local GGUF inference + HF Hub model discovery.",
+  "name": "Engel Hermes llama-cpp",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-hermes-llama-cpp",
+  "skill_md_sha256": "19e98e6669e5c152bd44cf2ae81a3a0a50c03cfb20d8e47d729793664db1d6c7",
+  "source": "engel-ai-main-server",
+  "updated_at_utc": "2026-08-26T00:45:20Z"
+}

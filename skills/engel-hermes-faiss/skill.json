@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-26T00:56:15Z",
+  "created_by": "hermes-optional-catalog-import-20260825",
+  "description": "Facebook's library for efficient similarity search and clustering of dense vectors. Supports billions of vectors, GPU acceleration, and various index types (Flat, IVF, HNSW). Use for fast k-NN search, large-scale vector retrieval, or when you need pure similarity search without metadata. Best for high-performance applications.",
+  "name": "Engel Faiss",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-hermes-faiss",
+  "skill_md_sha256": "169bc64a6e1a8aabafb7c1aa7336f8a1c1e94c825e44761b5a4915d739e5394e",
+  "source": "engel-ai-main-server",
+  "updated_at_utc": "2026-08-26T00:56:15Z"
+}

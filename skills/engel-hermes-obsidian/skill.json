@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-26T00:45:20Z",
+  "created_by": "hermes-root-catalog-import-20260825",
+  "description": "Read, search, create, and edit notes in the Obsidian vault.",
+  "name": "Engel Hermes obsidian",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-hermes-obsidian",
+  "skill_md_sha256": "7cd117084e948861a3b129e0a5fcbdc994653b09113e0b49f0a57568f1d441c0",
+  "source": "engel-ai-main-server",
+  "updated_at_utc": "2026-08-26T00:45:20Z"
+}

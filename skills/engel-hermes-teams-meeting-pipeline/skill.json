@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-26T00:45:20Z",
+  "created_by": "hermes-root-catalog-import-20260825",
+  "description": "Operate the Teams meeting summary pipeline via Engel CLI — summarize meetings, inspect pipeline status, replay jobs, manage Microsoft Graph subscriptions.",
+  "name": "Engel Hermes teams-meeting-pipeline",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-hermes-teams-meeting-pipeline",
+  "skill_md_sha256": "5a6fa30a05181c67821e7f0001f9fd0a2dbe48f84846bb3a699389286f6bb60a",
+  "source": "engel-ai-main-server",
+  "updated_at_utc": "2026-08-26T00:45:20Z"
+}

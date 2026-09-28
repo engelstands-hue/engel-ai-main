@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-26T00:45:20Z",
+  "created_by": "hermes-root-catalog-import-20260825",
+  "description": "Create, triage, label, assign GitHub issues via gh or REST.",
+  "name": "Engel Hermes github-issues",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-hermes-github-issues",
+  "skill_md_sha256": "fb7420ca7a6cc887e27b99e374aee2cfb144aaa0038db50c1a0791d85a94e83d",
+  "source": "engel-ai-main-server",
+  "updated_at_utc": "2026-08-26T00:45:20Z"
+}

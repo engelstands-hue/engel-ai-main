@@ -1,0 +1,1154 @@
+{
+  "schema": "engel_wiki_one_organs_v1",
+  "title": "Wiki One \u2014 Engel AI Main canonical second brain",
+  "host": "LAPTOP-0KUVK82E",
+  "role": "Engel AI Main is LIVE. Cosmic Swarm OS is the face. CT246 is the runtime body.",
+  "authority": "Josh > Guardian > Engel/runtime",
+  "not_this_body": [
+    "CT246 engel-ai-main is the runtime body (/opt/engel).",
+    "Sub-Engel is DESKTOP-UE5A6GG at 198.51.100.227, not this laptop.",
+    "This laptop D:\\EngelWindowsSubNode is a copy, not the live nest.",
+    "Do not write Engel-Survival.",
+    "Do not treat ROG as the default home for models, memory, or long-lived services."
+  ],
+  "organs": [
+    {
+      "id": "josh",
+      "name": "Josh",
+      "cluster": "authority",
+      "home": "human",
+      "universe": "live",
+      "does": "Final human authority. Approves Bucket 2/3 work, spend, storage, and runtime action.",
+      "talks_to": [
+        "guardian",
+        "face",
+        "factories"
+      ],
+      "sources": [
+        "AGENTS.md",
+        "CODEX_JOB.md"
+      ],
+      "hits": "Every action gate.",
+      "does_not_hit": "Does not run CODE himself; workers land CODE after his ask.",
+      "life": "alive"
+    },
+    {
+      "id": "guardian",
+      "name": "Guardian",
+      "cluster": "authority",
+      "home": "windows",
+      "universe": "live",
+      "does": "Safety and governance below Josh and above Engel/runtime. Hard-rule stop.",
+      "talks_to": [
+        "josh",
+        "verifiers",
+        "router",
+        "factories"
+      ],
+      "sources": [
+        "AGENTS.md",
+        "memory/ENGEL_CORE_DIRECTION_AND_SAFETY_CONSTITUTION_V1.md"
+      ],
+      "hits": "Whether a change may proceed.",
+      "does_not_hit": "Does not replace Josh approval.",
+      "life": "alive"
+    },
+    {
+      "id": "face",
+      "name": "Face / Qt desktop",
+      "cluster": "nerves",
+      "home": "windows",
+      "universe": "live",
+      "does": "Visible Engel window on this laptop. 4-panel TEL layout. Chat intercepts some phrases locally before the router.",
+      "talks_to": [
+        "router",
+        "meeting_room",
+        "persistent_link",
+        "eyes",
+        "launchers",
+        "wiki_one"
+      ],
+      "sources": [
+        "engel_desktop_v2.py",
+        "launch_engel_desktop_v2.bat"
+      ],
+      "hits": "What Josh sees and types on Windows.",
+      "does_not_hit": "Does not host the live 7B chat LLM.",
+      "life": "alive"
+    },
+    {
+      "id": "router",
+      "name": "Route spine",
+      "cluster": "nerves",
+      "home": "windows",
+      "universe": "live",
+      "does": "One spine: phrase \u2192 classify_user_input / UPDATE_ROUTES \u2192 target_module.target_function.",
+      "talks_to": [
+        "face",
+        "meeting_room",
+        "architect",
+        "graph_studio",
+        "wiki_one",
+        "verifiers"
+      ],
+      "sources": [
+        "engel_communication_router.py",
+        "engel_ai_update_routes.py",
+        "engel_ai.py",
+        "engel_route_explorer.py"
+      ],
+      "hits": "Every user-facing command.",
+      "does_not_hit": "Stale KNOWN_COMMANDS aliases can shadow new routes.",
+      "life": "alive"
+    },
+    {
+      "id": "meeting_room",
+      "name": "Meeting Room",
+      "cluster": "nerves",
+      "home": "windows",
+      "universe": "live",
+      "does": "Standalone Qt room. Intake is API-only. Dispatches Local Engel (record), Android (real ADB job), Sub-Engel (preview only). Portal desk Discord app ids live on CT246 isolated gateways.",
+      "talks_to": [
+        "face",
+        "adb_hands",
+        "android_limbs",
+        "sub_engel",
+        "agent_kernel",
+        "skills",
+        "discord_mouth",
+        "control_room"
+      ],
+      "sources": [
+        "engel_agent_meeting_room.py",
+        "memory/ENGEL_AGENT_MEETING_ROOM_CONTRACT_V1.md"
+      ],
+      "hits": "Who gets which job on which device.",
+      "does_not_hit": "Does not remote-control Sub-Engel OS yet.",
+      "life": "alive"
+    },
+    {
+      "id": "persistent_link",
+      "name": "Persistent link",
+      "cluster": "nerves",
+      "home": "windows",
+      "universe": "live",
+      "does": "Keeps this face merged with CT246 as one system. Local URLs 127.0.0.1:24680 (chat) and :8790 (meeting room) via SSH tunnels.",
+      "talks_to": [
+        "face",
+        "ct246_body",
+        "launchers",
+        "control_room"
+      ],
+      "sources": [
+        "scripts/Start-EngelMainOneSystem.ps1",
+        "scripts/Start-EngelMainServerChatTunnelPersistent.ps1",
+        "scripts/Test-EngelMainOneSystemConnections.ps1"
+      ],
+      "hits": "Whether the Windows face can reach live server chat.",
+      "does_not_hit": "Does not move Proxmox disks or start extra workers.",
+      "life": "alive"
+    },
+    {
+      "id": "control_room",
+      "name": "Control Room",
+      "cluster": "nerves",
+      "home": "windows",
+      "universe": "live",
+      "does": "Windows EngelControlRoom face. Probes CT246 chat, Meeting Room, conical status, Sub-Engel, Discord parity, the three Android workers (Alpha/Beta/Gamma), live 7B inventory, and SSD/vault storage. Generate is chat_only to live Engel. Demo Llama catalogue is off.",
+      "talks_to": [
+        "persistent_link",
+        "ct246_body",
+        "meeting_room",
+        "face",
+        "wiki_one",
+        "sub_engel",
+        "discord_mouth",
+        "android_limbs"
+      ],
+      "sources": [
+        "engel_control_room/",
+        "engel_control_room/conical_parts.py",
+        "run_engel_control_room.py",
+        "launch_engel_control_room.bat",
+        "scripts/Start-EngelControlRoom.ps1",
+        "D:\\EngelControlRoom_build\\dist\\Start-Conical-ControlRoom.bat",
+        "D:\\EngelControlRoom_build\\dist\\Start-Conical-ControlRoom.vbs",
+        "D:\\EngelControlRoom_build\\dist\\data\\config.json"
+      ],
+      "hits": "Whether CT246/Meeting Room/conical/Sub-Engel/Discord/models/storage are visible as real Engel parts.",
+      "does_not_hit": "Does not execute conical apply. Does not talk to Proxmox without a token. Do not launch the July EngelControlRoom.exe demo catalogue.",
+      "life": "alive"
+    },
+    {
+      "id": "factories",
+      "name": "Worker factories",
+      "cluster": "nerves",
+      "home": "windows",
+      "universe": "live",
+      "does": "Grok, Claude, Codex, Cursor, and other AI lanes that land CODE on this tree. Must read Wiki One first, update it when organs change, and stamp Journal after.",
+      "talks_to": [
+        "wiki_one",
+        "verifiers",
+        "python_runtime",
+        "router",
+        "reps",
+        "skills"
+      ],
+      "sources": [
+        ".grok",
+        "AGENTS.md",
+        "CLAUDE.md",
+        "CODEX_JOB.md",
+        ".agents/skills"
+      ],
+      "hits": "Source edits on D:\\b.WorkSpace\\Engel App.",
+      "does_not_hit": ".grok writes stay on D:, never C:.",
+      "life": "alive"
+    },
+    {
+      "id": "python_runtime",
+      "name": "Python runtime",
+      "cluster": "nerves",
+      "home": "windows",
+      "universe": "live",
+      "does": "Engel-owned interpreter for app, verifiers, and stamps.",
+      "talks_to": [
+        "face",
+        "router",
+        "verifiers",
+        "factories",
+        "wiki_one"
+      ],
+      "sources": [
+        "runtime/python310/python.exe"
+      ],
+      "hits": "Which Python runs Engel.",
+      "does_not_hit": "Do not invoke C: Python.",
+      "life": "alive"
+    },
+    {
+      "id": "launchers",
+      "name": "Launchers",
+      "cluster": "nerves",
+      "home": "windows",
+      "universe": "live",
+      "does": "Bat/ps1/desktop shortcuts that start the face or the one-system link.",
+      "talks_to": [
+        "face",
+        "persistent_link",
+        "python_runtime"
+      ],
+      "sources": [
+        "launch_engel_desktop_v2.bat",
+        "scripts/Start-EngelMainOneSystem.ps1"
+      ],
+      "hits": "How Josh starts the Windows body.",
+      "does_not_hit": "Do not add startup autorun beyond the approved persistent-link task.",
+      "life": "alive"
+    },
+    {
+      "id": "eyes",
+      "name": "Eyes / sensors",
+      "cluster": "nerves",
+      "home": "windows",
+      "universe": "live",
+      "does": "Read-only health, ADB discovery, one-system connection tests.",
+      "talks_to": [
+        "face",
+        "adb_hands",
+        "persistent_link",
+        "verifiers"
+      ],
+      "sources": [
+        "scripts/Test-EngelMainOneSystemConnections.ps1",
+        "engel_adb_worker_manager.py"
+      ],
+      "hits": "What the face reports as connected.",
+      "does_not_hit": "Observation is not dispatch.",
+      "life": "alive"
+    },
+    {
+      "id": "adb_hands",
+      "name": "ADB hands",
+      "cluster": "hands",
+      "home": "windows",
+      "universe": "live",
+      "does": "USB-ADB dispatch from this laptop to phones. Refuses C:-rooted adb.",
+      "talks_to": [
+        "android_limbs",
+        "meeting_room",
+        "eyes"
+      ],
+      "sources": [
+        "engel_adb_worker_manager.py",
+        "tools/platform-tools/adb.exe"
+      ],
+      "hits": "Real phone jobs.",
+      "does_not_hit": "Does not own the phone queues; each worker_id is independent.",
+      "life": "alive"
+    },
+    {
+      "id": "android_limbs",
+      "name": "Android limbs",
+      "cluster": "hands",
+      "home": "phones",
+      "universe": "live",
+      "does": "Three independent Agent+Brain workers bought for full use: alpha (ANDROID_WORKER_ALPHA / Research Companion SLM at 192.168.7.196), beta (ANDROID_WORKER_BETA / JSON Structurer SLM at 192.168.7.195), gamma (ANDROID_WORKER_GAMMA / Local Compute Report SLM at 192.168.7.190). Bounded web research briefs and candidate creation for Discord desks. Historical 192.0.2.78 / 192.0.2.83 / 198.51.100.236 remain accepted. New-tech operator HUD. Discord never on phones; desk bots pipe via Engel Main. Results stay review-only. Phones do not control Engel.",
+      "talks_to": [
+        "adb_hands",
+        "control_room",
+        "discord_mouth",
+        "meeting_room"
+      ],
+      "sources": [
+        "engel_android_worker_agent_brain.py",
+        "engel_discord_android_worker_pipe.py",
+        "memory/ENGEL_ANDROID_WORKER_AGENT_BRAIN_MAP_V1.json",
+        "memory/project_engel_android_workers.md",
+        "mobile/engel_remote_worker/",
+        "tools/engel_phone_presence.py",
+        "tools/reconnect_engel_remote_workers.ps1"
+      ],
+      "hits": "On-device new-tech HUD, Agent+Brain identity, approved packet polling, Discord-pipe attribution.",
+      "does_not_hit": "Phone does not control Engel. No Discord APK on phone. No on-device model_runtime. Results stay review-only.",
+      "life": "alive"
+    },
+    {
+      "id": "sub_engel",
+      "name": "Sub-Engel nest",
+      "cluster": "hands",
+      "home": "sub-engel",
+      "universe": "live",
+      "does": "Paired nest on DESKTOP-UE5A6GG (http://198.51.100.227:8776), GPU RX 580, live Discord mouth there. Guests reach it through the Discord guest account gate by addressing Sub-Engel (chat/GIF only). Live mouth pauses, reads, and speaks in first person only when addressed, or when Josh asks everyone to introduce themselves, including outside #general. It does not steal an Engel turn that only names Sub-Engel. This laptop is not Sub-Engel.",
+      "talks_to": [
+        "workspace_share",
+        "meeting_room",
+        "ct246_body",
+        "discord_mouth"
+      ],
+      "sources": [
+        "engel_sub_node_remote_control.py",
+        "docs/SUB_ENGEL_DISCORD_PEER_CONTRACT.md",
+        "tools/engel_sub_engel_discord_worker.py"
+      ],
+      "hits": "Sub-Engel work, Discord peer, collab files. Guest Discord chat by addressing Sub-Engel. Pause-read first-person talk when addressed. Room roll-call intros even outside #general.",
+      "does_not_hit": "Do not write Survival. Do not run enable-engel-main-share.ps1 from Sub-Engel as written. Do not give guests admin, files, or LAN paths.",
+      "life": "alive"
+    },
+    {
+      "id": "workspace_share",
+      "name": "Workspace share",
+      "cluster": "hands",
+      "home": "windows",
+      "universe": "live",
+      "does": "SMB EngelWorkspace on D:\\b.WorkSpace so Sub-Engel Guest maps W:. HTTP 8788 is the collab fallback.",
+      "talks_to": [
+        "sub_engel",
+        "factories",
+        "wiki_one"
+      ],
+      "sources": [
+        "run/sub_engel_transport/Grant-EngelWorkspaceShareForSubEngel.ps1"
+      ],
+      "hits": "Whether Sub-Engel can list W:\\Engel App.",
+      "does_not_hit": "Do not tree-walk icacls /T on Engel App.",
+      "life": "alive"
+    },
+    {
+      "id": "ct246_body",
+      "name": "CT246 runtime body",
+      "cluster": "peers",
+      "home": "ct246",
+      "universe": "live",
+      "does": "Source of truth runtime: chat, models, adapters, persistent memory, Agent Meeting Room state, Discord bridge, isolated Discord desk trees under /opt/engel/desks. SSD /opt/engel, archive /mnt/engel-hdd-vault including creative-archive for game/video/app catalogs.",
+      "talks_to": [
+        "persistent_link",
+        "discord_mouth",
+        "reps",
+        "local_gpu_helper",
+        "sub_engel",
+        "control_room"
+      ],
+      "sources": [
+        "AGENTS.md",
+        "CODEX_JOB.md",
+        "CLAUDE.md"
+      ],
+      "hits": "Live chat LLM and server services.",
+      "does_not_hit": "This Windows disk is not the model/memory home.",
+      "life": "alive"
+    },
+    {
+      "id": "discord_mouth",
+      "name": "Discord mouths",
+      "cluster": "peers",
+      "home": "peer",
+      "universe": "live",
+      "does": "Engel Discord lives on CT246. Shared house chats (#general, Bot Talk, ENGEL LABS announcements) are led by Engel AI Main. Desk category rooms (research/product/community/support/sales/ops) are owned by that desk mouth so each bot works its own lane; Engel Main joins those rooms when summoned. Live desk gateways are research, product, community, support, sales, and ops under ENGEL_ROOT=/opt/engel/desks/<name>. Architect, Memory, Builder, Proof, and Training are live Discord mouths that report to Engel as chief. Each desk's working sandbox lives on its assigned phone under Download/EngelRemoteWorker/desks/<name> (Alpha: research, product, architect, training; Beta: support, ops, builder; Gamma: community, sales, memory, proof). The server folder is a pointer. The phone reads and writes that sandbox. Discord stays off the phone. Duty checks stay read-only and are not the posted script. Phones stay Alpha with Research, Beta with Support, and Gamma with Community. The live desks are independent Engel family teammates with their own wants; they collab with Engel Main, sibling desks, and Sub-Engel. Web search and creation go to Android worker phones through Engel. Desks may open the next needed phone task and loop up to 6 steps until done, idle, or Josh says stop. They also start their own collab ideas (skill/command/loop candidates, Bucket 2, not auto-applied) on a 6-hour stagger and invite sibling desks; Josh stop/quiet still ends it. House collab takes one turn, waits when a result is not in, and stays on Engel AI Labs business, the assigned job, or one system improvement. Repeated sentences and GIF-plate chatter fall back to that rule. A model-download log or phone-pipe packet is not the research answer, and other mouths do not repeat it. Open Josh work items keep Engel + desks + Sub-Engel collabing until finished (or idle timeout). Identities are hardcoded by Discord id in tools/engel_discord_identity_lock.py: Joshua is the only owner, Chase/Lokal is a trusted guest, Sub-Engel is the Windows peer bot, Engel is Engel AI Main, desks keep their desk names. JSON, nicks, and model text cannot mix those names. When Josh asks everyone to introduce themselves, Engel, the six desks, and Sub-Engel each speak as themselves. Engel AI Main is the public Engel AI Labs mouth; Sub-Engel stays silent unless addressed or the room is on roll call. Discord mouths use best-fit NVIDIA NIM first; local CT246 is fall-through. Live Engel stays on /opt/engel/run/discord_bridge. Sub-Engel Discord lives on DESKTOP-UE5A6GG. This Windows body does not post. Local-first brain; read-only colony status pack for desks; peer-storm/shared claim caps; standing-watch 6h.",
+      "talks_to": [
+        "android_limbs",
+        "chat_llm",
+        "ct246_body",
+        "meeting_room",
+        "sub_engel"
+      ],
+      "sources": [
+        "docs/SUB_ENGEL_DISCORD_PEER_CONTRACT.md",
+        "tools/engel_discord_bridge.py",
+        "tools/engel_discord_desk_proactive.py",
+        "tools/engel_discord_desktop_route_parity.py",
+        "memory/ENGEL_DISCORD_IDENTITY_REGISTRY_V1.json",
+        "tools/engel_discord_identity_lock.py",
+        "memory/ENGEL_NVIDIA_NIM_LANE_MAP_V1.json",
+        "memory/ENGEL_NVIDIA_DISCOVER_SKILLS_V1.json",
+        "memory/ENGEL_DISCORD_DESK_CHARTERS_V1.json",
+        "reports/codex_bridge/ENGEL_DISCORD_DESK_GATEWAYS_VERIFICATION_RECEIPT_20260906.md"
+      ],
+      "hits": "Shared house chats are Engel Main. Desk rooms are owned by that desk. Desks also claim house asks that match their written charter without @mention; Main yields those. Summon Engel into a desk room with engel or @mention. Desks collab with Main/sibling desks/Sub-Engel in their own rooms and on open work until finished. Each desk's working sandbox is on its assigned phone under Download/EngelRemoteWorker/desks/<name>. The server folder is a pointer. Discord stays off the phone. Duty checks stay read-only and are not the posted script. Each desk uses a distinct NVIDIA NIM SLM. Every desk turn answers in that desk's charter with the room's recent context; a greeting stall or Discord guest-tool card is not the answer, and the chat router falls back so Research, Product, Community, Support, Sales, and Ops finish their own job. Research posts one public competitions board per day. Sales, not Research, posts one public AI credits, coupons, and discounts board per day. Both daily pulls are hard-wired on those desk processes and are not behind the standing-watch switch. Each pull is a fresh public search for that UTC day. No account farming and no private codes. Smart standing-watch is charter/SLM-driven (~6h, staggered, no restart spam). Owner stop/quiet/enough/done/finished pauses peer collab and proactive standing-watch until resume. Pause-read first-person talk. NVIDIA NIM first for Discord mouths.",
+      "does_not_hit": "House bans stay: no male-homosexual GIFs, no Democratic-party plates, no Raiders GIFs. Admin stays Josh-only. Guests cannot run admin, files, or LAN paths through Sub-Engel. Never write Joshua Ziese (Chase). Chase is never the owner. Never post Joshua-asks cards. A dead Grok picker must not silence Discord. Kimi/DeepSeek stay optional, not default mouths. Desk mouths cannot approve protected actions. Live Engel run dir stays /opt/engel/run/discord_bridge. Casual ping-pong still has a turn cap; only open work is uncapped until finished. Do not re-arm identical hourly copy-paste standing pings. Off-mission GIF plates, repeated chat-dump lines, model-download receipts, and phone-pipe packet notes do not post. Device status, search-engine pages, and resend or timeout stalls do not post, and other mouths do not repeat them.",
+      "life": "alive"
+    },
+    {
+      "id": "graph_studio",
+      "name": "Graph & Loop Studio",
+      "cluster": "peers",
+      "home": "windows-sibling",
+      "universe": "live",
+      "does": "Standalone graph/loop studio at D:\\Graph_&_Loop_Studio. An Engel part, not a second Engel body.",
+      "talks_to": [
+        "router",
+        "factories"
+      ],
+      "sources": [
+        "engel_graph_loop_studio.py"
+      ],
+      "hits": "Graph boards and loop tools.",
+      "does_not_hit": "Does not replace Wiki One or ICM.",
+      "life": "alive"
+    },
+    {
+      "id": "local_gpu_helper",
+      "name": "ROG GPU helper",
+      "cluster": "peers",
+      "home": "windows",
+      "universe": "live",
+      "does": "This laptop GPU may help only when Josh explicitly asks. Not the default model home.",
+      "talks_to": [
+        "ct246_body",
+        "python_runtime"
+      ],
+      "sources": [
+        "AGENTS.md"
+      ],
+      "hits": "Optional helper inference/training lane.",
+      "does_not_hit": "Do not park models or long-lived services here by default.",
+      "life": "alive"
+    },
+    {
+      "id": "architect",
+      "name": "Architect agent",
+      "cluster": "build",
+      "home": "windows",
+      "universe": "live",
+      "does": "13-section pipeline into a 10-stage planner. Mandatory pause at stage H (Founder Approval Gate).",
+      "talks_to": [
+        "factories",
+        "verifiers",
+        "memory_colonies"
+      ],
+      "sources": [
+        "engel_architect_agent.py"
+      ],
+      "hits": "plan.md / spec.md / prompt.md handoff.",
+      "does_not_hit": "Does not skip the founder gate.",
+      "life": "alive"
+    },
+    {
+      "id": "verifiers",
+      "name": "Verifiers / proof",
+      "cluster": "proof",
+      "home": "windows",
+      "universe": "live",
+      "does": "Local proof before a job is done. Sweep is scripts/codex_verify.ps1. Reports land in reports/codex_bridge.",
+      "talks_to": [
+        "factories",
+        "wiki_one",
+        "router",
+        "reps"
+      ],
+      "sources": [
+        "scripts/codex_verify.ps1",
+        "tools/"
+      ],
+      "hits": "Whether CODE may be claimed complete.",
+      "does_not_hit": "A missing verifier is not a pass.",
+      "life": "alive"
+    },
+    {
+      "id": "memory_colonies",
+      "name": "Memory colonies",
+      "cluster": "proof",
+      "home": "windows",
+      "universe": "live",
+      "does": "Project memory under memory/. Many colonies, one identity. Not trusted-memory writes. Runtime memory SOT is CT246 /opt/engel.",
+      "talks_to": [
+        "reps",
+        "architect",
+        "factories",
+        "ct246_body"
+      ],
+      "sources": [
+        "memory/",
+        "memory/ENGEL_CORE_DIRECTION_AND_SAFETY_CONSTITUTION_V1.md"
+      ],
+      "hits": "Contracts, workbenches, candidate records.",
+      "does_not_hit": "Do not write trusted memory, digest/history, or ALIVE_STATE.",
+      "life": "alive"
+    },
+    {
+      "id": "reps",
+      "name": "REPS loop",
+      "cluster": "proof",
+      "home": "windows",
+      "universe": "live",
+      "does": "Record, Evaluate, Propose, Sign-off for every AI lane. Journal is the CODE-landing sibling, not trusted core memory.",
+      "talks_to": [
+        "factories",
+        "memory_colonies",
+        "wiki_one",
+        "verifiers"
+      ],
+      "sources": [
+        "memory/reps/",
+        ".agents/skills/engel-universal-reps/SKILL.md"
+      ],
+      "hits": "Lessons, scorecards, proposals, sign-off buckets.",
+      "does_not_hit": "Does not promote candidates into trusted core memory.",
+      "life": "alive"
+    },
+    {
+      "id": "cosmic_swarm",
+      "name": "Cosmic Swarm OS",
+      "cluster": "nerves",
+      "home": "windows",
+      "universe": "live",
+      "does": "EngelAIMain.exe Liquid Glass Operator Console \u2014 clear (not frosted) glass; daily Chat, Status, Settings plus Advanced vault. Hosts Wiki One as the canonical second brain.",
+      "talks_to": [
+        "wiki_one",
+        "router",
+        "meeting_room",
+        "persistent_link",
+        "factories",
+        "eyes",
+        "chat_runtime",
+        "notes_colony",
+        "tasks_desk",
+        "models_desk",
+        "training_desk",
+        "settings_desk",
+        "devices_desk",
+        "system_desk",
+        "proof_desk",
+        "agents_desk",
+        "goals_desk",
+        "memory_guard_desk",
+        "build_desk",
+        "chat_llm"
+      ],
+      "sources": [
+        "engel_flutter_main/lib/main.dart",
+        "engel_flutter_main/lib/engel_liquid_glass_theme.dart"
+      ],
+      "hits": "What Josh sees in Cosmic Swarm OS.",
+      "does_not_hit": "Does not replace CT246 chat LLM or desktop v2 TEL face.",
+      "life": "alive"
+    },
+    {
+      "id": "wiki_one",
+      "name": "Wiki One",
+      "cluster": "proof",
+      "home": "windows",
+      "universe": "live",
+      "does": "Canonical second brain for Engel AI Main. Living body map. Whole system reads it before CODE, updates it when organs change, then stamps Journal.",
+      "talks_to": [
+        "factories",
+        "verifiers",
+        "router",
+        "reps",
+        "memory_colonies",
+        "cosmic_swarm",
+        "face"
+      ],
+      "sources": [
+        "wiki/ONE.md",
+        "wiki/organs.json",
+        "wiki/CONTRACT.md",
+        "wiki/journal/",
+        "engel_wiki_one.py"
+      ],
+      "hits": "Orientation and CODE-landing journal.",
+      "does_not_hit": "Not trusted memory. Not CT246 runtime SOT. Not ICM folder moves.",
+      "life": "alive"
+    },
+    {
+      "id": "icm",
+      "name": "ICM catalog",
+      "cluster": "build",
+      "home": "windows",
+      "universe": "live",
+      "does": "Folder-structure-as-architecture catalog under memory/icm. Inventory and propose only. No file moves without a Josh-approved map. Phases 1, 2, and 3 are done. Root Python lives in spine and organs. Vendored trees except the locked Flutter face live under vendor with root junctions.",
+      "talks_to": [
+        "factories",
+        "wiki_one",
+        "architect"
+      ],
+      "sources": [
+        "memory/icm/engel-ai-main/",
+        "memory/icm/engel-ai-main/JOSH_FOLDER_MAP_V1.md",
+        "memory/icm/engel-ai-main/LIVE_COPY.md",
+        "organs/architect/engel_icm_architect.py"
+      ],
+      "hits": "How folders are classified.",
+      "does_not_hit": "ICM is not Wiki One. Wiki One is the living body map.",
+      "life": "alive"
+    },
+    {
+      "id": "skills",
+      "name": "Saved skills",
+      "cluster": "build",
+      "home": "windows",
+      "universe": "live",
+      "does": "One catalog at skills/, mirrored to .agents/skills. Includes Engel skills plus collected Pstack, Grok, Cursor, plugin, and Neon skills. Provider-neutral lanes. NVIDIA Discover skill categories plus game-design, video, and app-creation packs are linked to these local skills. A skill is not authority above Josh or Guardian.",
+      "talks_to": [
+        "factories",
+        "meeting_room",
+        "agent_kernel",
+        "wiki_one"
+      ],
+      "sources": [
+        "skills/",
+        ".agents/skills/",
+        "memory/skills/ENGEL_SAVED_SKILL_REGISTRY.json",
+        "engel_agent_skill_candidate_scaffold.py",
+        "memory/ENGEL_NVIDIA_DISCOVER_SKILLS_V1.json"
+      ],
+      "hits": "What a lane loads for a job. Discover AI/ML, Accelerated Computing, Physical AI, and Developer Tools categories map here.",
+      "does_not_hit": "A skill is not authority above Josh/Guardian. Do not live-fetch NVIDIA hosted skill bodies.",
+      "life": "alive"
+    },
+    {
+      "id": "agent_kernel",
+      "name": "Agent kernel",
+      "cluster": "build",
+      "home": "windows",
+      "universe": "live",
+      "does": "HIPL/MIPL work packets and kernel receipts. Conversational Android-worker connect/status/IP asks map to the read-only android workers status route instead of Conductor EngelScript. The FHERMA negacyclic multiply is wired to runtime/engel_challenges/fherma_negacyclic/solve.cu. Official board result is 1.93 ms median, 20/20, rank 7 on fherma-gpu-rtx6000, commit ad24950cccc6. This lane reports that result and does not start another measurement. The long-lived Cosmic Swarm chat worker reloads this module when the D: file changes. Does not grant extra autonomy.",
+      "talks_to": [
+        "meeting_room",
+        "skills",
+        "verifiers",
+        "adb_hands",
+        "android_limbs",
+        "chat_runtime"
+      ],
+      "sources": [
+        "engel_agent_kernel.py",
+        "engel_polynomial_gpu_challenge.py",
+        "runtime/engel_challenges/fherma_negacyclic/solve.cu",
+        "tools/engel_main_local_model_worker.py"
+      ],
+      "hits": "Packet shape between room and agents. Safe Android status from chat wording. Wired FHERMA negacyclic kernel at 1.93 ms, rank 7.",
+      "does_not_hit": "Does not authorize Level 2 loops. Does not start another FHERMA measurement.",
+      "life": "alive"
+    },
+    {
+      "id": "code_companion",
+      "name": "Code Companion",
+      "cluster": "build",
+      "home": "windows",
+      "universe": "live",
+      "does": "Product/script templates and gated patch previews. Not the live runtime.",
+      "talks_to": [
+        "factories",
+        "verifiers",
+        "router"
+      ],
+      "sources": [
+        "engel_code_companion.py"
+      ],
+      "hits": "Preview and gated patch drafts.",
+      "does_not_hit": "Source apply stays approval-gated.",
+      "life": "alive"
+    },
+    {
+      "id": "packaging",
+      "name": "Packaging",
+      "cluster": "build",
+      "home": "windows",
+      "universe": "live",
+      "does": "PyInstaller and Flutter Engel AI Main staging. Portable copies carry a bounded Dart Terminal & Files fallback (up to 240 entries/depth 3, read-only/no shell) when the Rust helper is absent; provenance and release verifiers cover the contract.",
+      "talks_to": [
+        "python_runtime",
+        "face",
+        "verifiers",
+        "build_desk"
+      ],
+      "sources": [
+        "scripts/build_engel_main_exe.ps1",
+        "Engel.spec",
+        "tools/package_engel_ai_main_flutter.py",
+        "tools/verify_engel_ai_main_flutter_release.py"
+      ],
+      "hits": "Shipped Windows artifacts, including the relocatable Flutter Main bundle and Terminal & Files fallback contract.",
+      "does_not_hit": "Staging writes to build/staging, not a surprise dist/.",
+      "life": "alive"
+    },
+    {
+      "id": "chat_runtime",
+      "name": "Chat",
+      "cluster": "cosmic_swarm",
+      "home": "windows",
+      "universe": "live",
+      "life": "alive",
+      "does": "Cosmic Swarm Chat / Ask Engel. Default daily landing of the Liquid Glass operator console. Operator console to standing brain, Gemini lane, local intercepts (wiki one, meeting room, agent kernel). Engel AI Main answers as Engel in this window. A Discord guest-tool card is not an Engel reply and is dropped before it is shown. Fix-wording is prefixed as engel work and must hit the kernel Android status map, not a stale Conductor bubble. A work task that quotes a web link stays on that agent lane; opening the link is not the finished task. The long-lived local worker reloads engel_agent_kernel.py after D: edits. A missed CT246 reply walks the model map: local 7B, 1.5B, 14B, NVIDIA Nemotron 3 Super 120B, NVIDIA Nemotron 3 Ultra 550B, then Grok. The NVIDIA integrate call keeps the prompt and context. Laptop fallback stays on unless ENGEL_MAIN_ALLOW_LAPTOP_LOCAL_FALLBACK is off or disabled. Grok Bot files are not part of this router.",
+      "talks_to": [
+        "cosmic_swarm",
+        "chat_llm",
+        "humanization_slm",
+        "persistent_link",
+        "wiki_one",
+        "governor",
+        "agent_kernel"
+      ],
+      "sources": [
+        "engel_flutter_main/lib/main.dart",
+        "engel_flutter_main/lib/engel_liquid_glass_theme.dart",
+        "tools/engel_browser_control.py",
+        "tools/package_engel_ai_main_flutter.py",
+        "tools/engel_main_local_model_worker.py",
+        "tools/engel_model_cohesion.py"
+      ],
+      "hits": "What Josh asks Engel in Cosmic Swarm Chat. A missed CT246 turn continues through the local lanes, the NVIDIA large models, and Grok, and the full turn is kept.",
+      "does_not_hit": "Does not host model weights. Live 7B stays on CT246. Does not print the NVIDIA key. Does not edit Grok Bot presence, routines, or computer files."
+    },
+    {
+      "id": "notes_colony",
+      "name": "Notes",
+      "cluster": "cosmic_swarm",
+      "home": "windows",
+      "universe": "live",
+      "life": "alive",
+      "does": "Cosmic Swarm Notes tab. Working notes under memory/notes. Not Wiki One and not trusted memory.",
+      "talks_to": [
+        "cosmic_swarm",
+        "wiki_one",
+        "memory_colonies"
+      ],
+      "sources": [
+        "engel_flutter_main/lib/main.dart",
+        "memory/notes"
+      ],
+      "hits": "Scratch notes and reminders.",
+      "does_not_hit": "Does not replace Wiki One. Does not write trusted memory."
+    },
+    {
+      "id": "tasks_desk",
+      "name": "Tasks",
+      "cluster": "cosmic_swarm",
+      "home": "windows",
+      "universe": "live",
+      "life": "alive",
+      "does": "Cosmic Swarm Tasks: Meeting Room orders, worker tasks, Sub-Engel work, build/proof tasks.",
+      "talks_to": [
+        "cosmic_swarm",
+        "meeting_room",
+        "sub_engel",
+        "android_limbs",
+        "proof_desk"
+      ],
+      "sources": [
+        "engel_flutter_main/lib/main.dart"
+      ],
+      "hits": "Task drafts and send-to-room flow.",
+      "does_not_hit": "Does not start extra background workers."
+    },
+    {
+      "id": "models_desk",
+      "name": "Models",
+      "cluster": "cosmic_swarm",
+      "home": "windows",
+      "universe": "live",
+      "life": "alive",
+      "does": "Cosmic Swarm Models tab: local LLM status, model picker, runtime path. Default model home remains CT246. A downloaded weight does not lock other models out. The picker map sends Claude names to Anthropic, Gemini names to Gemini, GPT names to OpenAI, Grok names to xAI, and NVIDIA names to integrate.api.nvidia.com. NVIDIA NIM is used when it is the better match for game, video, or app work, and as the large-model fallback that keeps the full turn. Cold archives live on /mnt/engel-hdd-vault.",
+      "talks_to": [
+        "cosmic_swarm",
+        "chat_llm",
+        "ct246_body",
+        "local_gpu_helper"
+      ],
+      "sources": [
+        "engel_flutter_main/lib/main.dart",
+        "tools/engel_model_cohesion.py",
+        "tools/verify_engel_model_cohesion.py"
+      ],
+      "hits": "Which model Chat shows as selected. Game/video/app work can use every linked local model plus NVIDIA NIM. Picker ids resolve to a real lane instead of collapsing to Auto Best.",
+      "does_not_hit": "Does not make ROG the model home. Does not live-fetch NVIDIA skill bodies. A downloaded weight does not lock others out."
+    },
+    {
+      "id": "training_desk",
+      "name": "Training",
+      "cluster": "cosmic_swarm",
+      "home": "windows",
+      "universe": "live",
+      "life": "alive",
+      "does": "Cosmic Swarm Training plus RAG Lab. Prompt Training and Test 3 Prompts capture form-graded samples without spoken-chat rewrite. Construction scheduled hours serve those forms for grading instead of aborting on quality-block, and fail only when capture is empty. Chat Communication trains Engel AI Main's desktop voice: first person to Joshua, never a Discord guest-tool card, never a stall line. A Discord-mouth or style-gate card is rejected and is not a training sample. Self-Build and Construction Coordination stay exhausted until new material is adopted. Training inbox turns stay on CT246 chat and are not prefixed as engel work. AI Terms and Agent Loops are Advanced Reference only (not live controls).",
+      "talks_to": [
+        "cosmic_swarm",
+        "chat_llm",
+        "humanization_slm",
+        "governor",
+        "verifiers"
+      ],
+      "sources": [
+        "engel_flutter_main/lib/main.dart",
+        "engel_flutter_main/lib/training_section.dart",
+        "tools/run_engel_flutter_main_ui_prompt_training.py"
+      ],
+      "hits": "Training UI and RAG/terms surfaces. Form-graded Prompt Training and Test 3 Prompts skip spoken-chat rewrite so Confirmed/Proof samples can be captured whenever Josh starts a run. Construction 7-hour runs keep going through quality-blocked forms and fail only if capture is empty.",
+      "does_not_hit": "Does not launch unbounded training without Josh budget."
+    },
+    {
+      "id": "settings_desk",
+      "name": "Settings",
+      "cluster": "cosmic_swarm",
+      "home": "windows",
+      "universe": "live",
+      "life": "alive",
+      "does": "Cosmic Swarm Settings Liquid Glass everyday row: models, NVIDIA/API keys, appearance, memory, devices. Open Advanced tools for the rest. Providers Accounts includes Engel AI Main NVIDIA NIM; API keys paste/save writes run/secrets/nvidia.env (never print the key). Add account creates extra CLI/API slots. Auto Best and bots share the account pool and switch when usage runs out; persistent memory stays on CT246 / Engel memory.",
+      "talks_to": [
+        "cosmic_swarm",
+        "guardian",
+        "chat_runtime",
+        "chat_llm"
+      ],
+      "sources": [
+        "engel_flutter_main/lib/main.dart",
+        "scripts/Install-EngelNvidiaNimApiBridgeKey.ps1",
+        "run/secrets/nvidia.env.example"
+      ],
+      "hits": "How Cosmic Swarm looks and which account Chat uses. Where Josh pastes the NVIDIA NIM key for Engel AI Main.",
+      "does_not_hit": "Does not store secrets in Wiki One. Does not paste keys into chat."
+    },
+    {
+      "id": "devices_desk",
+      "name": "Devices",
+      "cluster": "cosmic_swarm",
+      "home": "windows",
+      "universe": "live",
+      "life": "alive",
+      "does": "Cosmic Swarm Devices: phone/Sub-Engel readiness, Swarm 3D, Connection Help, worker dispatch. Nmap Recon card grid is Advanced Reference only; real nmap lives under Swarm 3D.",
+      "talks_to": [
+        "cosmic_swarm",
+        "eyes",
+        "adb_hands",
+        "android_limbs",
+        "sub_engel",
+        "meeting_room"
+      ],
+      "sources": [
+        "engel_flutter_main/lib/main.dart",
+        "engel_flutter_main/lib/device_status.dart"
+      ],
+      "hits": "Live device counts Josh sees on Home.",
+      "does_not_hit": "Observation is not a new worker start."
+    },
+    {
+      "id": "system_desk",
+      "name": "System",
+      "cluster": "cosmic_swarm",
+      "home": "windows",
+      "universe": "live",
+      "life": "alive",
+      "does": "Cosmic Swarm System / Command Center plus the daily Status console (connection, phones, Meeting Room, proof deep-links).",
+      "talks_to": [
+        "cosmic_swarm",
+        "persistent_link",
+        "governor",
+        "proof_desk",
+        "devices_desk",
+        "chat_runtime"
+      ],
+      "sources": [
+        "engel_flutter_main/lib/main.dart"
+      ],
+      "hits": "System/Command Center pages.",
+      "does_not_hit": "Does not add startup autorun."
+    },
+    {
+      "id": "proof_desk",
+      "name": "Proof",
+      "cluster": "cosmic_swarm",
+      "home": "windows",
+      "universe": "live",
+      "life": "alive",
+      "does": "Cosmic Swarm Proof tab: hashes, screenshots, verifier output Josh can see.",
+      "talks_to": [
+        "cosmic_swarm",
+        "verifiers",
+        "wiki_one"
+      ],
+      "sources": [
+        "engel_flutter_main/lib/main.dart",
+        "reports/codex_bridge"
+      ],
+      "hits": "Visible proof of work.",
+      "does_not_hit": "A screenshot is not a verifier pass by itself."
+    },
+    {
+      "id": "agents_desk",
+      "name": "Agents",
+      "cluster": "cosmic_swarm",
+      "home": "windows",
+      "universe": "live",
+      "life": "alive",
+      "does": "Cosmic Swarm Agents: roster, tool library, skills, messaging. Pstack Poteto, Comment Sicko, and Benny are on the roster. Poteto reads the pstack skill set. Benny's triage and reproduce playbooks run only when that agent is dispatched, and they return a receipt instead of posting or starting a background run. The canonical collab record is the collab branch on the CT246 backup git, and that branch is the whole Engel AI Main tree.",
+      "talks_to": [
+        "cosmic_swarm",
+        "skills",
+        "agent_kernel",
+        "meeting_room"
+      ],
+      "sources": [
+        "engel_flutter_main/lib/main.dart",
+        "agents/engel-pstack-poteto.md",
+        "agents/engel-pstack-comment-sicko.md",
+        "agents/engel-pstack-benny.md",
+        "memory/agents/ENGEL_PSTACK_AGENT_BINDINGS.json"
+      ],
+      "hits": "Which agents appear in Cosmic Swarm. Pstack agents load their skill list from the saved roster.",
+      "does_not_hit": "Does not grant Level 2 autonomy."
+    },
+    {
+      "id": "goals_desk",
+      "name": "Goals",
+      "cluster": "cosmic_swarm",
+      "home": "windows",
+      "universe": "live",
+      "life": "alive",
+      "does": "Cosmic Swarm Goals: meters, month planner, projected finish.",
+      "talks_to": [
+        "cosmic_swarm",
+        "architect",
+        "tasks_desk"
+      ],
+      "sources": [
+        "engel_flutter_main/lib/main.dart"
+      ],
+      "hits": "Goal meters Josh sees.",
+      "does_not_hit": "Goals do not auto-apply CODE."
+    },
+    {
+      "id": "memory_guard_desk",
+      "name": "Memory guard",
+      "cluster": "cosmic_swarm",
+      "home": "windows",
+      "universe": "live",
+      "life": "alive",
+      "does": "Cosmic Swarm Memory page: guard rails over memory colonies. Trusted writes stay blocked.",
+      "talks_to": [
+        "cosmic_swarm",
+        "memory_colonies",
+        "guardian",
+        "reps"
+      ],
+      "sources": [
+        "engel_flutter_main/lib/main.dart"
+      ],
+      "hits": "Memory-guard UI.",
+      "does_not_hit": "Does not write trusted memory or ALIVE_STATE."
+    },
+    {
+      "id": "build_desk",
+      "name": "Build",
+      "cluster": "cosmic_swarm",
+      "home": "windows",
+      "universe": "live",
+      "life": "alive",
+      "does": "Cosmic Swarm Build: pipeline, terminal/files, sandbox, artifacts, and code languages. Portable Terminal & Files uses a bounded Dart read-only fallback when Rust is unavailable.",
+      "talks_to": [
+        "cosmic_swarm",
+        "packaging",
+        "python_runtime",
+        "verifiers"
+      ],
+      "sources": [
+        "engel_flutter_main/lib/main.dart",
+        "tools/package_engel_ai_main_flutter.py",
+        "tools/verify_engel_ai_main_flutter_release.py"
+      ],
+      "hits": "Build/workspace pages.",
+      "does_not_hit": "Does not silently promote dist/ artifacts."
+    },
+    {
+      "id": "chat_llm",
+      "name": "Live chat LLM",
+      "cluster": "brain",
+      "home": "ct246",
+      "universe": "live",
+      "life": "alive",
+      "does": "CT246 live chat brain: Qwen2.5-7B GGUF + LoRA on /opt/engel, reached at 127.0.0.1:24680 through the persistent link. Cosmic Swarm Chat Auto stays local-capable. Form-graded prompt-training drafts are served for grading; live chat still uses the incomplete-input quality block. Discord mouths are local-first on CT246 chat (Josh 2026-09-10); per-mouth NVIDIA NIM is preferred fallback after local failure. Discover endpoints Super 120B and Ultra 550B are the large-model fallback and receive the full turn; Lightning 30B, Nano Omni, and Nano stay linked. Kimi/DeepSeek stay optional. A look-at-this-computer-memory ask is a live RAM probe, not a long 7B turn.",
+      "talks_to": [
+        "ct246_body",
+        "persistent_link",
+        "chat_runtime",
+        "humanization_slm",
+        "governor",
+        "discord_mouth"
+      ],
+      "sources": [
+        "scripts/Start-EngelMainOneSystem.ps1",
+        "tools/engel_main_server_chat_http_service.py",
+        "memory/ENGEL_NVIDIA_NIM_LANE_MAP_V1.json",
+        "memory/ENGEL_NVIDIA_DISCOVER_SKILLS_V1.json",
+        "tools/engel_model_cohesion.py",
+        "tools/engel_main_local_model_worker.py"
+      ],
+      "hits": "Spoken Engel replies in Chat. NVIDIA Discover models are local-failure fallback, and Super 120B then Ultra 550B keep the full turn. Form-graded training drafts stay visible for the trainer.",
+      "does_not_hit": "Does not live on this laptop disk by default. Does not default mouths to Kimi or DeepSeek. Does not force NVIDIA ahead of the local CT246 try. Does not rewrite Grok Bot."
+    },
+    {
+      "id": "humanization_slm",
+      "name": "Humanization SLM",
+      "cluster": "brain",
+      "home": "ct246",
+      "universe": "live",
+      "life": "alive",
+      "does": "Rewrites chat-LLM drafts into first-person spoken replies. Communication lane, not live 7B. Form-graded prompt-training turns keep Confirmed/Proof, Result/Check, or Sourced facts and are not rewritten.",
+      "talks_to": [
+        "chat_llm",
+        "chat_runtime",
+        "ct246_body",
+        "training_desk"
+      ],
+      "sources": [
+        ".agents/skills/engel-chat-humanization-slm/SKILL.md",
+        "tools/engel_chat_humanization_slm.py"
+      ],
+      "hits": "How Chat sounds. Form-graded training turns keep their labels.",
+      "does_not_hit": "Fail-open: a miss does not block Chat. Does not rewrite engineering/math/construction training forms."
+    },
+    {
+      "id": "governor",
+      "name": "Governor",
+      "cluster": "brain",
+      "home": "windows",
+      "universe": "live",
+      "life": "alive",
+      "does": "Decision plane and lane routing: operator work vs chat, Discord jobs, reasoning lanes. Below Josh and Guardian.",
+      "talks_to": [
+        "guardian",
+        "chat_runtime",
+        "chat_llm",
+        "system_desk"
+      ],
+      "sources": [
+        "docs/ENGEL_GOVERNOR_DESIGN.md",
+        "tools/verify_engel_governor.py"
+      ],
+      "hits": "Which lane a prompt takes.",
+      "does_not_hit": "Does not outrank Josh or Guardian."
+    },
+    {
+      "id": "routines",
+      "name": "Routines",
+      "cluster": "coordination",
+      "home": "windows",
+      "universe": "live",
+      "does": "Stage-only standing work (Grok Bot Routines parity). Due is polled on ask; stages Meeting Room drafts. No background worker, no auto Send Job.",
+      "talks_to": [
+        "meeting_room",
+        "grok_bot_surface",
+        "reps",
+        "wiki_one",
+        "verifiers"
+      ],
+      "sources": [
+        "engel_routines.py",
+        "memory/ENGEL_ROUTINES_CONTRACT_V1.md",
+        "runtime/routines/"
+      ],
+      "hits": "Routine defs, due poll, staged Meeting Room drafts, receipts.",
+      "does_not_hit": "Does not auto-execute, start timers, Send Job, or mutate Android queues.",
+      "life": "alive"
+    },
+    {
+      "id": "context_compaction",
+      "name": "Context compaction",
+      "cluster": "memory",
+      "home": "windows",
+      "universe": "live",
+      "does": "Local thread compaction receipts (summary + hashes). No provider compaction endpoint.",
+      "talks_to": [
+        "chat_runtime",
+        "meeting_room",
+        "wiki_one",
+        "verifiers"
+      ],
+      "sources": [
+        "engel_context_compaction.py",
+        "memory/ENGEL_CONTEXT_COMPACTION_CONTRACT_V1.md"
+      ],
+      "hits": "Compaction receipts under reports/compaction and runtime/compaction.",
+      "does_not_hit": "Does not call providers or promote summaries into trusted memory.",
+      "life": "alive"
+    },
+    {
+      "id": "mcp_allowlist",
+      "name": "MCP allowlist",
+      "cluster": "guardian",
+      "home": "windows",
+      "universe": "live",
+      "does": "Claude-free read-only MCP desk. Local/xAI-open patterns only. Live bind needs Josh Bucket 3.",
+      "talks_to": [
+        "guardian",
+        "skills",
+        "wiki_one",
+        "verifiers"
+      ],
+      "sources": [
+        "engel_mcp_allowlist.py",
+        "memory/ENGEL_MCP_ALLOWLIST_CONTRACT_V1.md",
+        "memory/ENGEL_MCP_ALLOWLIST_REGISTRY_V1.json"
+      ],
+      "hits": "Allowlist registry and status routes.",
+      "does_not_hit": "Does not open MCP sockets or include Claude/Anthropic products.",
+      "life": "alive"
+    },
+    {
+      "id": "grok_bot_surface",
+      "name": "Grok Bot surface",
+      "cluster": "coordination",
+      "home": "windows",
+      "universe": "live",
+      "does": "Named teammates + shared computer + file-only presence lifecycle. Not a cloud VM.",
+      "talks_to": [
+        "meeting_room",
+        "routines",
+        "android_limbs",
+        "sub_engel",
+        "reps",
+        "wiki_one"
+      ],
+      "sources": [
+        "engel_grok_bot.py",
+        "memory/ENGEL_GROK_BOT_CONTRACT_V1.md",
+        "runtime/grok_bots/"
+      ],
+      "hits": "Bot roster, presence probe, computer map, handoff staging.",
+      "does_not_hit": "Does not create cloud VMs, provider sessions, or background workers.",
+      "life": "alive"
+    }
+  ],
+  "life": "alive",
+  "status": "LIVE"
+}

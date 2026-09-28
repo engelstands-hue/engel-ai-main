@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-26T00:56:15Z",
+  "created_by": "hermes-optional-catalog-import-20260825",
+  "description": "Build institutional-quality DCF valuation models in Excel — revenue projections, FCF build, WACC, terminal value, Bear/Base/Bull scenarios, 5x5 sensitivity tables. Pairs with excel-author. Use for intrinsic-value equity analysis.",
+  "name": "Engel Dcf Model",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-hermes-dcf-model",
+  "skill_md_sha256": "69457ed653521f6141242da80e806a3163122ffecc9c8d68264f19de1debd56e",
+  "source": "engel-ai-main-server",
+  "updated_at_utc": "2026-08-26T00:56:15Z"
+}

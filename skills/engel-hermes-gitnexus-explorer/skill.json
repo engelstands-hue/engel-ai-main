@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-26T00:56:16Z",
+  "created_by": "hermes-optional-catalog-import-20260825",
+  "description": "Index a codebase with GitNexus and serve an interactive knowledge graph via web UI + Cloudflare tunnel.",
+  "name": "Engel Gitnexus Explorer",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-hermes-gitnexus-explorer",
+  "skill_md_sha256": "7d9d4e99e1340490e1649d51f1f305b12724e24c775389ea78c1f694ba02769a",
+  "source": "engel-ai-main-server",
+  "updated_at_utc": "2026-08-26T00:56:16Z"
+}

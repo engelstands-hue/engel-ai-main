@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-26T00:56:15Z",
+  "created_by": "hermes-optional-catalog-import-20260825",
+  "description": "Roleplay the most difficult, tech-resistant user for your product. Browse the app as that persona, find every UX pain point, then filter complaints through a pragmatism layer to separate real problems from noise. Creates actionable tickets from genuine issues only.",
+  "name": "Engel Adversarial Ux Test",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-hermes-adversarial-ux-test",
+  "skill_md_sha256": "838b88764de708709055e46e86cd1edc7cd8f896a41a953a80310f82d1327ad0",
+  "source": "engel-ai-main-server",
+  "updated_at_utc": "2026-08-26T00:56:15Z"
+}

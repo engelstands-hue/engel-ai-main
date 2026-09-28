@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-26T00:45:19Z",
+  "created_by": "hermes-root-catalog-import-20260825",
+  "description": "Use when a Engel Kanban worker wants to run Codex CLI as an isolated implementation lane while Engel keeps ownership of task lifecycle, reconciliation, testing, and handoff.",
+  "name": "Engel Hermes kanban-codex-lane",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-hermes-kanban-codex-lane",
+  "skill_md_sha256": "6880db20df7f321c19a09cd7f49ae63a36532e6e4cc03964569b76fa9501c5d5",
+  "source": "engel-ai-main-server",
+  "updated_at_utc": "2026-08-26T00:45:19Z"
+}

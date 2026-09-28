@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-26T00:56:14Z",
+  "created_by": "hermes-optional-catalog-import-20260825",
+  "description": "Delegate coding tasks to Blackbox AI CLI agent. Multi-model agent with built-in judge that runs tasks through multiple LLMs and picks the best result. Requires the blackbox CLI and a Blackbox AI API key.",
+  "name": "Engel Blackbox",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-hermes-blackbox",
+  "skill_md_sha256": "1c403c3713f095a812f6d0b90cc6f7a9d2b4fac9c30d5d94245e9c45a6986e24",
+  "source": "engel-ai-main-server",
+  "updated_at_utc": "2026-08-26T00:56:14Z"
+}

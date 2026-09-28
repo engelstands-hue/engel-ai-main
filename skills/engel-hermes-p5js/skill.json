@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-26T00:45:19Z",
+  "created_by": "hermes-root-catalog-import-20260825",
+  "description": "p5.js sketches: gen art, shaders, interactive, 3D.",
+  "name": "Engel Hermes p5js",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-hermes-p5js",
+  "skill_md_sha256": "789ee5e9abbd352bab5147fcb896e71c1be88f12e259f9d6ef9b4a5794903873",
+  "source": "engel-ai-main-server",
+  "updated_at_utc": "2026-08-26T00:45:19Z"
+}

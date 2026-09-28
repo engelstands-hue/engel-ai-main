@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-26T00:56:16Z",
+  "created_by": "hermes-optional-catalog-import-20260825",
+  "description": "Canvas LMS integration — fetch enrolled courses and assignments using API token authentication.",
+  "name": "Engel Canvas",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-hermes-canvas",
+  "skill_md_sha256": "61604a691eb084ff704d6044478d2b7999fa2fa57124676db9f9f6a48d066104",
+  "source": "engel-ai-main-server",
+  "updated_at_utc": "2026-08-26T00:56:16Z"
+}

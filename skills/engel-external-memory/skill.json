@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-04T14:56:01Z",
+  "created_by": "claude-cowork + engel-skill-creator",
+  "description": "Where things live in Engel long-term storage: the CT246 vault topology (/opt/engel + /mnt/engel-hdd-vault) and the legacy E:/F:/G: drive-letter aliases. Use whenever a request involves GGUF model weights, llama.cpp runtimes, chat exports, archives, backups, receipts, 'where should X go', or any code that scans long-term storage.",
+  "name": "Engel External Memory",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-external-memory",
+  "skill_md_sha256": "1a0a985cac9c8c696273f8cf1fb89041d1fde79b031799ce56bbe4045cf295b0",
+  "source": "claude-skill-creator",
+  "updated_at_utc": "2026-08-04T16:19:54Z"
+}

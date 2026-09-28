@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-26T00:45:19Z",
+  "created_by": "hermes-root-catalog-import-20260825",
+  "description": "Track Apple devices/AirTags via FindMy.app on macOS.",
+  "name": "Engel Hermes findmy",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-hermes-findmy",
+  "skill_md_sha256": "e90b23b5dc0753e7cbbbcc74b3fdc715bf4161f6b3b21f75f6f115b5dd79ad03",
+  "source": "engel-ai-main-server",
+  "updated_at_utc": "2026-08-26T00:45:19Z"
+}

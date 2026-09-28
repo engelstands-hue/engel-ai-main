@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-26T00:56:15Z",
+  "created_by": "hermes-optional-catalog-import-20260825",
+  "description": "GPU-accelerated data curation for LLM training. Supports text/image/video/audio. Features fuzzy deduplication (16× faster), quality filtering (30+ heuristics), semantic deduplication, PII redaction, NSFW detection. Scales across GPUs with RAPIDS. Use for preparing high-quality training datasets, cleaning web data, or deduplicating large corpora.",
+  "name": "Engel Nemo Curator",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-hermes-nemo-curator",
+  "skill_md_sha256": "d14df6a65bf7cf76dff7a76f812113471d1bd66aad78b16c76f6fc61d4acf910",
+  "source": "engel-ai-main-server",
+  "updated_at_utc": "2026-08-26T00:56:15Z"
+}

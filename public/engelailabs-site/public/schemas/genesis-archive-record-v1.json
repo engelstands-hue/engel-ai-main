@@ -1,0 +1,115 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://engelailabs.com/schemas/genesis-archive-record-v1.json",
+  "title": "Engel Genesis Archive draft record",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "record_id",
+    "collection_id",
+    "working_sequence",
+    "sequence_is_permanent",
+    "title",
+    "workflow_state",
+    "public_summary",
+    "source_milestone",
+    "privacy_review",
+    "rights_review",
+    "media",
+    "collectible",
+    "review"
+  ],
+  "properties": {
+    "schema_version": { "const": "1.0" },
+    "record_id": { "type": "string", "pattern": "^EGA-EI-[0-9]{3}$" },
+    "collection_id": { "const": "engel-genesis-archive-edition-i" },
+    "working_sequence": { "type": "integer", "minimum": 1 },
+    "sequence_is_permanent": { "const": false },
+    "title": { "type": "string", "minLength": 1, "maxLength": 120 },
+    "workflow_state": {
+      "type": "string",
+      "enum": ["draft", "evidence_verified", "rights_cleared", "public_archive", "revoked"]
+    },
+    "public_summary": { "type": "string", "minLength": 1, "maxLength": 600 },
+    "source_milestone": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["label", "asserted_date", "evidence_status", "evidence_refs"],
+      "properties": {
+        "label": { "type": "string", "minLength": 1 },
+        "asserted_date": { "type": ["string", "null"], "format": "date" },
+        "evidence_status": { "type": "string", "enum": ["unverified", "verified", "disputed"] },
+        "evidence_refs": { "type": "array", "items": { "type": "string" }, "uniqueItems": true }
+      }
+    },
+    "privacy_review": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "classification", "excluded_details"],
+      "properties": {
+        "status": { "type": "string", "enum": ["pending", "approved", "rejected"] },
+        "classification": { "type": "string", "enum": ["private_source", "public_candidate", "public"] },
+        "excluded_details": { "type": "array", "items": { "type": "string" }, "uniqueItems": true }
+      }
+    },
+    "rights_review": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "owner_claim", "third_party_marks_removed", "license_review"],
+      "properties": {
+        "status": { "type": "string", "enum": ["pending", "approved", "rejected"] },
+        "owner_claim": { "type": "string" },
+        "third_party_marks_removed": { "type": "boolean" },
+        "license_review": { "type": "string", "enum": ["pending", "approved", "not_applicable"] }
+      }
+    },
+    "media": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["role", "path", "mime_type", "sha256", "status"],
+        "properties": {
+          "role": { "type": "string", "enum": ["source_evidence", "public_derivative", "artistic_interpretation"] },
+          "path": { "type": "string" },
+          "mime_type": { "type": "string" },
+          "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+          "status": { "type": "string", "enum": ["private", "pending_review", "concept_only", "approved_public", "revoked"] },
+          "generation_record": { "type": ["string", "null"] }
+        }
+      }
+    },
+    "collectible": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["eligible", "chain", "contract_address", "token_id", "supply", "price", "rights"],
+      "properties": {
+        "eligible": { "const": false },
+        "chain": { "type": "null" },
+        "contract_address": { "type": "null" },
+        "token_id": { "type": "null" },
+        "supply": { "type": "null" },
+        "price": { "type": "null" },
+        "rights": { "type": "array", "maxItems": 0 }
+      }
+    },
+    "review": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["provenance", "factual", "privacy", "rights", "legal", "security", "commercial"],
+      "properties": {
+        "provenance": { "$ref": "#/$defs/reviewState" },
+        "factual": { "$ref": "#/$defs/reviewState" },
+        "privacy": { "$ref": "#/$defs/reviewState" },
+        "rights": { "$ref": "#/$defs/reviewState" },
+        "legal": { "$ref": "#/$defs/reviewState" },
+        "security": { "$ref": "#/$defs/reviewState" },
+        "commercial": { "$ref": "#/$defs/reviewState" }
+      }
+    }
+  },
+  "$defs": {
+    "reviewState": { "type": "string", "enum": ["pending", "approved", "rejected", "not_applicable"] }
+  }
+}

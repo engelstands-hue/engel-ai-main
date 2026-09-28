@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-26T00:45:20Z",
+  "created_by": "hermes-root-catalog-import-20260825",
+  "description": "Author in-repo SKILL.md: frontmatter, validator, structure.",
+  "name": "Engel Hermes engel-agent-skill-authoring",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-hermes-engel-agent-skill-authoring",
+  "skill_md_sha256": "956143a0b3ed2ec3566afba92bd5892fb0e607a0eb69043ae993c5aa17e0c61a",
+  "source": "engel-ai-main-server",
+  "updated_at_utc": "2026-08-26T00:45:20Z"
+}

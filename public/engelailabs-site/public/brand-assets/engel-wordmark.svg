@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 150" role="img" aria-labelledby="title desc">
+  <title id="title">Engel AI Labs wordmark</title>
+  <desc id="desc">The Engel AI Labs name paired with its constellation mark.</desc>
+  <defs>
+    <linearGradient id="signal" x1="12" y1="12" x2="140" y2="138" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#22C8FF"/>
+      <stop offset="1" stop-color="#42F5A7"/>
+    </linearGradient>
+  </defs>
+  <rect width="720" height="150" rx="24" fill="#06101D"/>
+  <g transform="translate(24 19)">
+    <path d="M19 88 51 58 89 79M51 58 75 19" fill="none" stroke="url(#signal)" stroke-width="3" opacity=".72"/>
+    <g fill="#06101D" stroke="url(#signal)" stroke-width="3">
+      <circle cx="19" cy="88" r="6"/><circle cx="89" cy="79" r="6"/><circle cx="75" cy="19" r="6"/>
+    </g>
+    <path d="m51 31 7 20 20 7-20 7-7 20-7-20-20-7 20-7 7-20Z" fill="url(#signal)"/>
+  </g>
+  <text x="145" y="78" fill="#EAF7FF" font-family="Arial, Helvetica, sans-serif" font-size="51" font-weight="700" letter-spacing="2">ENGEL AI</text>
+  <text x="148" y="112" fill="#8EA9BD" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="600" letter-spacing="8">LABS</text>
+</svg>

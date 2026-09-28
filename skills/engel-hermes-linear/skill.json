@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-26T00:45:20Z",
+  "created_by": "hermes-root-catalog-import-20260825",
+  "description": "Linear: manage issues, projects, teams via GraphQL + curl.",
+  "name": "Engel Hermes linear",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-hermes-linear",
+  "skill_md_sha256": "66addc7d4986184e6be4c10f5accc7b0759706af3a44641cf38eb10227ad0680",
+  "source": "engel-ai-main-server",
+  "updated_at_utc": "2026-08-26T00:45:20Z"
+}

@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-26T00:45:20Z",
+  "created_by": "hermes-root-catalog-import-20260825",
+  "description": "SAM: zero-shot image segmentation via points, boxes, masks.",
+  "name": "Engel Hermes segment-anything-model",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-hermes-segment-anything",
+  "skill_md_sha256": "d5b3f22006b4781872a8c4ac2019eecd098c7821212a5e4b126d17223d2501f3",
+  "source": "engel-ai-main-server",
+  "updated_at_utc": "2026-08-26T00:45:20Z"
+}

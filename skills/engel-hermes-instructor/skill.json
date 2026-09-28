@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-26T00:56:15Z",
+  "created_by": "hermes-optional-catalog-import-20260825",
+  "description": "Extract structured data from LLM responses with Pydantic validation, retry failed extractions automatically, parse complex JSON with type safety, and stream partial results with Instructor - battle-tested structured output library",
+  "name": "Engel Instructor",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-hermes-instructor",
+  "skill_md_sha256": "cba2cdd600ee3deed766991136f8a85e49b999665c1485d88b265502effe340c",
+  "source": "engel-ai-main-server",
+  "updated_at_utc": "2026-08-26T00:56:15Z"
+}

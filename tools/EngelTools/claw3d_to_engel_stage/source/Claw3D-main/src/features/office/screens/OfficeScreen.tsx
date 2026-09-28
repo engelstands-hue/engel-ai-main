@@ -1,0 +1,5785 @@
+"use client";
+
+import {
+  type ReactNode,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { MessageSquare, ChevronDown, ChevronLeft, ChevronRight, Mic } from "lucide-react";
+import { RetroOffice3D } from "@/features/retro-office/RetroOffice3D";
+import type { OfficeAgent } from "@/features/retro-office/core/types";
+import { RunningAvatarLoader } from "@/features/agents/components/RunningAvatarLoader";
+import { GatewayConnectScreen } from "@/features/agents/components/GatewayConnectScreen";
+import { useAgentStore, type AgentState } from "@/features/agents/state/store";
+import {
+  GatewayClient,
+  buildAgentMainSessionKey,
+  type EventFrame,
+  isSameSessionKey,
+  parseAgentIdFromSessionKey,
+} from "@/lib/gateway/GatewayClient";
+import { useRuntimeConnection } from "@/lib/runtime/useRuntimeConnection";
+import {
+  createStudioSettingsCoordinator,
+  type StudioSettingsLoadOptions,
+} from "@/lib/studio/coordinator";
+import {
+  resolveDeskAssignments,
+  resolveOfficePreferencePublic,
+  resolveStudioActiveFloorId,
+  resolveStudioGatewayProfiles,
+  type StudioGatewayAdapterType,
+  type StudioGatewaySettings,
+} from "@/lib/studio/settings";
+import {
+  createGatewayAgent,
+  renameGatewayAgent,
+} from "@/lib/gateway/agentConfig";
+import {
+  runStudioBootstrapLoadOperation,
+  executeStudioBootstrapLoadCommands,
+} from "@/features/agents/operations/studioBootstrapOperation";
+import { isGatewayDisconnectLikeError } from "@/lib/gateway/GatewayClient";
+import { createGatewayRuntimeEventHandler } from "@/features/agents/state/gatewayRuntimeEventHandler";
+import {
+  buildHistoryLines,
+  classifyGatewayEventKind,
+  isReasoningRuntimeAgentStream,
+  type AgentEventPayload,
+  type ChatEventPayload,
+  type SummaryPreviewSnapshot,
+} from "@/features/agents/state/runtimeEventBridge";
+import {
+  extractText,
+  extractThinking,
+  extractToolLines,
+  isHeartbeatPrompt,
+  stripUiMetadata,
+} from "@/lib/text/message-extract";
+import { resolveOfficeIntentSnapshot } from "@/lib/office/deskDirectives";
+import { OfficeFloorNav } from "@/features/office/components/OfficeFloorNav";
+import { AgentChatPanel } from "@/features/agents/components/AgentChatPanel";
+import {
+  RemoteAgentChatPanel,
+  type RemoteAgentChatMessage,
+} from "@/features/office/components/RemoteAgentChatPanel";
+import { useOfficeFloorRuntimePersistence } from "@/features/office/hooks/useOfficeFloorRuntimePersistence";
+import {
+  type RuntimeAgentMessageMode,
+} from "@/lib/runtime/agentMessaging";
+import {
+  buildFloorRosterState,
+  createFloorRosterCache,
+} from "@/lib/office/floorRoster";
+import {
+  getOfficeFloor,
+  listOfficeFloorsForProvider,
+  resolveActiveOfficeFloorId,
+  type FloorId,
+  type FloorProvider,
+} from "@/lib/office/floors";
+import {
+  AgentEditorModal,
+  type AgentEditorSection,
+} from "@/features/agents/components/AgentEditorModal";
+import { AgentCreateWizardModal } from "@/features/agents/components/AgentCreateWizardModal";
+import type { AgentIdentityValues } from "@/features/agents/components/AgentIdentityFields";
+import { useChatInteractionController } from "@/features/agents/operations/useChatInteractionController";
+import {
+  applyCreateAgentBootstrapPermissions,
+  CREATE_AGENT_DEFAULT_PERMISSIONS,
+} from "@/features/agents/operations/createAgentBootstrapOperation";
+import {
+  deleteAgentRecordViaStudio,
+  deleteAgentViaStudio,
+  trashAgentStateViaStudio,
+} from "@/features/agents/operations/deleteAgentOperation";
+import { planAgentSettingsMutation } from "@/features/agents/operations/agentSettingsMutationWorkflow";
+import {
+  executeHistorySyncCommands,
+  runHistorySyncOperation,
+} from "@/features/agents/operations/historySyncOperation";
+import {
+  buildQueuedMutationBlock,
+  runAgentConfigMutationLifecycle,
+  runCreateAgentMutationLifecycle,
+  type CreateAgentBlockState,
+} from "@/features/agents/operations/mutationLifecycleWorkflow";
+import { useConfigMutationQueue } from "@/features/agents/operations/useConfigMutationQueue";
+import {
+  RUNTIME_SYNC_DEFAULT_HISTORY_LIMIT,
+  RUNTIME_SYNC_MAX_HISTORY_LIMIT,
+} from "@/features/agents/operations/runtimeSyncControlWorkflow";
+import {
+  TRANSCRIPT_V2_ENABLED,
+  logTranscriptDebugMetric,
+} from "@/features/agents/state/transcript";
+import {
+  buildGatewayModelChoices,
+  type GatewayModelChoice,
+} from "@/lib/gateway/models";
+import type { GatewayModelPolicySnapshot } from "@/lib/gateway/models";
+import {
+  createDefaultAgentAvatarProfile,
+  type AgentAvatarProfile,
+} from "@/lib/avatars/profile";
+import {
+  createEmptyPersonalityDraft,
+  serializePersonalityFiles,
+  type PersonalityBuilderDraft,
+} from "@/lib/agents/personalityBuilder";
+import { writeGatewayAgentFiles } from "@/lib/gateway/agentFiles";
+import { randomUUID } from "@/lib/uuid";
+import {
+  HQSidebar,
+  type HQSidebarTab,
+} from "@/features/office/components/HQSidebar";
+import { CompanyBuilderModal } from "@/features/company-builder/components/CompanyBuilderModal";
+import {
+  buildGenerateCompanyPlanPrompt,
+  buildImproveCompanyBriefPrompt,
+  buildStoredCompanySnapshot,
+  parseCompanyPlanFromAssistantText,
+} from "@/features/company-builder/planning";
+import {
+  buildCompanyRolePermissionsDraft,
+  resolveCompanyPlanningAgent,
+  runOpenClawPlanningPrompt,
+} from "@/features/company-builder/operations/companyBuilderGateway";
+import { runCompanyBootstrapOperation } from "@/features/company-builder/operations/companyBootstrapOperation";
+import type {
+  CompanyBuilderInput,
+  CompanyBuilderPlan,
+} from "@/features/company-builder/types";
+import { AnalyticsPanel } from "@/features/office/components/panels/AnalyticsPanel";
+import { HistoryPanel } from "@/features/office/components/panels/HistoryPanel";
+import { InboxPanel } from "@/features/office/components/panels/InboxPanel";
+import { KanbanDisabledPanel } from "@/features/office/components/panels/KanbanDisabledPanel";
+import { PlaybooksPanel } from "@/features/office/components/panels/PlaybooksPanel";
+import { SkillsMarketplaceModal } from "@/features/office/components/panels/SkillsMarketplaceModal";
+import { TaskBoardPanel } from "@/features/office/components/panels/TaskBoardPanel";
+import { JukeboxPanel } from "@/features/spotify-jukebox/components/JukeboxPanel";
+import { JukeboxDisabledPanel } from "@/features/spotify-jukebox/components/JukeboxDisabledPanel";
+import { executeBrowserJukeboxCommand } from "@/features/spotify-jukebox/agentBridge";
+import {
+  SOUNDCLAW_PLAYBACK_STARTED_EVENT_NAME,
+  useJukeboxStore,
+} from "@/features/spotify-jukebox/store";
+import { useOfficeSkillTriggers } from "@/features/office/hooks/useOfficeSkillTriggers";
+import { useRemoteOfficePresence } from "@/features/office/hooks/useRemoteOfficePresence";
+import { useRemoteOfficeLayout } from "@/features/office/hooks/useRemoteOfficeLayout";
+import { useOfficeSkillsMarketplace } from "@/features/office/hooks/useOfficeSkillsMarketplace";
+import { useOfficeStandupController } from "@/features/office/hooks/useOfficeStandupController";
+import { useRunLog } from "@/features/office/hooks/useRunLog";
+import { useTaskBoardController } from "@/features/office/tasks/useTaskBoardController";
+import {
+  OnboardingWizard,
+  useOnboardingState,
+} from "@/features/onboarding";
+import { useFinalizedAssistantReplyListener } from "@/hooks/useFinalizedAssistantReplyListener";
+import { useStudioOfficePreference } from "@/hooks/useStudioOfficePreference";
+import { isRemoteOfficeAgentId } from "@/features/retro-office/core/district";
+import { useStudioVoiceRepliesPreference } from "@/hooks/useStudioVoiceRepliesPreference";
+import {
+  useVoiceRecorder,
+  type VoiceSendPayload,
+} from "@/hooks/useVoiceRecorder";
+import { useVoiceReplyPlayback } from "@/hooks/useVoiceReplyPlayback";
+import {
+  buildOfficeAnimationState,
+  clearOfficeAnimationTriggerHold,
+  createOfficeAnimationTriggerState,
+  reconcileOfficeAnimationTriggerState,
+  reduceOfficeAnimationTriggerEvent,
+  type OfficePhoneCallRequest,
+  type OfficeTextMessageRequest,
+} from "@/lib/office/eventTriggers";
+import { buildOfficeSkillTriggerHoldMaps } from "@/lib/office/places";
+import type { MockPhoneCallScenario } from "@/lib/office/call/types";
+import type { MockTextMessageScenario } from "@/lib/office/text/types";
+import {
+  buildOfficeDeskMonitor,
+  type OfficeDeskMonitor,
+} from "@/lib/office/deskMonitor";
+import { deriveSkillReadinessState } from "@/lib/skills/presentation";
+import type { StandupAgentSnapshot } from "@/lib/office/standup/types";
+import type { SkillStatusEntry } from "@/lib/skills/types";
+
+const stringToColor = (str: string) => {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    hash = str.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  const c = (hash & 0x00ffffff).toString(16).toUpperCase();
+  return "#" + "00000".substring(0, 6 - c.length) + c;
+};
+
+const ITEMS = [
+  "globe",
+  "books",
+  "coffee",
+  "palette",
+  "camera",
+  "waveform",
+  "shield",
+  "fire",
+  "plant",
+  "laptop",
+];
+const GYM_WORKOUT_LATCH_MS = 60_000;
+const MAIN_AGENT_ID = "main";
+const DEMO_MAIN_SESSION_KEY = buildAgentMainSessionKey(MAIN_AGENT_ID, "main");
+const createDemoMainAgentSeed = (): {
+  agentId: string;
+  name: string;
+  runtimeName: string;
+  identityName: string;
+  sessionDisplayName: string;
+  role: string;
+  sessionKey: string;
+  avatarSeed: string;
+  avatarProfile: AgentAvatarProfile;
+  model: string;
+  thinkingLevel: string;
+  toolCallingEnabled: boolean;
+  showThinkingTraces: boolean;
+} => ({
+  agentId: MAIN_AGENT_ID,
+  name: "Main",
+  runtimeName: "Claw3D Demo",
+  identityName: "Main",
+  sessionDisplayName: "Main",
+  role: "assistant",
+  sessionKey: DEMO_MAIN_SESSION_KEY,
+  avatarSeed: MAIN_AGENT_ID,
+  avatarProfile: createDefaultAgentAvatarProfile(MAIN_AGENT_ID),
+  model: "demo/main",
+  thinkingLevel: "medium",
+  toolCallingEnabled: false,
+  showThinkingTraces: false,
+});
+const MAX_OPENCLAW_LOG_ENTRIES = 200;
+const MAX_OPENCLAW_AGENT_OUTPUT_LINES = 12;
+const OFFICE_DANCE_MS = 60_000;
+const GATEWAY_LOADING_OVERLAY_DELAY_MS = 1_200;
+const GATEWAY_CONNECT_OVERLAY_DELAY_MS = 1_500;
+
+const getLatestUserRequestForAgent = (
+  agent: AgentState,
+): { text: string; requestKey: string } | null => {
+  const transcriptEntries = Array.isArray(agent.transcriptEntries)
+    ? agent.transcriptEntries
+    : [];
+  for (let index = transcriptEntries.length - 1; index >= 0; index -= 1) {
+    const entry = transcriptEntries[index];
+    if (!entry || entry.role !== "user") continue;
+    const text = entry.text.trim();
+    if (!text) continue;
+    return {
+      text,
+      requestKey: `${agent.sessionKey}:${entry.sequenceKey}:${text}`,
+    };
+  }
+  const fallback = agent.lastUserMessage?.trim() ?? "";
+  if (!fallback) return null;
+  return {
+    text: fallback,
+    requestKey: `${agent.sessionKey}:fallback:${fallback}`,
+  };
+};
+
+type OpenClawLogEntry = {
+  id: string;
+  timestamp: string;
+  eventName: string;
+  eventKind: string;
+  summary: string;
+  role: string | null;
+  messageText: string | null;
+  thinkingText: string | null;
+  streamText: string | null;
+  toolText: string | null;
+  payloadText: string;
+};
+
+type PreparedPhoneCallEntry = {
+  requestKey: string;
+  scenario: MockPhoneCallScenario;
+};
+
+type PreparedTextMessageEntry = {
+  requestKey: string;
+  scenario: MockTextMessageScenario;
+};
+
+type OfficeDeleteMutationBlockState = {
+  kind: "delete-agent";
+  agentId: string;
+  agentName: string;
+  phase: "queued" | "mutating" | "awaiting-restart";
+  startedAt: number;
+  sawDisconnect: boolean;
+};
+
+type PendingFloorRuntimeSwitch = {
+  floorId: FloorId;
+  adapterType: StudioGatewayAdapterType;
+  gatewayUrl: string;
+  token: string;
+};
+
+type PhoneCallSpeakPayload = {
+  agentId: string;
+  requestKey: string;
+  scenario: MockPhoneCallScenario;
+};
+
+const createOpenClawLogEntry = (params: {
+  eventName: string;
+  eventKind: string;
+  summary: string;
+  payload?: unknown;
+  role?: string | null;
+  messageText?: string | null;
+  thinkingText?: string | null;
+  streamText?: string | null;
+  toolText?: string | null;
+}): OpenClawLogEntry => ({
+  id: randomUUID(),
+  timestamp: formatOpenClawTimestamp(Date.now()),
+  eventName: params.eventName,
+  eventKind: params.eventKind,
+  summary: params.summary,
+  role: params.role ?? null,
+  messageText: params.messageText ?? null,
+  thinkingText: params.thinkingText ?? null,
+  streamText: params.streamText ?? null,
+  toolText: params.toolText ?? null,
+  payloadText: safeJsonStringify(params.payload ?? null),
+});
+
+const formatOpenClawTimestamp = (timestampMs: number) => {
+  const date = new Date(timestampMs);
+  const hh = String(date.getHours()).padStart(2, "0");
+  const mm = String(date.getMinutes()).padStart(2, "0");
+  const ss = String(date.getSeconds()).padStart(2, "0");
+  const ms = String(date.getMilliseconds()).padStart(3, "0");
+  return `${hh}:${mm}:${ss}.${ms}`;
+};
+
+const formatOpenClawValue = (value: string | null | undefined) => {
+  const trimmed = value?.trim() ?? "";
+  return trimmed || "-";
+};
+
+const buildPhoneCallOutputLine = (text: string) => `[phone booth] ${text}`;
+const buildTextMessageOutputLine = (text: string) => `[messaging booth] ${text}`;
+
+const buildIdentityFileDraft = (identity: AgentIdentityValues) => {
+  const draft = createEmptyPersonalityDraft();
+  draft.identity = {
+    ...draft.identity,
+    ...identity,
+  };
+  return serializePersonalityFiles(draft);
+};
+
+const resolveOfficeMutationGuardMessage = (guardReason?: string) => {
+  if (guardReason === "not-connected") {
+    return "Connect to the gateway before changing the office fleet.";
+  }
+  if (guardReason === "create-block-active") {
+    return "Finish the active agent creation before starting another fleet change.";
+  }
+  if (guardReason === "rename-block-active") {
+    return "Finish the active rename before changing the office fleet.";
+  }
+  if (guardReason === "delete-block-active") {
+    return "Finish the active deletion before changing the office fleet.";
+  }
+  return "The office fleet is busy right now.";
+};
+
+const PHONE_BOOTH_ASSISTANT_FALLBACK_RE =
+  /\b(?:i\s+)?can(?:not|['’]t)\s+(?:place|make)\s+(?:phone\s+)?calls?\b/i;
+
+const shouldSuppressPhoneBoothAssistantReply = (params: {
+  agents: AgentState[];
+  event: EventFrame;
+  phoneCallByAgentId: Record<string, OfficePhoneCallRequest>;
+}): boolean => {
+  if (classifyGatewayEventKind(params.event.event) !== "runtime-chat") return false;
+  const payload = params.event.payload as ChatEventPayload | undefined;
+  if (!payload?.sessionKey) return false;
+  const message =
+    typeof payload.message === "object" && payload.message !== null
+      ? (payload.message as Record<string, unknown>)
+      : null;
+  const role = typeof message?.role === "string" ? message.role : null;
+  if (role !== "assistant") return false;
+  const text = extractText(payload.message)?.trim() ?? "";
+  if (!text || !PHONE_BOOTH_ASSISTANT_FALLBACK_RE.test(text)) return false;
+  const agentId =
+    params.agents.find((agent) => agent.sessionKey === payload.sessionKey)?.agentId ??
+    parseAgentIdFromSessionKey(payload.sessionKey);
+  if (!agentId) return false;
+  return Boolean(params.phoneCallByAgentId[agentId]);
+};
+
+const safeJsonStringify = (value: unknown) => {
+  try {
+    return JSON.stringify(value, null, 2) ?? String(value);
+  } catch (error) {
+    return `[unserializable payload: ${error instanceof Error ? error.message : "unknown error"}]`;
+  }
+};
+
+const escapeRegExp = (value: string) =>
+  value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+const renderOpenClawHighlightedText = (
+  value: string,
+  query: string,
+): ReactNode => {
+  if (!query) return value;
+  const trimmedQuery = query.trim();
+  if (!trimmedQuery) return value;
+  const pattern = new RegExp(`(${escapeRegExp(trimmedQuery)})`, "gi");
+  return value.split(pattern).map((part, index) =>
+    part.toLowerCase() === trimmedQuery.toLowerCase() ? (
+      <mark
+        key={`${part}-${index}`}
+        className="rounded bg-amber-300/25 px-0.5 text-amber-100"
+      >
+        {part}
+      </mark>
+    ) : (
+      part
+    ),
+  );
+};
+
+const resolveMessageRole = (message: unknown) =>
+  message && typeof message === "object"
+    ? ((message as Record<string, unknown>).role ?? null)
+    : null;
+
+const formatOpenClawEventLogEntry = (event: EventFrame): OpenClawLogEntry => {
+  const eventKind = classifyGatewayEventKind(event.event);
+  const baseSummary = `seq=${event.seq ?? "-"} stateVersion=${safeJsonStringify(event.stateVersion ?? null)}`;
+  let summary = baseSummary;
+  let role: string | null = null;
+  let messageText: string | null = null;
+  let thinkingText: string | null = null;
+  let streamText: string | null = null;
+  let toolText: string | null = null;
+
+  if (eventKind === "runtime-chat") {
+    const payload = event.payload as ChatEventPayload | undefined;
+    if (payload) {
+      role =
+        typeof resolveMessageRole(payload.message) === "string"
+          ? String(resolveMessageRole(payload.message))
+          : null;
+      const text = extractText(payload.message);
+      const thinking = extractThinking(payload.message ?? payload);
+      const toolLines = extractToolLines(payload.message ?? payload);
+      summary = `chat session=${payload.sessionKey || "-"} run=${payload.runId || "-"} state=${payload.state} role=${String(role ?? "-")} stopReason=${payload.stopReason ?? "-"} | ${baseSummary}`;
+      if (text) {
+        messageText = stripUiMetadata(text).trim() || text.trim();
+      }
+      if (thinking) {
+        thinkingText = thinking.trim();
+      }
+      if (toolLines.length > 0) {
+        toolText = toolLines.join(" | ");
+      }
+    }
+  } else if (eventKind === "runtime-agent") {
+    const payload = event.payload as AgentEventPayload | undefined;
+    if (payload) {
+      const data =
+        payload.data && typeof payload.data === "object"
+          ? (payload.data as Record<string, unknown>)
+          : null;
+      const phase = typeof data?.phase === "string" ? data.phase : "-";
+      const text =
+        typeof data?.text === "string"
+          ? data.text
+          : typeof data?.delta === "string"
+            ? data.delta
+            : "";
+      const extractedThinking = extractThinking(data ?? payload);
+      summary = `agent session=${payload.sessionKey || "-"} run=${payload.runId || "-"} stream=${payload.stream || "-"} phase=${phase} reasoning=${String(isReasoningRuntimeAgentStream(payload.stream ?? ""))} | ${baseSummary}`;
+      if (extractedThinking) {
+        thinkingText = extractedThinking.trim();
+      } else if (text.trim()) {
+        streamText = text.trim();
+      }
+    }
+  }
+
+  return createOpenClawLogEntry({
+    eventName: event.event,
+    eventKind,
+    summary,
+    role,
+    messageText,
+    thinkingText,
+    streamText,
+    toolText,
+    payload: event.payload ?? null,
+  });
+};
+
+const resolveLatestUserTextFromPreview = (
+  previewResult: SummaryPreviewSnapshot | null | undefined,
+  sessionKey: string,
+): string | null => {
+  const previews = Array.isArray(previewResult?.previews)
+    ? previewResult.previews
+    : [];
+  const preview = previews.find((entry) => entry.key === sessionKey);
+  if (!preview || !Array.isArray(preview.items)) return null;
+  for (let index = preview.items.length - 1; index >= 0; index -= 1) {
+    const item = preview.items[index];
+    if (!item) continue;
+    if (item.role === "assistant") continue;
+    if (item.role === "user") {
+      const text = item.text.trim();
+      if (text) return text;
+    }
+  }
+  return null;
+};
+
+const getDeterministicItem = (id: string) => {
+  let hash = 0;
+  for (let i = 0; i < id.length; i++) {
+    hash = id.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  return ITEMS[Math.abs(hash) % ITEMS.length];
+};
+
+const mapAgentToOffice = (agent: AgentState): OfficeAgent => {
+  if (agent.status === "error") {
+    return {
+      id: agent.agentId,
+      name: agent.name || "Unknown",
+      subtitle: agent.role ?? null,
+      status: "error",
+      color: stringToColor(agent.agentId),
+      item: getDeterministicItem(agent.agentId),
+      avatarProfile: agent.avatarProfile ?? null,
+    };
+  }
+  const isWorking = agent.status === "running" || Boolean(agent.runId);
+  return {
+    id: agent.agentId,
+    name: agent.name || "Unknown",
+    subtitle: agent.role ?? null,
+    status: isWorking ? "working" : "idle",
+    color: stringToColor(agent.agentId),
+    item: getDeterministicItem(agent.agentId),
+    avatarProfile: agent.avatarProfile ?? null,
+  };
+};
+
+const mapRemotePresenceAgentToOffice = (agent: {
+  agentId: string;
+  name: string;
+  state: "idle" | "working" | "meeting" | "error";
+}): OfficeAgent => {
+  const stableId = `remote:${agent.agentId}`;
+  const isWorking = agent.state === "working" || agent.state === "meeting";
+  return {
+    id: stableId,
+    name: agent.name || "Unknown",
+    status: agent.state === "error" ? "error" : isWorking ? "working" : "idle",
+    color: stringToColor(stableId),
+    item: getDeterministicItem(stableId),
+    avatarProfile: null,
+  };
+};
+
+type ChatHistoryResult = {
+  messages?: Array<Record<string, unknown>>;
+};
+
+type SessionsListEntry = {
+  key?: string;
+  updatedAt?: number | null;
+  origin?: { label?: string | null } | null;
+};
+
+type SessionsListResult = {
+  sessions?: SessionsListEntry[];
+};
+
+type SessionsPreviewItem = {
+  role?: string;
+  text?: string;
+};
+
+type SessionsPreviewEntry = {
+  key?: string;
+  status?: string;
+  items?: SessionsPreviewItem[];
+};
+
+type SessionsPreviewResult = {
+  previews?: SessionsPreviewEntry[];
+};
+
+type HistoryInferenceResult = {
+  inferredRunning: boolean;
+  lastRole: string;
+  lastText: string;
+  messageCount: number;
+};
+
+type OfficeDebugRow = {
+  agentId: string;
+  name: string;
+  storeStatus: AgentState["status"];
+  runId: string | null;
+  inferredRunning: boolean;
+  lastRole: string;
+  lastText: string;
+  messageCount: number;
+  detectedSessionKey: string;
+  inspectedSessions: string;
+  inferenceSource: string;
+  at: string;
+};
+
+type OfficeFeedEvent = {
+  id: string;
+  name: string;
+  text: string;
+  ts: number;
+  kind?: "status" | "reply";
+};
+
+type RemoteChatSessionState = {
+  draft: string;
+  mode: RuntimeAgentMessageMode;
+  sending: boolean;
+  handoffing: boolean;
+  handoffContext: string;
+  handoffDeliverables: string;
+  handoffAcceptance: string;
+  error: string | null;
+  messages: RemoteAgentChatMessage[];
+};
+
+type ChatRosterEntry = {
+  id: string;
+  name: string;
+  kind: "local" | "remote";
+  isRunning: boolean;
+};
+
+const EMPTY_REMOTE_CHAT_SESSION: RemoteChatSessionState = {
+  draft: "",
+  mode: "direct",
+  sending: false,
+  handoffing: false,
+  handoffContext: "",
+  handoffDeliverables: "",
+  handoffAcceptance: "",
+  error: null,
+  messages: [],
+};
+const MAX_REMOTE_MESSAGE_CHARS = 2_000;
+
+const extractRemoteHistoryText = (value: unknown): string => {
+  if (typeof value === "string") return value.trim();
+  if (Array.isArray(value)) {
+    return value
+      .map((entry) => {
+        if (typeof entry === "string") return entry;
+        if (entry && typeof entry === "object" && "text" in entry && typeof entry.text === "string") {
+          return entry.text;
+        }
+        if (entry && typeof entry === "object" && "content" in entry && typeof entry.content === "string") {
+          return entry.content;
+        }
+        return "";
+      })
+      .join("")
+      .trim();
+  }
+  return "";
+};
+
+const resolveLatestAssistantHistoryText = (messages: unknown): string | null => {
+  if (!Array.isArray(messages)) return null;
+  for (let index = messages.length - 1; index >= 0; index -= 1) {
+    const entry = messages[index];
+    if (!entry || typeof entry !== "object") continue;
+    const role = "role" in entry && typeof entry.role === "string" ? entry.role.trim().toLowerCase() : "";
+    if (role !== "assistant") continue;
+    const text =
+      extractRemoteHistoryText("content" in entry ? entry.content : undefined) ||
+      extractRemoteHistoryText("text" in entry ? entry.text : undefined) ||
+      extractRemoteHistoryText("message" in entry ? entry.message : undefined);
+    if (text) return text;
+  }
+  return null;
+};
+
+const normalizeOfficeFeedText = (
+  value: string | null | undefined,
+  maxChars?: number,
+): string => {
+  const normalized = (value ?? "")
+    .replace(/([.!?])([A-Z])/g, "$1 $2")
+    .replace(/\s+/g, " ")
+    .trim();
+  const deduped = (normalized.match(/[^.!?]+[.!?]?/g) ?? [])
+    .map((fragment) => fragment.trim())
+    .filter((fragment, index, fragments) => {
+      if (!fragment) return false;
+      const normalizedFragment = fragment
+        .toLowerCase()
+        .replace(/[—–-]/g, " ")
+        .replace(/\s+/g, " ")
+        .trim();
+      return (
+        fragments.findIndex((entry) => {
+          const normalizedEntry = entry
+            .toLowerCase()
+            .replace(/[—–-]/g, " ")
+            .replace(/\s+/g, " ")
+            .trim();
+          return normalizedEntry === normalizedFragment;
+        }) === index
+      );
+    })
+    .join(" ")
+    .trim();
+  const finalText = deduped || normalized;
+  if (!finalText) return "";
+  if (
+    typeof maxChars !== "number" ||
+    !Number.isFinite(maxChars) ||
+    maxChars <= 0
+  ) {
+    return finalText;
+  }
+  if (finalText.length <= maxChars) return finalText;
+  return `${normalized.slice(0, Math.max(0, maxChars - 1)).trimEnd()}…`;
+};
+
+const resolveHistoryInference = (
+  messages: Array<Record<string, unknown>>,
+): HistoryInferenceResult => {
+  for (let index = messages.length - 1; index >= 0; index -= 1) {
+    const entry = messages[index];
+    const role = typeof entry.role === "string" ? entry.role : "";
+    if (role === "system" || role === "tool" || role === "toolResult") continue;
+    const text =
+      typeof entry.text === "string"
+        ? entry.text.trim()
+        : typeof entry.content === "string"
+          ? entry.content.trim()
+          : "";
+    if (role === "assistant") {
+      return {
+        inferredRunning: false,
+        lastRole: "assistant",
+        lastText: text.slice(0, 120),
+        messageCount: messages.length,
+      };
+    }
+    if (role === "user") {
+      const rawText = typeof entry.text === "string" ? entry.text : text;
+      if (rawText && isHeartbeatPrompt(rawText)) continue;
+      return {
+        inferredRunning: true,
+        lastRole: "user",
+        lastText: rawText.slice(0, 120),
+        messageCount: messages.length,
+      };
+    }
+  }
+  return {
+    inferredRunning: false,
+    lastRole: "none",
+    lastText: "",
+    messageCount: messages.length,
+  };
+};
+
+const inferRunningFromAgentSessions = async (params: {
+  client: {
+    call: <T = unknown>(method: string, args: unknown) => Promise<T>;
+  };
+  agentId: string;
+}): Promise<{
+  inferredRunning: boolean;
+  sessionKey: string;
+  lastRole: string;
+  lastText: string;
+  messageCount: number;
+  latestSessionUpdatedAtMs: number;
+  inspectedSessions: string[];
+  inferenceSource: string;
+}> => {
+  const sessionsResult = await params.client.call<SessionsListResult>(
+    "sessions.list",
+    {
+      agentId: params.agentId,
+      includeGlobal: false,
+      includeUnknown: true,
+      limit: 8,
+    },
+  );
+  const sessions = (
+    Array.isArray(sessionsResult.sessions) ? sessionsResult.sessions : []
+  )
+    .filter(
+      (entry) => typeof entry.key === "string" && entry.key.trim().length > 0,
+    )
+    .sort((left, right) => (right.updatedAt ?? 0) - (left.updatedAt ?? 0))
+    .slice(0, 4);
+  const latestSessionUpdatedAtMs =
+    typeof sessions[0]?.updatedAt === "number" &&
+    Number.isFinite(sessions[0].updatedAt)
+      ? sessions[0].updatedAt
+      : 0;
+  const inspectedSessions = sessions.map((entry) => {
+    const key = entry.key?.trim() ?? "";
+    const label = entry.origin?.label?.trim() ?? "";
+    const updatedAt =
+      typeof entry.updatedAt === "number" && Number.isFinite(entry.updatedAt)
+        ? new Date(entry.updatedAt).toISOString()
+        : "n/a";
+    const base = label ? `${key} [${label}]` : key;
+    return `${base} @${updatedAt}`;
+  });
+  const sessionKeys = sessions
+    .map((entry) => entry.key?.trim() ?? "")
+    .filter((key) => key.length > 0);
+
+  if (sessionKeys.length > 0) {
+    const previewResult = await params.client.call<SessionsPreviewResult>(
+      "sessions.preview",
+      {
+        keys: sessionKeys,
+        limit: 8,
+        maxChars: 240,
+      },
+    );
+    const previews = Array.isArray(previewResult.previews)
+      ? previewResult.previews
+      : [];
+    for (const preview of previews) {
+      const key = typeof preview.key === "string" ? preview.key.trim() : "";
+      const items = Array.isArray(preview.items) ? preview.items : [];
+      for (let index = items.length - 1; index >= 0; index -= 1) {
+        const item = items[index];
+        if (!item) continue;
+        const role = typeof item.role === "string" ? item.role : "";
+        const text = typeof item.text === "string" ? item.text.trim() : "";
+        if (role === "system" || role === "tool" || role === "toolResult") {
+          continue;
+        }
+        if (role === "assistant") break;
+        if (role === "user") {
+          if (text && isHeartbeatPrompt(text)) continue;
+          return {
+            inferredRunning: true,
+            sessionKey: key,
+            lastRole: "user",
+            lastText: text.slice(0, 120),
+            messageCount: items.length,
+            latestSessionUpdatedAtMs,
+            inspectedSessions,
+            inferenceSource: "sessions.preview.user-tail",
+          };
+        }
+      }
+    }
+  }
+
+  for (const session of sessions) {
+    const key = session.key?.trim() ?? "";
+    if (!key) continue;
+    const history = await params.client.call<ChatHistoryResult>(
+      "chat.history",
+      {
+        sessionKey: key,
+        limit: 24,
+      },
+    );
+    const messages = Array.isArray(history.messages) ? history.messages : [];
+    const inference = resolveHistoryInference(messages);
+    if (inference.inferredRunning) {
+      return {
+        inferredRunning: true,
+        sessionKey: key,
+        lastRole: inference.lastRole,
+        lastText: inference.lastText,
+        messageCount: inference.messageCount,
+        latestSessionUpdatedAtMs,
+        inspectedSessions,
+        inferenceSource: "chat.history.user-tail",
+      };
+    }
+  }
+
+  return {
+    inferredRunning: false,
+    sessionKey: "",
+    lastRole: "assistant",
+    lastText: "",
+    messageCount: 0,
+    latestSessionUpdatedAtMs,
+    inspectedSessions,
+    inferenceSource: "none",
+  };
+};
+
+type OfficeScreenProps = {
+  showOpenClawConsole?: boolean;
+};
+
+export function OfficeScreen({
+  showOpenClawConsole = true,
+}: OfficeScreenProps) {
+  const searchParams = useSearchParams();
+  const debugEnabled = searchParams.get("officeDebug") === "1";
+  const [settingsCoordinator] = useState(() =>
+    createStudioSettingsCoordinator(),
+  );
+  const {
+    client,
+    provider,
+    status,
+    connectPromptReady,
+    shouldPromptForConnect,
+    gatewayUrl,
+    token,
+    selectedAdapterType,
+    detectedAdapterType,
+    activeAdapterType,
+    adapterProfiles,
+    localGatewayDefaults,
+    error: gatewayError,
+    connect,
+    disconnect,
+    useLocalGatewayDefaults,
+    setGatewayUrl,
+    setToken,
+    setSelectedAdapterType,
+    supportsCapability,
+  } =
+    useRuntimeConnection(settingsCoordinator);
+  const runtimeSupportsSkills = supportsCapability("skills");
+  const runtimeSupportsApprovals = supportsCapability("approvals");
+  const runtimeSupportsCron = supportsCapability("cron");
+  const runtimeSupportsModels = supportsCapability("models");
+  const runtimeSupportsRunLifecycle = supportsCapability("runtime-agent-events");
+  const { state, dispatch, hydrateAgents, setError, setLoading } =
+    useAgentStore();
+  const [agentsLoaded, setAgentsLoaded] = useState(false);
+  const [didAttemptGatewayConnect, setDidAttemptGatewayConnect] = useState(false);
+  const [showDelayedGatewayLoadingOverlay, setShowDelayedGatewayLoadingOverlay] =
+    useState(false);
+  const [showDelayedGatewayConnectOverlay, setShowDelayedGatewayConnectOverlay] =
+    useState(false);
+  const [clockTick, setClockTick] = useState(0);
+  const [debugRows, setDebugRows] = useState<OfficeDebugRow[]>([]);
+  const [feedEvents, setFeedEvents] = useState<OfficeFeedEvent[]>([]);
+  const officeAgentCacheRef = useRef<
+    Map<
+      string,
+      {
+        agent: AgentState;
+        deskHeld: boolean;
+        gymHeld: boolean;
+        latchedWorking: boolean;
+        officeAgent: OfficeAgent;
+        phoneBoothHeld: boolean;
+        qaHeld: boolean;
+        smsBoothHeld: boolean;
+      }
+    >
+  >(new Map());
+  const deskMonitorCacheRef = useRef<
+    Map<string, { agent: AgentState; monitor: OfficeDeskMonitor }>
+  >(new Map());
+  const [openClawLogEntries, setOpenClawLogEntries] = useState<
+    OpenClawLogEntry[]
+  >([]);
+  const [openClawConsoleCollapsed, setOpenClawConsoleCollapsed] =
+    useState(true);
+  const [openClawConsoleSearch, setOpenClawConsoleSearch] = useState("");
+  const [openClawConsoleCopyStatus, setOpenClawConsoleCopyStatus] = useState<
+    "idle" | "copied" | "error"
+  >("idle");
+  const taskBoardEventHandlerRef = useRef<(event: EventFrame) => void>(() => {});
+  const taskBoardRefreshRef = useRef<() => Promise<void>>(async () => {});
+  const [officeTriggerState, setOfficeTriggerState] = useState(() =>
+    createOfficeAnimationTriggerState(),
+  );
+  const prevWorkingRef = useRef<Record<string, boolean>>({});
+  const prevAssistantPreviewRef = useRef<
+    Record<string, { ts: number; text: string }>
+  >({});
+  const [runCountByAgentId, setRunCountByAgentId] = useState<
+    Record<string, number>
+  >({});
+  const [lastSeenByAgentId, setLastSeenByAgentId] = useState<
+    Record<string, number>
+  >({});
+  const [marketplaceGymHoldByAgentId, setMarketplaceGymHoldByAgentId] =
+    useState<Record<string, boolean>>({});
+  const [gymCooldownUntilByAgentId, setGymCooldownUntilByAgentId] = useState<
+    Record<string, number>
+  >({});
+  const prevImmediateGymHoldRef = useRef<Record<string, boolean>>({});
+  const [monitorAgentId, setMonitorAgentId] = useState<string | null>(null);
+  const [githubReviewAgentId, setGithubReviewAgentId] = useState<string | null>(
+    null,
+  );
+  const [qaTestingAgentId, setQaTestingAgentId] = useState<string | null>(null);
+  const gatewayConfigSnapshot = useRef<GatewayModelPolicySnapshot | null>(null);
+  const loadAgentsInFlightRef = useRef<Promise<void> | null>(null);
+  const connectionEpochRef = useRef(0);
+  const lastLoadAgentsStartedAtRef = useRef(0);
+  const lastGatewayActivityAtRef = useRef(0);
+  const stateRef = useRef(state);
+  const officeTriggerStateRef = useRef(officeTriggerState);
+  const historyInFlightRef = useRef<Set<string>>(new Set());
+  const lastTransportHistoryRefreshKeyRef = useRef<Record<string, string>>({});
+  const [chatOpen, setChatOpen] = useState(false);
+  const [chatRosterCollapsed, setChatRosterCollapsed] = useState(false);
+  const [selectedChatAgentId, setSelectedChatAgentId] = useState<string | null>(
+    null,
+  );
+  const [remoteChatByAgentId, setRemoteChatByAgentId] = useState<
+    Record<string, RemoteChatSessionState>
+  >({});
+  const [agentEditorAgentId, setAgentEditorAgentId] = useState<string | null>(null);
+  const [agentEditorInitialSection, setAgentEditorInitialSection] =
+    useState<AgentEditorSection>("avatar");
+  const [createAgentWizardNonce, setCreateAgentWizardNonce] = useState(0);
+  const [createAgentWizardOpen, setCreateAgentWizardOpen] = useState(false);
+  const [createAgentBusy, setCreateAgentBusy] = useState(false);
+  const [createAgentModalError, setCreateAgentModalError] = useState<string | null>(
+    null,
+  );
+  const [companyBuilderOpen, setCompanyBuilderOpen] = useState(false);
+  const [companyBuilderNonce, setCompanyBuilderNonce] = useState(0);
+  const [companyBuilderBusy, setCompanyBuilderBusy] = useState(false);
+  const [companyBuilderError, setCompanyBuilderError] = useState<string | null>(null);
+  const [companyBuilderStatusLine, setCompanyBuilderStatusLine] = useState<string | null>(null);
+  const [companyBuilderInput, setCompanyBuilderInput] = useState<CompanyBuilderInput>({
+    businessDescription: "",
+    improvedBrief: "",
+  });
+  const [lastCompanyPlan, setLastCompanyPlan] = useState<CompanyBuilderPlan | null>(null);
+  const [companyCreatedSignal, setCompanyCreatedSignal] = useState(0);
+  const [createdCompanyName, setCreatedCompanyName] = useState<string | null>(null);
+  const [officeCameraCenterSignal, setOfficeCameraCenterSignal] = useState(0);
+  const [createAgentBlock, setCreateAgentBlock] =
+    useState<CreateAgentBlockState | null>(null);
+  const [deleteAgentBlock, setDeleteAgentBlock] =
+    useState<OfficeDeleteMutationBlockState | null>(null);
+  const [preparedPhoneCallsByAgentId, setPreparedPhoneCallsByAgentId] = useState<
+    Record<string, PreparedPhoneCallEntry>
+  >({});
+  const [preparedTextMessagesByAgentId, setPreparedTextMessagesByAgentId] = useState<
+    Record<string, PreparedTextMessageEntry>
+  >({});
+  const promptedPhoneCallKeysRef = useRef<Set<string>>(new Set());
+  const preparedPhoneCallKeysRef = useRef<Set<string>>(new Set());
+  const spokenPhoneCallKeysRef = useRef<Set<string>>(new Set());
+  const promptedTextMessageKeysRef = useRef<Set<string>>(new Set());
+  const preparedTextMessageKeysRef = useRef<Set<string>>(new Set());
+  const [deskAssignmentByDeskUid, setDeskAssignmentByDeskUid] = useState<
+    Record<string, string>
+  >({});
+  const [activeFloorId, setActiveFloorId] = useState<FloorId>("lobby");
+  const [pendingFloorRuntimeSwitch, setPendingFloorRuntimeSwitch] =
+    useState<PendingFloorRuntimeSwitch | null>(null);
+  const previousGatewayStatusRef = useRef<"disconnected" | "connecting" | "connected">(
+    "disconnected",
+  );
+  const didAutoNavigateFromLobbyRef = useRef(false);
+  const [floorRosterCache, setFloorRosterCache] = useState(() =>
+    createFloorRosterCache(),
+  );
+  const activeFloorIdRef = useRef<FloorId>("lobby");
+  const floorRosterCacheRef = useRef(floorRosterCache);
+  const [gatewayModels, setGatewayModels] = useState<GatewayModelChoice[]>([]);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [marketplaceOpen, setMarketplaceOpen] = useState(false);
+  const [kanbanInstallPromptOpen, setKanbanInstallPromptOpen] = useState(false);
+  const [kanbanInstallProgress, setKanbanInstallProgress] = useState<{
+    active: boolean;
+    percent: number;
+    message: string;
+    error: string | null;
+  }>({
+    active: false,
+    percent: 0,
+    message: "",
+    error: null,
+  });
+  const [danceUntilByAgentId, setDanceUntilByAgentId] = useState<Record<string, number>>({});
+  const initJukeboxStore = useJukeboxStore((state) => state.init);
+  const jukeboxToken = useJukeboxStore((state) => state.token);
+  // Auto-open jukebox panel for legacy direct-auth callbacks.
+  const [jukeboxOpen, setJukeboxOpen] = useState(() => {
+    if (typeof window === "undefined") return false;
+    const searchParams = new URL(window.location.href).searchParams;
+    return searchParams.has("code");
+  });
+  const [activeSidebarTab, setActiveSidebarTab] =
+    useState<HQSidebarTab>("inbox");
+  const pendingJukeboxCommandTimeoutsRef = useRef<
+    Map<string, { requestKey: string; timeoutId: number }>
+  >(new Map());
+  const handledJukeboxRequestKeyByAgentIdRef = useRef<Record<string, string>>({});
+  const router = useRouter();
+  const { showOnboarding, completeOnboarding, resetOnboarding } =
+    useOnboardingState();
+  const [forceShowOnboarding, setForceShowOnboarding] = useState(false);
+  const activeFloor = useMemo(
+    () => getOfficeFloor(resolveActiveOfficeFloorId(activeFloorId)),
+    [activeFloorId],
+  );
+
+  useEffect(() => {
+    activeFloorIdRef.current = activeFloorId;
+  }, [activeFloorId]);
+
+  useEffect(() => {
+    floorRosterCacheRef.current = floorRosterCache;
+  }, [floorRosterCache]);
+
+  useEffect(() => {
+    let cancelled = false;
+    void (async () => {
+      try {
+        const settings = await settingsCoordinator.loadSettings({ maxAgeMs: 30_000 });
+        if (!settings || cancelled) return;
+        setActiveFloorId(resolveStudioActiveFloorId(settings));
+      } catch (error) {
+        if (!cancelled) {
+          console.error("Failed to load active floor preference.", error);
+        }
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [settingsCoordinator]);
+
+  // Reset auto-navigate flag when disconnected so the next connection can navigate again.
+  useEffect(() => {
+    if (status !== "connected" && status !== "connecting") {
+      didAutoNavigateFromLobbyRef.current = false;
+    }
+  }, [status]);
+
+  // Auto-navigate away from lobby when a real adapter connects.
+  // Uses a ref flag instead of previousGatewayStatusRef so the effect can
+  // re-run when detectedAdapterType arrives in a later render (after status
+  // already flipped to "connected").
+  useEffect(() => {
+    if (status !== "connected") return;
+    if (didAutoNavigateFromLobbyRef.current) return;
+    if (activeFloor.kind !== "lobby" || activeFloor.provider !== "demo") return;
+
+    const connectedProvider =
+      detectedAdapterType && detectedAdapterType !== "demo"
+        ? detectedAdapterType
+        : selectedAdapterType !== "demo"
+          ? selectedAdapterType
+          : null;
+    if (!connectedProvider) return;
+
+    const targetFloor =
+      listOfficeFloorsForProvider(connectedProvider).find(
+        (floor) => floor.enabled && floor.kind === "runtime",
+      ) ?? null;
+    if (!targetFloor || targetFloor.id === activeFloor.id) return;
+
+    didAutoNavigateFromLobbyRef.current = true;
+    setActiveFloorId(targetFloor.id);
+    setSelectedAdapterType(targetFloor.provider as StudioGatewayAdapterType);
+    settingsCoordinator.schedulePatch({ activeFloorId: targetFloor.id }, 0);
+  }, [
+    activeFloor.id,
+    activeFloor.kind,
+    activeFloor.provider,
+    detectedAdapterType,
+    selectedAdapterType,
+    setSelectedAdapterType,
+    settingsCoordinator,
+    status,
+  ]);
+
+  useEffect(() => {
+    if (!pendingFloorRuntimeSwitch) return;
+    const targetSelectedAdapter = selectedAdapterType === pendingFloorRuntimeSwitch.adapterType;
+    const targetGatewayUrl = gatewayUrl.trim() === pendingFloorRuntimeSwitch.gatewayUrl;
+    const targetToken = token === pendingFloorRuntimeSwitch.token;
+    if (!targetSelectedAdapter || !targetGatewayUrl || !targetToken) {
+      return;
+    }
+    if (status === "connected" || status === "connecting") {
+      const runtimeMatchesTarget =
+        activeAdapterType === pendingFloorRuntimeSwitch.adapterType &&
+        gatewayUrl.trim() === pendingFloorRuntimeSwitch.gatewayUrl &&
+        token === pendingFloorRuntimeSwitch.token;
+      if (runtimeMatchesTarget) {
+        setPendingFloorRuntimeSwitch(null);
+        return;
+      }
+      disconnect();
+      return;
+    }
+    void connect()
+      .catch((error) => {
+        console.error("Failed to connect floor runtime.", error);
+      })
+      .finally(() => {
+        setPendingFloorRuntimeSwitch((current) =>
+          current &&
+          current.floorId === pendingFloorRuntimeSwitch.floorId &&
+          current.adapterType === pendingFloorRuntimeSwitch.adapterType &&
+          current.gatewayUrl === pendingFloorRuntimeSwitch.gatewayUrl &&
+          current.token === pendingFloorRuntimeSwitch.token
+            ? null
+            : current,
+        );
+      });
+  }, [
+    activeAdapterType,
+    connect,
+    disconnect,
+    gatewayUrl,
+    pendingFloorRuntimeSwitch,
+    selectedAdapterType,
+    status,
+    token,
+  ]);
+
+  useEffect(() => {
+    initJukeboxStore();
+  }, [initJukeboxStore]);
+  useEffect(() => {
+    const handlePlaybackStarted = () => {
+      const now = Date.now();
+      const until = now + OFFICE_DANCE_MS;
+      setDanceUntilByAgentId((previous) => {
+        const next: Record<string, number> = {};
+        for (const agent of state.agents) {
+          next[agent.agentId] = until;
+        }
+        return { ...previous, ...next };
+      });
+    };
+    window.addEventListener(
+      SOUNDCLAW_PLAYBACK_STARTED_EVENT_NAME,
+      handlePlaybackStarted,
+    );
+    return () => {
+      window.removeEventListener(
+        SOUNDCLAW_PLAYBACK_STARTED_EVENT_NAME,
+        handlePlaybackStarted,
+      );
+    };
+  }, [state.agents]);
+  useEffect(() => {
+    const now = Date.now();
+    setDanceUntilByAgentId((previous) =>
+      Object.fromEntries(
+        Object.entries(previous).filter(([, until]) => until > now),
+      ),
+    );
+  }, [state.agents]);
+  useEffect(() => {
+    return () => {
+      for (const pendingEntry of pendingJukeboxCommandTimeoutsRef.current.values()) {
+        window.clearTimeout(pendingEntry.timeoutId);
+      }
+      pendingJukeboxCommandTimeoutsRef.current.clear();
+    };
+  }, []);
+  const {
+    loaded: officeTitleLoaded,
+    title: officeTitle,
+    remoteOfficeEnabled,
+    remoteOfficeSourceKind,
+    remoteOfficeLabel,
+    remoteOfficePresenceUrl,
+    remoteOfficeGatewayUrl,
+    remoteOfficeTokenConfigured,
+    setTitle: setOfficeTitle,
+    setRemoteOfficeEnabled,
+    setRemoteOfficeSourceKind,
+    setRemoteOfficeLabel,
+    setRemoteOfficePresenceUrl,
+    setRemoteOfficeGatewayUrl,
+    setRemoteOfficeToken,
+  } = useStudioOfficePreference({
+    gatewayUrl,
+    settingsCoordinator,
+  });
+  useOfficeFloorRuntimePersistence({
+    activeFloorId,
+    gatewayUrl,
+    status,
+    gatewayError,
+    settingsCoordinator,
+  });
+  const {
+    error: remoteOfficeError,
+    loaded: remoteOfficeLoaded,
+    snapshot: remoteOfficeSnapshot,
+  } = useRemoteOfficePresence({
+    enabled: remoteOfficeEnabled,
+    sourceKind: remoteOfficeSourceKind,
+    presenceUrl: remoteOfficePresenceUrl,
+    gatewayUrl: remoteOfficeGatewayUrl,
+  });
+  const { snapshot: remoteOfficeLayoutSnapshot } = useRemoteOfficeLayout({
+    enabled: remoteOfficeEnabled,
+    presenceUrl: remoteOfficePresenceUrl,
+  });
+  const {
+    loaded: voiceRepliesLoaded,
+    preference: voiceRepliesPreference,
+    enabled: voiceRepliesEnabled,
+    voiceId: voiceRepliesVoiceId,
+    speed: voiceRepliesSpeed,
+    setEnabled: setVoiceRepliesEnabled,
+    setVoiceId: setVoiceRepliesVoiceId,
+    setSpeed: setVoiceRepliesSpeed,
+  } = useStudioVoiceRepliesPreference({
+    gatewayUrl,
+    settingsCoordinator,
+  });
+  const {
+    enqueue: enqueueVoiceReply,
+    preview: previewVoiceReply,
+    stop: stopVoiceReplyPlayback,
+  } = useVoiceReplyPlayback({
+    enabled: voiceRepliesEnabled,
+    provider: voiceRepliesPreference.provider,
+    voiceId: voiceRepliesPreference.voiceId,
+    speed: voiceRepliesPreference.speed,
+  });
+  const showOnboardingWizard = showOnboarding || forceShowOnboarding;
+  const handleOpenOnboarding = useCallback(() => {
+    resetOnboarding();
+    setCompanyCreatedSignal(0);
+    setCreatedCompanyName(null);
+    setForceShowOnboarding(true);
+  }, [resetOnboarding]);
+  const handleCompleteOnboarding = useCallback(() => {
+    completeOnboarding();
+    setCompanyCreatedSignal(0);
+    setCreatedCompanyName(null);
+    setForceShowOnboarding(false);
+    setOfficeCameraCenterSignal((current) => current + 1);
+  }, [completeOnboarding]);
+
+  const handleAvatarProfileSave = useCallback(
+    (agentId: string, profile: AgentAvatarProfile) => {
+      dispatch({
+        type: "updateAgent",
+        agentId,
+        patch: { avatarProfile: profile, avatarSeed: profile.seed },
+      });
+      const key = gatewayUrl.trim();
+      if (!key) return;
+      settingsCoordinator.schedulePatch(
+        { avatars: { [key]: { [agentId]: profile } } },
+        0,
+      );
+    },
+    [dispatch, gatewayUrl, settingsCoordinator],
+  );
+  const focusLocalAgent = useCallback(
+    (
+      agentId: string,
+      options?: { openChat?: boolean; persistFloorId?: FloorId; selectStore?: boolean },
+    ) => {
+      setSelectedChatAgentId(agentId);
+      if (options?.openChat !== false) {
+        setChatOpen(true);
+      }
+      if (options?.selectStore !== false) {
+        dispatch({ type: "selectAgent", agentId });
+      }
+      setFloorRosterCache((prev) => {
+        const targetFloorId = options?.persistFloorId ?? activeFloorIdRef.current;
+        const current = prev[targetFloorId];
+        if (!current || current.selectedAgentId === agentId) return prev;
+        return {
+          ...prev,
+          [targetFloorId]: { ...current, selectedAgentId: agentId },
+        };
+      });
+    },
+    [dispatch],
+  );
+  const handleSelectFloor = useCallback(
+    async (floorId: FloorId) => {
+      const resolved = resolveActiveOfficeFloorId(floorId);
+      const floor = getOfficeFloor(resolved);
+      const targetRosterState = floorRosterCacheRef.current[resolved];
+      setAgentsLoaded(false);
+      setActiveFloorId(resolved);
+      settingsCoordinator.schedulePatch({ activeFloorId: resolved }, 0);
+      setOfficeCameraCenterSignal((current) => current + 1);
+
+      const adapterType = floor.provider as StudioGatewayAdapterType;
+      let nextGatewayUrl = gatewayUrl.trim();
+      let nextToken = token;
+
+      try {
+        const envelope =
+          typeof settingsCoordinator.loadSettingsEnvelope === "function"
+            ? await settingsCoordinator.loadSettingsEnvelope({ maxAgeMs: 30_000 })
+            : {
+                settings: await settingsCoordinator.loadSettings({ maxAgeMs: 30_000 }),
+                localGatewayDefaults: null,
+              };
+        const settings = envelope.settings ?? null;
+        // gatewayPrivate is not in the API response — use sanitized public settings + in-memory
+        // adapterProfiles (which may carry a URL from a previous successful connection).
+        const gatewaySettings: StudioGatewaySettings | null =
+          adapterProfiles && Object.keys(adapterProfiles).length > 0
+            ? ({ profiles: adapterProfiles } as StudioGatewaySettings)
+            : null;
+        const { profiles } = resolveStudioGatewayProfiles({
+          gateway: gatewaySettings,
+          localDefaults: localGatewayDefaults,
+        });
+        const floorRuntime = settings?.officeFloors?.[resolved];
+        nextGatewayUrl =
+          floorRuntime?.gatewayUrl?.trim() || profiles[adapterType]?.url?.trim() || nextGatewayUrl;
+        // Token is intentionally empty — the Studio proxy injects the server-side token.
+        nextToken = "";
+      } catch (error) {
+        console.error("Failed to resolve floor runtime profile.", error);
+      }
+
+      // Guard: if this is a runtime floor and there's no gateway URL to connect to,
+      // bail back to lobby rather than entering a connect-hang limbo state.
+      if (floor.kind === "runtime" && !nextGatewayUrl.trim()) {
+        setActiveFloorId("lobby");
+        settingsCoordinator.schedulePatch({ activeFloorId: "lobby" }, 0);
+        setAgentsLoaded(true);
+        return;
+      }
+
+      setSelectedAdapterType(adapterType);
+      setGatewayUrl(nextGatewayUrl);
+      setToken(nextToken);
+      setPendingFloorRuntimeSwitch({
+        floorId: resolved,
+        adapterType,
+        gatewayUrl: nextGatewayUrl,
+        token: nextToken,
+      });
+
+      const preferredAgentId =
+        targetRosterState?.selectedAgentId ??
+        targetRosterState?.entries[0]?.agentId ??
+        null;
+      if (preferredAgentId) {
+        focusLocalAgent(preferredAgentId, {
+          openChat: false,
+          persistFloorId: resolved,
+          selectStore: false,
+        });
+      }
+    },
+    [
+      adapterProfiles,
+      focusLocalAgent,
+      gatewayUrl,
+      localGatewayDefaults,
+      setGatewayUrl,
+      setToken,
+      setSelectedAdapterType,
+      settingsCoordinator,
+      token,
+    ],
+  );
+  const focusChatTarget = useCallback(
+    (agentId: string) => {
+      setSelectedChatAgentId(agentId);
+      setChatOpen(true);
+      if (!isRemoteOfficeAgentId(agentId)) {
+        dispatch({ type: "selectAgent", agentId });
+      }
+    },
+    [dispatch],
+  );
+  const openAgentEditor = useCallback(
+    (agentId: string, initialSection: AgentEditorSection = "avatar") => {
+      setAgentEditorAgentId(agentId);
+      setAgentEditorInitialSection(initialSection);
+      focusLocalAgent(agentId, { openChat: false });
+    },
+    [focusLocalAgent],
+  );
+  useEffect(() => {
+    if (!agentsLoaded) {
+      return;
+    }
+    if (pendingFloorRuntimeSwitch?.floorId === activeFloor.id) {
+      return;
+    }
+    setFloorRosterCache((previous) => ({
+      ...previous,
+      [activeFloor.id]: buildFloorRosterState({
+        floorId: activeFloor.id,
+        hydratedAt: Date.now(),
+        result: {
+          seeds: state.agents,
+          suggestedSelectedAgentId: state.selectedAgentId ?? previous[activeFloor.id]?.selectedAgentId ?? null,
+        },
+      }),
+    }));
+  }, [activeFloor.id, agentsLoaded, pendingFloorRuntimeSwitch, state.agents, state.selectedAgentId]);
+
+  const handleDeskAssignmentChange = useCallback(
+    (deskUid: string, agentId: string | null) => {
+      const key = gatewayUrl.trim();
+      const normalizedDeskUid = deskUid.trim();
+      if (!key || !normalizedDeskUid) return;
+      setDeskAssignmentByDeskUid((previous) => {
+        const next = { ...previous };
+        if (agentId) {
+          for (const [existingDeskUid, existingAgentId] of Object.entries(
+            next,
+          )) {
+            if (
+              existingDeskUid !== normalizedDeskUid &&
+              existingAgentId === agentId
+            ) {
+              delete next[existingDeskUid];
+            }
+          }
+          next[normalizedDeskUid] = agentId;
+        } else {
+          delete next[normalizedDeskUid];
+        }
+        return next;
+      });
+      settingsCoordinator.schedulePatch(
+        {
+          deskAssignments: {
+            [key]: {
+              [normalizedDeskUid]: agentId,
+            },
+          },
+        },
+        0,
+      );
+    },
+    [gatewayUrl, settingsCoordinator],
+  );
+
+  const handleDeskAssignmentsReset = useCallback(
+    (deskUids: string[]) => {
+      const key = gatewayUrl.trim();
+      if (!key || deskUids.length === 0) return;
+      setDeskAssignmentByDeskUid((previous) => {
+        const next = { ...previous };
+        for (const deskUid of deskUids) delete next[deskUid];
+        return next;
+      });
+      settingsCoordinator.schedulePatch(
+        {
+          deskAssignments: {
+            [key]: Object.fromEntries(
+              deskUids.map((deskUid) => [deskUid, null]),
+            ),
+          },
+        },
+        0,
+      );
+    },
+    [gatewayUrl, settingsCoordinator],
+  );
+
+  useEffect(() => {
+    stateRef.current = state;
+  }, [state]);
+
+  const hasRunningAgents = useMemo(
+    () =>
+      state.agents.some(
+        (agent) => agent.status === "running" || Boolean(agent.runId),
+      ),
+    [state.agents],
+  );
+  const hasDeleteMutationBlock = deleteAgentBlock?.kind === "delete-agent";
+  const { enqueueConfigMutation } = useConfigMutationQueue({
+    status,
+    hasRunningAgents,
+    hasRestartBlockInProgress: Boolean(
+      deleteAgentBlock && deleteAgentBlock.phase !== "queued",
+    ),
+  });
+
+  useEffect(() => {
+    officeTriggerStateRef.current = officeTriggerState;
+  }, [officeTriggerState]);
+
+  useEffect(() => {
+    const timerId = window.setInterval(() => {
+      setClockTick((value) => value + 1);
+    }, 2000);
+    return () => {
+      window.clearInterval(timerId);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (status === "connecting") {
+      setDidAttemptGatewayConnect(true);
+    }
+  }, [status]);
+
+  useEffect(() => {
+    if (gatewayError) {
+      setDidAttemptGatewayConnect(true);
+    }
+  }, [gatewayError]);
+
+  const loadStudioSettings = useCallback(
+    (options?: StudioSettingsLoadOptions) => settingsCoordinator.loadSettings(options),
+    [settingsCoordinator],
+  );
+
+  useEffect(() => {
+    let cancelled = false;
+    const key = gatewayUrl.trim();
+    if (!key) {
+      setDeskAssignmentByDeskUid({});
+      return;
+    }
+    void (async () => {
+      try {
+        const settings = await loadStudioSettings();
+        if (cancelled) return;
+        setDeskAssignmentByDeskUid(
+          settings ? resolveDeskAssignments(settings, key) : {},
+        );
+      } catch {
+        if (cancelled) return;
+        setDeskAssignmentByDeskUid({});
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [gatewayUrl, loadStudioSettings]);
+
+  useEffect(() => {
+    let cancelled = false;
+    const gatewayKey = gatewayUrl.trim();
+    if (!gatewayKey) {
+      setCompanyBuilderInput({
+        businessDescription: "",
+        improvedBrief: "",
+      });
+      setLastCompanyPlan(null);
+      return;
+    }
+    void (async () => {
+      try {
+        const settings = await loadStudioSettings({ maxAgeMs: 30_000 });
+        if (!settings || cancelled) return;
+        const officePreference = resolveOfficePreferencePublic(settings, gatewayKey);
+        setCompanyBuilderInput({
+          businessDescription: officePreference.companyPrompt,
+          improvedBrief: officePreference.companyImprovedBrief,
+        });
+        if (officePreference.companyPlanJson.trim()) {
+          try {
+            setLastCompanyPlan(
+              JSON.parse(officePreference.companyPlanJson) as CompanyBuilderPlan,
+            );
+          } catch (error) {
+            console.error("Failed to parse saved company plan.", error);
+            setLastCompanyPlan(null);
+          }
+        } else {
+          setLastCompanyPlan(null);
+        }
+      } catch (error) {
+        if (!cancelled) {
+          console.error("Failed to load company builder preference.", error);
+        }
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [gatewayUrl, loadStudioSettings]);
+
+  const loadAgents = useCallback(async (options?: {
+    forceSettings?: boolean;
+    minIntervalMs?: number;
+    onlyWhenIdleForMs?: number;
+    settingsMaxAgeMs?: number;
+    silent?: boolean;
+  }) => {
+    if (status !== "connected") return;
+    if (loadAgentsInFlightRef.current) return loadAgentsInFlightRef.current;
+    const now = Date.now();
+    const minIntervalMs = options?.minIntervalMs ?? 0;
+    if (
+      minIntervalMs > 0 &&
+      now - lastLoadAgentsStartedAtRef.current < minIntervalMs
+    ) {
+      return;
+    }
+    const onlyWhenIdleForMs = options?.onlyWhenIdleForMs ?? 0;
+    if (
+      onlyWhenIdleForMs > 0 &&
+      now - lastGatewayActivityAtRef.current < onlyWhenIdleForMs
+    ) {
+      return;
+    }
+    lastLoadAgentsStartedAtRef.current = now;
+    const connectionEpochAtStart = connectionEpochRef.current;
+    const task = (async () => {
+      if (!options?.silent) {
+        setLoading(true);
+      }
+      try {
+        const settingsLoadOptions: StudioSettingsLoadOptions | undefined =
+          options?.forceSettings
+            ? { force: true }
+            : { maxAgeMs: options?.settingsMaxAgeMs ?? 60_000 };
+        const commands = await runStudioBootstrapLoadOperation({
+          client: provider,
+          gatewayUrl,
+          cachedConfigSnapshot: gatewayConfigSnapshot.current,
+          loadStudioSettings: () => loadStudioSettings(settingsLoadOptions),
+          isDisconnectLikeError: isGatewayDisconnectLikeError,
+          preferredSelectedAgentId: null,
+          hasCurrentSelection: false,
+          logError: console.error,
+        });
+        if (connectionEpochAtStart !== connectionEpochRef.current) {
+          return;
+        }
+        executeStudioBootstrapLoadCommands({
+          commands,
+          setGatewayConfigSnapshot: (val: GatewayModelPolicySnapshot) => {
+            gatewayConfigSnapshot.current = val;
+          },
+          hydrateAgents,
+          dispatchUpdateAgent: (agentId, patch) => {
+            dispatch({ type: "updateAgent", agentId, patch });
+          },
+          setError,
+        });
+        if (connectionEpochAtStart !== connectionEpochRef.current) {
+          return;
+        }
+        const refreshedAgents = stateRef.current.agents;
+        const debugCollector: OfficeDebugRow[] = [];
+        const inferredByAgentId = new Map<string, boolean>();
+        await Promise.all(
+          refreshedAgents.map(async (agent) => {
+          if (connectionEpochAtStart !== connectionEpochRef.current) {
+            return;
+          }
+          try {
+            const inference = await inferRunningFromAgentSessions({
+              client: provider,
+              agentId: agent.agentId,
+            });
+            if (connectionEpochAtStart !== connectionEpochRef.current) {
+              return;
+            }
+            const inferredRunning = inference.inferredRunning;
+            inferredByAgentId.set(agent.agentId, inferredRunning);
+            if (inference.latestSessionUpdatedAtMs > 0) {
+              setLastSeenByAgentId((prev) => ({
+                ...prev,
+                [agent.agentId]: inference.latestSessionUpdatedAtMs,
+              }));
+            }
+            const nextStatus: AgentState["status"] = inferredRunning
+              ? "running"
+              : "idle";
+            if (agent.status !== nextStatus) {
+              dispatch({
+                type: "updateAgent",
+                agentId: agent.agentId,
+                patch: {
+                  status: nextStatus,
+                  runId: inferredRunning
+                    ? (agent.runId ?? `inferred-${agent.agentId}`)
+                    : null,
+                },
+              });
+            }
+            if (debugEnabled) {
+              debugCollector.push({
+                agentId: agent.agentId,
+                name: agent.name,
+                storeStatus: agent.status,
+                runId: agent.runId,
+                inferredRunning,
+                lastRole: inference.lastRole,
+                lastText: inference.lastText,
+                messageCount: inference.messageCount,
+                detectedSessionKey: inference.sessionKey,
+                inspectedSessions: inference.inspectedSessions.join(" | "),
+                inferenceSource: inference.inferenceSource,
+                at: new Date().toISOString(),
+              });
+            }
+          } catch (error) {
+            if (!isGatewayDisconnectLikeError(error)) {
+              console.warn(
+                "Failed to infer agent run state from history.",
+                error,
+              );
+            }
+          }
+          }),
+        );
+        if (connectionEpochAtStart !== connectionEpochRef.current) {
+          return;
+        }
+        if (debugEnabled) {
+          setDebugRows(debugCollector);
+          console.info("[office-debug] Reconciled agent state.", debugCollector);
+        }
+        lastGatewayActivityAtRef.current = Date.now();
+        setAgentsLoaded(true);
+      } finally {
+        if (!options?.silent) {
+          setLoading(false);
+        }
+        loadAgentsInFlightRef.current = null;
+      }
+    })();
+    loadAgentsInFlightRef.current = task;
+    return task;
+  }, [
+    client,
+    debugEnabled,
+    dispatch,
+    gatewayUrl,
+    hydrateAgents,
+    loadStudioSettings,
+    setError,
+    setLoading,
+    status,
+  ]);
+
+  const handleCloseCreateAgentWizard = useCallback(
+    (createdAgentId: string | null) => {
+      setCreateAgentWizardOpen(false);
+      setCreateAgentModalError(null);
+      if (createdAgentId) {
+        openAgentEditor(createdAgentId, "IDENTITY.md");
+      }
+    },
+    [openAgentEditor],
+  );
+  const handleOpenCreateAgentWizard = useCallback(() => {
+    setCreateAgentModalError(null);
+    setCreateAgentWizardNonce((current) => current + 1);
+    setCreateAgentWizardOpen(true);
+  }, []);
+  const plannerAgent = useMemo(
+    () =>
+      resolveCompanyPlanningAgent({
+        agents: state.agents,
+        preferredAgentId: selectedChatAgentId ?? state.selectedAgentId,
+      }),
+    [selectedChatAgentId, state.agents, state.selectedAgentId],
+  );
+  const persistCompanyBuilderSnapshot = useCallback(
+    (input: CompanyBuilderInput, plan: CompanyBuilderPlan) => {
+      const gatewayKey = gatewayUrl.trim();
+      if (!gatewayKey) return;
+      const snapshot = buildStoredCompanySnapshot({
+        prompt: input.businessDescription,
+        improvedBrief: input.improvedBrief,
+        plan,
+      });
+      settingsCoordinator.schedulePatch(
+        {
+          office: {
+            [gatewayKey]: {
+              companyName: snapshot.companyName,
+              companyPrompt: snapshot.prompt,
+              companyImprovedBrief: snapshot.improvedBrief,
+              companySummary: snapshot.summary,
+              companyGeneratedAt: snapshot.generatedAt,
+              companyRoleTitles: snapshot.roleTitles,
+              companyPlanJson: snapshot.planJson,
+            },
+          },
+        },
+        0,
+      );
+      setCompanyBuilderInput(input);
+      setLastCompanyPlan(plan);
+    },
+    [gatewayUrl, settingsCoordinator],
+  );
+  const handleOpenCompanyBuilder = useCallback(() => {
+    setCompanyBuilderError(null);
+    setCompanyBuilderStatusLine(null);
+    setCreatedCompanyName(null);
+    setCompanyBuilderNonce((current) => current + 1);
+    setCompanyBuilderOpen(true);
+  }, []);
+  const handleCloseCompanyBuilder = useCallback(() => {
+    if (companyBuilderBusy) return;
+    setCompanyBuilderOpen(false);
+    setCompanyBuilderError(null);
+    setCompanyBuilderStatusLine(null);
+  }, [companyBuilderBusy]);
+  const handleClearCompanyBuilder = useCallback(() => {
+    const gatewayKey = gatewayUrl.trim();
+    setCompanyBuilderInput({
+      businessDescription: "",
+      improvedBrief: "",
+    });
+    setLastCompanyPlan(null);
+    setCompanyBuilderError(null);
+    setCompanyBuilderStatusLine(null);
+    if (!gatewayKey) return;
+    settingsCoordinator.schedulePatch(
+      {
+        office: {
+          [gatewayKey]: {
+            companyName: "",
+            companyPrompt: "",
+            companyImprovedBrief: "",
+            companySummary: "",
+            companyGeneratedAt: "",
+            companyRoleTitles: [],
+            companyPlanJson: "",
+          },
+        },
+      },
+      0,
+    );
+  }, [gatewayUrl, settingsCoordinator]);
+  const runCompanyBuilderAiTask = useCallback(
+    async (prompt: string, statusText: string) => {
+      if (status !== "connected") {
+        throw new Error("Connect to a runtime before using the company builder.");
+      }
+      const livePlannerAgent = resolveCompanyPlanningAgent({
+        agents: stateRef.current.agents,
+        preferredAgentId: selectedChatAgentId ?? state.selectedAgentId,
+      });
+      if (!livePlannerAgent) {
+        throw new Error("Create or load at least one agent before using AI suggestions.");
+      }
+      setCompanyBuilderStatusLine(statusText);
+      return runOpenClawPlanningPrompt({
+        client,
+        dispatch,
+        agent: livePlannerAgent,
+        getAgent: (agentId) =>
+          stateRef.current.agents.find((entry) => entry.agentId === agentId) ?? null,
+        prompt,
+      });
+    },
+    [client, dispatch, selectedChatAgentId, state.selectedAgentId, status],
+  );
+  const handleImproveCompanyBrief = useCallback(
+    async (brief: string) => {
+      setCompanyBuilderBusy(true);
+      setCompanyBuilderError(null);
+      try {
+        const improvedBrief = await runCompanyBuilderAiTask(
+          buildImproveCompanyBriefPrompt(brief),
+          "Improving your company brief with the connected runtime.",
+        );
+        setCompanyBuilderInput((current) => ({
+          ...current,
+          businessDescription: brief,
+          improvedBrief,
+        }));
+        return improvedBrief;
+      } catch (error) {
+        const message =
+          error instanceof Error ? error.message : "Failed to improve the company brief.";
+        setCompanyBuilderError(message);
+        throw error;
+      } finally {
+        setCompanyBuilderBusy(false);
+        setCompanyBuilderStatusLine(null);
+      }
+    },
+    [runCompanyBuilderAiTask],
+  );
+  const handleGenerateCompanyPlan = useCallback(
+    async (brief: string) => {
+      setCompanyBuilderBusy(true);
+      setCompanyBuilderError(null);
+      try {
+        const response = await runCompanyBuilderAiTask(
+          buildGenerateCompanyPlanPrompt(brief),
+          "Generating your AI company structure with the connected runtime.",
+        );
+        const parsedPlan = parseCompanyPlanFromAssistantText(response);
+        const nextInput: CompanyBuilderInput = {
+          businessDescription: companyBuilderInput.businessDescription,
+          improvedBrief: brief === companyBuilderInput.businessDescription ? "" : brief,
+        };
+        persistCompanyBuilderSnapshot(nextInput, parsedPlan);
+        return parsedPlan;
+      } catch (error) {
+        const message =
+          error instanceof Error ? error.message : "Failed to generate the company plan.";
+        setCompanyBuilderError(message);
+        throw error;
+      } finally {
+        setCompanyBuilderBusy(false);
+        setCompanyBuilderStatusLine(null);
+      }
+    },
+    [companyBuilderInput.businessDescription, persistCompanyBuilderSnapshot, runCompanyBuilderAiTask],
+  );
+  const clearDeletedAgentUiState = useCallback((agentId: string) => {
+    setSelectedChatAgentId((current) => (current === agentId ? null : current));
+    setAgentEditorAgentId((current) => (current === agentId ? null : current));
+    setMonitorAgentId((current) => (current === agentId ? null : current));
+    setGithubReviewAgentId((current) => (current === agentId ? null : current));
+    setQaTestingAgentId((current) => (current === agentId ? null : current));
+    setPreparedPhoneCallsByAgentId((current) => {
+      if (!(agentId in current)) return current;
+      const next = { ...current };
+      delete next[agentId];
+      return next;
+    });
+    setPreparedTextMessagesByAgentId((current) => {
+      if (!(agentId in current)) return current;
+      const next = { ...current };
+      delete next[agentId];
+      return next;
+    });
+  }, []);
+  const handleCreateCompanyFromPlan = useCallback(
+    async (params: { input: CompanyBuilderInput; plan: CompanyBuilderPlan }) => {
+      if (status !== "connected") {
+        const message = "Connect to a runtime before creating the company.";
+        setCompanyBuilderError(message);
+        throw new Error(message);
+      }
+      const existingAgentIds = stateRef.current.agents.map((entry) => entry.agentId);
+      const shouldSkipWorkspaceCleanupError = (error: unknown) => {
+        const message = error instanceof Error ? error.message : String(error);
+        return (
+          message.includes("Permission denied") ||
+          message.includes("OPENCLAW_GATEWAY_SSH_TARGET") ||
+          message.includes("Invalid gateway URL") ||
+          message.includes("Gateway URL is missing")
+        );
+      };
+      const logDeleteError = (message: string, error: unknown) => {
+        if (
+          message.startsWith("Failed to move agent workspace/state into trash.") &&
+          shouldSkipWorkspaceCleanupError(error)
+        ) {
+          return;
+        }
+        console.error(message, error);
+      };
+      setCompanyBuilderBusy(true);
+      setCompanyBuilderError(null);
+      try {
+        await runCompanyBootstrapOperation({
+          input: params.input,
+          plan: params.plan,
+          existingAgentIds,
+          deleteExistingAgent: async (agentId) => {
+            try {
+              await deleteAgentViaStudio({
+                client,
+                agentId,
+                logError: logDeleteError,
+              });
+            } catch (error) {
+              if (!shouldSkipWorkspaceCleanupError(error)) {
+                throw error;
+              }
+              await deleteAgentRecordViaStudio({
+                client,
+                agentId,
+                logError: logDeleteError,
+              });
+            }
+          },
+          clearReusedAgentState: async (agentId) => {
+            try {
+              await trashAgentStateViaStudio({ agentId });
+            } catch (error) {
+              if (!shouldSkipWorkspaceCleanupError(error)) {
+                throw error;
+              }
+            }
+          },
+          renameAgent: async (agentId, name) => {
+            await renameGatewayAgent({ client, agentId, name });
+            dispatch({ type: "updateAgent", agentId, patch: { name } });
+          },
+          onExistingAgentDeleted: (agentId) => {
+            clearDeletedAgentUiState(agentId);
+            dispatch({ type: "removeAgent", agentId });
+          },
+          createAgent: async (name) => createGatewayAgent({ client, name }),
+          writeAgentFiles: async (agentId, files) => {
+            await writeGatewayAgentFiles({
+              client,
+              agentId,
+              files,
+            });
+          },
+          saveAvatar: (agentId) => {
+            handleAvatarProfileSave(
+              agentId,
+              createDefaultAgentAvatarProfile(randomUUID()),
+            );
+          },
+          loadAgents: () => loadAgents({ forceSettings: true }),
+          findAgentById: (agentId) => {
+            const liveAgent =
+              stateRef.current.agents.find((entry) => entry.agentId === agentId) ?? null;
+            if (!liveAgent?.sessionKey) return null;
+            return {
+              agentId: liveAgent.agentId,
+              sessionKey: liveAgent.sessionKey,
+            };
+          },
+          resetAgentSession: async (_agentId, sessionKey) => {
+            await client.call("sessions.reset", { key: sessionKey });
+          },
+          applyPermissions: async (agentId, sessionKey, commandMode) => {
+            await applyCreateAgentBootstrapPermissions({
+              client,
+              agentId,
+              sessionKey,
+              draft: buildCompanyRolePermissionsDraft(commandMode),
+              loadAgents: () => loadAgents({ forceSettings: true }),
+            });
+          },
+          persistSnapshot: persistCompanyBuilderSnapshot,
+          setOfficeTitle,
+          selectAgent: (agentId) => {
+            focusLocalAgent(agentId);
+          },
+          setStatusLine: setCompanyBuilderStatusLine,
+        });
+        setCreatedCompanyName(params.plan.companyName);
+        setCompanyCreatedSignal((current) => current + 1);
+        setCompanyBuilderOpen(false);
+      } catch (error) {
+        const message =
+          error instanceof Error ? error.message : "Failed to create the company.";
+        setCompanyBuilderError(message);
+        throw error;
+      } finally {
+        setCompanyBuilderBusy(false);
+      }
+    },
+    [
+      clearDeletedAgentUiState,
+      client,
+      dispatch,
+      handleAvatarProfileSave,
+      loadAgents,
+      persistCompanyBuilderSnapshot,
+      setOfficeTitle,
+      status,
+    ],
+  );
+  const createAgentStatusLine = useMemo(() => {
+    if (!createAgentBlock) return null;
+    if (createAgentBlock.phase === "queued") {
+      return "Waiting for active runs to finish before creating the new agent.";
+    }
+    return `Creating ${createAgentBlock.agentName}.`;
+  }, [createAgentBlock]);
+  const deleteAgentStatusLine = useMemo(() => {
+    if (!deleteAgentBlock) return null;
+    if (deleteAgentBlock.phase === "queued") {
+      return `Waiting for active runs to finish before deleting ${deleteAgentBlock.agentName}.`;
+    }
+    return `Deleting ${deleteAgentBlock.agentName}.`;
+  }, [deleteAgentBlock]);
+  const handleCreateAgentFromIdentity = useCallback(
+    async (identity: AgentIdentityValues) => {
+      let createdAgentId: string | null = null;
+      const success = await runCreateAgentMutationLifecycle(
+        {
+          payload: {
+            name: identity.name,
+          },
+          status,
+          hasCreateBlock: Boolean(createAgentBlock),
+          hasRenameBlock: false,
+          hasDeleteBlock: Boolean(hasDeleteMutationBlock),
+          createAgentBusy,
+        },
+        {
+          enqueueConfigMutation,
+          createAgent: async (name) => {
+            const created = await createGatewayAgent({ client, name });
+            const files = buildIdentityFileDraft(identity);
+            await writeGatewayAgentFiles({
+              client,
+              agentId: created.id,
+              files: {
+                "IDENTITY.md": files["IDENTITY.md"],
+              },
+            });
+            return { id: created.id };
+          },
+          setQueuedBlock: ({ agentName, startedAt }) => {
+            const queuedCreateBlock = buildQueuedMutationBlock({
+              kind: "create-agent",
+              agentId: "",
+              agentName,
+              startedAt,
+            });
+            setCreateAgentBlock({
+              agentName: queuedCreateBlock.agentName,
+              phase: "queued",
+              startedAt: queuedCreateBlock.startedAt,
+            });
+          },
+          setCreatingBlock: (agentName) => {
+            setCreateAgentBlock((current) => {
+              if (!current || current.agentName !== agentName) return current;
+              return { ...current, phase: "creating" };
+            });
+          },
+          onCompletion: async (completion) => {
+            createdAgentId = completion.agentId;
+            await loadAgents({ forceSettings: true });
+            const createdAgent =
+              stateRef.current.agents.find(
+                (entry) => entry.agentId === completion.agentId,
+              ) ?? null;
+            if (createdAgent?.sessionKey) {
+              try {
+                await applyCreateAgentBootstrapPermissions({
+                  client,
+                  agentId: createdAgent.agentId,
+                  sessionKey: createdAgent.sessionKey,
+                  draft: { ...CREATE_AGENT_DEFAULT_PERMISSIONS },
+                  loadAgents: () => loadAgents({ forceSettings: true }),
+                });
+              } catch (error) {
+                const message =
+                  error instanceof Error
+                    ? error.message
+                    : "Failed to apply default permissions.";
+                setError(
+                  `Agent created, but default permissions could not be applied: ${message}`,
+                );
+              }
+            }
+            focusLocalAgent(completion.agentId);
+            setCreateAgentBlock(null);
+            setCreateAgentModalError(null);
+          },
+          setCreateAgentModalError,
+          setCreateAgentBusy,
+          clearCreateBlock: () => {
+            setCreateAgentBlock(null);
+          },
+          onError: setError,
+        },
+      );
+      return success ? createdAgentId : null;
+    },
+    [
+      client,
+      createAgentBlock,
+      createAgentBusy,
+      dispatch,
+      enqueueConfigMutation,
+      focusLocalAgent,
+      hasDeleteMutationBlock,
+      loadAgents,
+      setError,
+      status,
+    ],
+  );
+  const handleFinishCreateAgentAvatar = useCallback(
+    async (params: {
+      agentId: string;
+      draft: PersonalityBuilderDraft;
+      profile: AgentAvatarProfile;
+    }) => {
+      setCreateAgentBusy(true);
+      setCreateAgentModalError(null);
+      try {
+        const files = serializePersonalityFiles(params.draft);
+        await writeGatewayAgentFiles({
+          client,
+          agentId: params.agentId,
+          files,
+        });
+        const currentAgent =
+          stateRef.current.agents.find((entry) => entry.agentId === params.agentId) ?? null;
+        const nextName = params.draft.identity.name.trim();
+        const currentName = currentAgent?.name.trim() ?? "";
+        if (nextName && nextName !== currentName) {
+          const renamed = await renameGatewayAgent({
+            client,
+            agentId: params.agentId,
+            name: nextName,
+          });
+          if (!renamed) {
+            throw new Error("Saved the wizard files, but could not rename the live agent.");
+          }
+        }
+        handleAvatarProfileSave(params.agentId, params.profile);
+        await loadAgents({ forceSettings: true });
+        setCreateAgentWizardOpen(false);
+        setCreateAgentModalError(null);
+        openAgentEditor(params.agentId, "IDENTITY.md");
+      } catch (error) {
+        const message =
+          error instanceof Error ? error.message : "Failed to finish creating the agent.";
+        setCreateAgentModalError(message);
+      } finally {
+        setCreateAgentBusy(false);
+      }
+    },
+    [client, handleAvatarProfileSave, loadAgents, openAgentEditor],
+  );
+  const handleDeleteAgent = useCallback(
+    async (agentId: string) => {
+      const decision = planAgentSettingsMutation(
+        { kind: "delete-agent", agentId },
+        {
+          status,
+          hasCreateBlock: Boolean(createAgentBlock),
+          hasRenameBlock: false,
+          hasDeleteBlock: Boolean(hasDeleteMutationBlock),
+          cronCreateBusy: false,
+          cronRunBusyJobId: null,
+          cronDeleteBusyJobId: null,
+        },
+      );
+      if (decision.kind === "deny") {
+        setError(
+          decision.message ?? resolveOfficeMutationGuardMessage(decision.guardReason),
+        );
+        return;
+      }
+      const agent = state.agents.find(
+        (entry) => entry.agentId === decision.normalizedAgentId,
+      );
+      if (!agent) return;
+      const confirmed = window.confirm(
+        `Delete ${agent.name}? This removes the agent record from OpenClaw and clears its scheduled automations. Claw3D will not touch workspace files.`,
+      );
+      if (!confirmed) return;
+
+      await runAgentConfigMutationLifecycle({
+        kind: "delete-agent",
+        label: `Delete ${agent.name}`,
+        isLocalGateway: false,
+        deps: {
+          enqueueConfigMutation,
+          setQueuedBlock: () => {
+            const queuedBlock = buildQueuedMutationBlock({
+              kind: "delete-agent",
+              agentId: decision.normalizedAgentId,
+              agentName: agent.name,
+              startedAt: Date.now(),
+            });
+            setDeleteAgentBlock({
+              kind: "delete-agent",
+              agentId: queuedBlock.agentId,
+              agentName: queuedBlock.agentName,
+              phase: queuedBlock.phase,
+              startedAt: queuedBlock.startedAt,
+              sawDisconnect: queuedBlock.sawDisconnect,
+            });
+          },
+          setMutatingBlock: () => {
+            setDeleteAgentBlock((current) => {
+              if (!current || current.agentId !== decision.normalizedAgentId) {
+                return current;
+              }
+              return {
+                ...current,
+                phase: "mutating",
+              };
+            });
+          },
+          patchBlockAwaitingRestart: (patch) => {
+            setDeleteAgentBlock((current) => {
+              if (!current || current.agentId !== decision.normalizedAgentId) {
+                return current;
+              }
+              return {
+                ...current,
+                ...patch,
+              };
+            });
+          },
+          clearBlock: () => {
+            setDeleteAgentBlock((current) => {
+              if (!current || current.agentId !== decision.normalizedAgentId) {
+                return current;
+              }
+              return null;
+            });
+          },
+          executeMutation: async () => {
+            await deleteAgentRecordViaStudio({
+              client,
+              agentId: decision.normalizedAgentId,
+              logError: (message, error) => console.error(message, error),
+            });
+            clearDeletedAgentUiState(decision.normalizedAgentId);
+            dispatch({
+              type: "removeAgent",
+              agentId: decision.normalizedAgentId,
+            });
+          },
+          shouldAwaitRemoteRestart: async () => false,
+          reloadAgents: () => loadAgents({ forceSettings: true }),
+          setMobilePaneChat: () => {},
+          onError: setError,
+        },
+      });
+    },
+    [
+      clearDeletedAgentUiState,
+      client,
+      createAgentBlock,
+      dispatch,
+      enqueueConfigMutation,
+      hasDeleteMutationBlock,
+      loadAgents,
+      setError,
+      state.agents,
+      status,
+    ],
+  );
+
+  useEffect(() => {
+    if (!createAgentBlock || createAgentBlock.phase === "queued") return;
+    const maxWaitMs = 90_000;
+    const elapsed = Date.now() - createAgentBlock.startedAt;
+    const remaining = Math.max(0, maxWaitMs - elapsed);
+    const timeoutId = window.setTimeout(() => {
+      setCreateAgentBlock((current) => {
+        if (!current || current.phase === "queued") return current;
+        return null;
+      });
+      setCreateAgentBusy(false);
+      setCreateAgentWizardOpen(false);
+      setError("Agent creation timed out.");
+      void loadAgents({ forceSettings: true });
+    }, remaining);
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, [createAgentBlock, loadAgents, setError]);
+
+  const requestAgentHistoryRefresh = useCallback(
+    async (params: {
+      agentId: string;
+      reason: "chat-final-no-trace" | "run-start-no-chat";
+      sessionKey?: string;
+    }) => {
+      if (status !== "connected") return;
+      const requestedSessionKey = params.sessionKey?.trim() ?? "";
+      if (requestedSessionKey) {
+        try {
+          const history = await provider.call<{
+            messages?: Record<string, unknown>[];
+          }>("chat.history", {
+            sessionKey: requestedSessionKey,
+            limit: RUNTIME_SYNC_DEFAULT_HISTORY_LIMIT,
+          });
+          const messages = Array.isArray(history.messages)
+            ? history.messages
+            : [];
+          const derived = buildHistoryLines(messages);
+          let lastUser = derived.lastUser?.trim() ?? "";
+          if (!lastUser) {
+            const previewResult = await provider.call<SummaryPreviewSnapshot>(
+              "sessions.preview",
+              {
+                keys: [requestedSessionKey],
+                limit: 12,
+                maxChars: 400,
+              },
+            );
+            lastUser =
+              resolveLatestUserTextFromPreview(
+                previewResult,
+                requestedSessionKey,
+              ) ?? "";
+          }
+          const targetAgentId =
+            parseAgentIdFromSessionKey(requestedSessionKey) ?? params.agentId;
+          const patch: Partial<AgentState> = {};
+          if (lastUser) {
+            patch.lastUserMessage = lastUser;
+          }
+          if (derived.lastAssistant) {
+            patch.latestPreview = derived.lastAssistant;
+          }
+          if (typeof derived.lastAssistantAt === "number") {
+            patch.lastAssistantMessageAt = derived.lastAssistantAt;
+          }
+          if (typeof derived.lastUserAt === "number") {
+            patch.lastActivityAt = derived.lastUserAt;
+          }
+          if (Object.keys(patch).length > 0) {
+            dispatch({
+              type: "updateAgent",
+              agentId: targetAgentId,
+              patch,
+            });
+          }
+          // Do not replay movement directives from history refresh.
+          // History can include old transport commands; replaying them causes auto-walks on load.
+          setOpenClawLogEntries((previous) => {
+            const next = [
+              ...previous,
+              createOpenClawLogEntry({
+                eventName: "history-refresh",
+                eventKind: "derived",
+                summary: `session=${requestedSessionKey} reason=${params.reason} lastUser=${formatOpenClawValue(lastUser)} lastAssistant=${formatOpenClawValue(derived.lastAssistant)}`,
+                messageText: lastUser || null,
+                streamText: derived.lastAssistant ?? null,
+                payload: {
+                  sessionKey: requestedSessionKey,
+                  reason: params.reason,
+                  historyMessageCount: messages.length,
+                  lastUser: lastUser || null,
+                  lastAssistant: derived.lastAssistant ?? null,
+                },
+              }),
+            ];
+            return next.slice(-MAX_OPENCLAW_LOG_ENTRIES);
+          });
+          if (debugEnabled) {
+            console.info(
+              "[office-debug] Refreshed transport session history.",
+              {
+                agentId: targetAgentId,
+                requestedSessionKey,
+                reason: params.reason,
+                lastUser: lastUser || null,
+              },
+            );
+          }
+        } catch (error) {
+          setOpenClawLogEntries((previous) => {
+            const next = [
+              ...previous,
+              createOpenClawLogEntry({
+                eventName: "history-refresh",
+                eventKind: "error",
+                summary: `session=${requestedSessionKey} reason=${params.reason} refresh failed`,
+                payload: {
+                  sessionKey: requestedSessionKey,
+                  reason: params.reason,
+                  error: error instanceof Error ? error.message : String(error),
+                },
+              }),
+            ];
+            return next.slice(-MAX_OPENCLAW_LOG_ENTRIES);
+          });
+          if (!isGatewayDisconnectLikeError(error)) {
+            console.error(
+              "Failed to refresh transport session history.",
+              error,
+            );
+          }
+        }
+        return;
+      }
+      const commands = await runHistorySyncOperation({
+        client: provider,
+        agentId: params.agentId,
+        getAgent: (agentId) =>
+          stateRef.current.agents.find((entry) => entry.agentId === agentId) ??
+          null,
+        inFlightSessionKeys: historyInFlightRef.current,
+        requestId: randomUUID(),
+        loadedAt: Date.now(),
+        defaultLimit: RUNTIME_SYNC_DEFAULT_HISTORY_LIMIT,
+        maxLimit: RUNTIME_SYNC_MAX_HISTORY_LIMIT,
+        transcriptV2Enabled: TRANSCRIPT_V2_ENABLED,
+      });
+      executeHistorySyncCommands({
+        commands,
+        dispatch,
+        logMetric: (metric, meta) => logTranscriptDebugMetric(metric, meta),
+        isDisconnectLikeError: isGatewayDisconnectLikeError,
+        logError: (message, error) => console.error(message, error),
+      });
+      if (debugEnabled) {
+        console.info("[office-debug] Requested agent history refresh.", {
+          agentId: params.agentId,
+          reason: params.reason,
+        });
+      }
+    },
+    [debugEnabled, dispatch, provider, status],
+  );
+
+  const refreshRecentTransportSessionHistory = useCallback(
+    (event: EventFrame) => {
+      if (event.event !== "health") return;
+      const payload =
+        event.payload as
+          | {
+              agents?: Array<{
+                agentId?: unknown;
+                sessions?: {
+                  recent?: Array<{ key?: unknown; updatedAt?: unknown }>;
+                };
+              }>;
+            }
+          | undefined;
+      const gatewayAgents = Array.isArray(payload?.agents) ? payload.agents : [];
+      if (gatewayAgents.length === 0) return;
+      for (const gatewayAgent of gatewayAgents) {
+        const agentId =
+          typeof gatewayAgent?.agentId === "string"
+            ? gatewayAgent.agentId.trim()
+            : "";
+        if (!agentId) continue;
+        const localAgent = stateRef.current.agents.find(
+          (agent) => agent.agentId === agentId,
+        );
+        if (!localAgent?.sessionKey) continue;
+        const recentSessions = Array.isArray(gatewayAgent.sessions?.recent)
+          ? gatewayAgent.sessions.recent
+          : [];
+        const latestTransportSession = recentSessions.find((entry) => {
+          const sessionKey =
+            typeof entry?.key === "string" ? entry.key.trim() : "";
+          if (!sessionKey) return false;
+          if (isSameSessionKey(sessionKey, localAgent.sessionKey)) return false;
+          return parseAgentIdFromSessionKey(sessionKey) === agentId;
+        });
+        if (!latestTransportSession) continue;
+        const sessionKey =
+          typeof latestTransportSession.key === "string"
+            ? latestTransportSession.key.trim()
+            : "";
+        if (!sessionKey) continue;
+        const updatedAt =
+          typeof latestTransportSession.updatedAt === "number" &&
+          Number.isFinite(latestTransportSession.updatedAt)
+            ? latestTransportSession.updatedAt
+            : 0;
+        const refreshKey = `${sessionKey}:${updatedAt}`;
+        if (lastTransportHistoryRefreshKeyRef.current[agentId] === refreshKey) {
+          continue;
+        }
+        lastTransportHistoryRefreshKeyRef.current[agentId] = refreshKey;
+        void requestAgentHistoryRefresh({
+          agentId,
+          reason: "run-start-no-chat",
+          sessionKey,
+        });
+      }
+    },
+    [requestAgentHistoryRefresh],
+  );
+
+  useEffect(() => {
+    if (status !== "connected" || agentsLoaded) return;
+    void loadAgents({ forceSettings: true });
+  }, [agentsLoaded, loadAgents, status]);
+
+  useEffect(() => {
+    if (status !== "connected") return;
+    if (state.loading) return;
+    if (state.agents.length > 0) return;
+    const timeoutId = window.setTimeout(() => {
+      void loadAgents({ forceSettings: true });
+    }, 500);
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, [loadAgents, state.agents.length, state.loading, status]);
+
+  useEffect(() => {
+    if (status === "disconnected") {
+      connectionEpochRef.current += 1;
+      setCreateAgentWizardOpen(false);
+      setCreateAgentBusy(false);
+      setCreateAgentModalError(null);
+      setCreateAgentBlock(null);
+      setDeleteAgentBlock(null);
+      loadAgentsInFlightRef.current = null;
+      gatewayConfigSnapshot.current = null;
+      lastLoadAgentsStartedAtRef.current = 0;
+      setLoading(false);
+      if (stateRef.current.agents.length === 0) {
+        if (selectedAdapterType === "demo") {
+          hydrateAgents([createDemoMainAgentSeed()], MAIN_AGENT_ID);
+          setAgentsLoaded(true);
+        } else {
+          setAgentsLoaded(false);
+          hydrateAgents([]);
+        }
+      }
+      setFeedEvents([]);
+      setDebugRows([]);
+      setRunCountByAgentId({});
+      setLastSeenByAgentId({});
+      prevAssistantPreviewRef.current = {};
+      lastGatewayActivityAtRef.current = 0;
+    }
+  }, [hydrateAgents, selectedAdapterType, setLoading, status]);
+
+  useEffect(() => {
+    if (selectedAdapterType !== "demo") return;
+    if (status !== "disconnected") return;
+    if (state.agents.length > 0) return;
+    hydrateAgents([createDemoMainAgentSeed()], MAIN_AGENT_ID);
+    setAgentsLoaded(true);
+  }, [hydrateAgents, selectedAdapterType, state.agents.length, status]);
+
+  useEffect(() => {
+    if (!agentsLoaded) return;
+    const previousByAgentId = prevAssistantPreviewRef.current;
+    const nextByAgentId: Record<string, { ts: number; text: string }> = {};
+    let initialized = Object.keys(previousByAgentId).length > 0;
+
+    for (const agent of state.agents) {
+      const previewText = normalizeOfficeFeedText(
+        agent.latestPreview ?? agent.lastResult,
+      );
+      const previewTs = agent.lastAssistantMessageAt ?? 0;
+      if (!previewText || previewTs <= 0) continue;
+      nextByAgentId[agent.agentId] = { ts: previewTs, text: previewText };
+      const previous = previousByAgentId[agent.agentId];
+      if (!previous) continue;
+      initialized = true;
+      if (previous.ts === previewTs && previous.text === previewText) continue;
+      if (previewTs < previous.ts) continue;
+      setFeedEvents((prev) =>
+        [
+          {
+            id: agent.agentId,
+            name: agent.name || "Agent",
+            text: previewText,
+            ts: previewTs,
+            kind: "reply" as const,
+          },
+          ...prev,
+        ].slice(0, 6),
+      );
+    }
+
+    if (!initialized) {
+      prevAssistantPreviewRef.current = nextByAgentId;
+      return;
+    }
+    prevAssistantPreviewRef.current = nextByAgentId;
+  }, [agentsLoaded, state.agents]);
+
+  useEffect(() => {
+    if (status !== "connected" || !agentsLoaded) return;
+    const runtimeHandler = createGatewayRuntimeEventHandler({
+      getStatus: () => status,
+      getAgents: () => stateRef.current.agents,
+      dispatch: (action) => {
+        dispatch(action as never);
+      },
+      queueLivePatch: (agentId, patch) => {
+        dispatch({ type: "updateAgent", agentId, patch });
+        if ("status" in patch || "runId" in patch) {
+          const agent = stateRef.current.agents.find(
+            (entry) => entry.agentId === agentId,
+          );
+          if (agent) {
+            const wasWorking = prevWorkingRef.current[agentId] ?? false;
+            const isNowWorking =
+              patch.status === "running" || Boolean(patch.runId);
+            if (isNowWorking !== wasWorking) {
+              prevWorkingRef.current[agentId] = isNowWorking;
+              const text = isNowWorking ? "started working" : "went idle";
+              setFeedEvents((prev) =>
+                [
+                  {
+                    id: agentId,
+                    name: agent.name || "Agent",
+                    text,
+                    ts: Date.now(),
+                    kind: "status" as const,
+                  },
+                  ...prev,
+                ].slice(0, 6),
+              );
+              if (isNowWorking) {
+                setRunCountByAgentId((prev) => ({
+                  ...prev,
+                  [agentId]: (prev[agentId] ?? 0) + 1,
+                }));
+              }
+            }
+          }
+        }
+      },
+      clearPendingLivePatch: () => {},
+      loadSummarySnapshot: async () => {
+        await loadAgents({
+          minIntervalMs: 3_000,
+          settingsMaxAgeMs: 60_000,
+          silent: true,
+        });
+      },
+      requestHistoryRefresh: requestAgentHistoryRefresh,
+      refreshHeartbeatLatestUpdate: () => {},
+      bumpHeartbeatTick: () => {},
+      setTimeout: (fn, delayMs) => window.setTimeout(fn, delayMs),
+      clearTimeout: (id) => window.clearTimeout(id),
+      isDisconnectLikeError: isGatewayDisconnectLikeError,
+      logWarn: (message, meta) => console.warn(message, meta),
+      updateSpecialLatestUpdate: () => {},
+    });
+
+    // Run reconciliation before subscribing to events so dedup keys are
+    // populated in the trigger state. This prevents stale gateway event
+    // replays from setting timed room holds on page load.
+    setOfficeTriggerState((previous) =>
+      reconcileOfficeAnimationTriggerState({
+        state: previous,
+        agents: stateRef.current.agents,
+      }),
+    );
+    const unsubscribeEvent = client.onEvent((event) => {
+      lastGatewayActivityAtRef.current = Date.now();
+      setOpenClawLogEntries((previous) => {
+        const next = [...previous, formatOpenClawEventLogEntry(event)];
+        return next.slice(-MAX_OPENCLAW_LOG_ENTRIES);
+      });
+      refreshRecentTransportSessionHistory(event);
+      setOfficeTriggerState((previous) =>
+        reduceOfficeAnimationTriggerEvent({
+          state: previous,
+          event,
+          agents: stateRef.current.agents,
+        }),
+      );
+      if (debugEnabled) {
+        console.info("[office-debug] Gateway event.", {
+          event: event.event,
+          seq: event.seq,
+          payload:
+            typeof event.payload === "object" && event.payload !== null
+              ? JSON.stringify(event.payload).slice(0, 220)
+              : (event.payload ?? null),
+        });
+      }
+      if (
+        shouldSuppressPhoneBoothAssistantReply({
+          event,
+          agents: stateRef.current.agents,
+          phoneCallByAgentId: officeTriggerStateRef.current.phoneCallByAgentId,
+        })
+      ) {
+        return;
+      }
+      taskBoardEventHandlerRef.current(event);
+      runtimeHandler.handleEvent(event);
+    });
+    const unsubscribeGap = client.onGap(() => {
+      void loadAgents({
+        minIntervalMs: 5_000,
+        settingsMaxAgeMs: 30_000,
+        silent: true,
+      });
+      void taskBoardRefreshRef.current();
+    });
+
+    return () => {
+      unsubscribeEvent();
+      unsubscribeGap();
+      runtimeHandler.dispose();
+    };
+  }, [
+    agentsLoaded,
+    client,
+    debugEnabled,
+    dispatch,
+    loadAgents,
+    refreshRecentTransportSessionHistory,
+    requestAgentHistoryRefresh,
+    status,
+  ]);
+
+  useEffect(() => {
+    if (status !== "connected" || !agentsLoaded) return;
+    const intervalId = window.setInterval(() => {
+      if (document.visibilityState !== "visible") return;
+      void loadAgents({
+        minIntervalMs: 60_000,
+        onlyWhenIdleForMs: 120_000,
+        settingsMaxAgeMs: 180_000,
+        silent: true,
+      });
+    }, 60_000);
+    return () => {
+      window.clearInterval(intervalId);
+    };
+  }, [agentsLoaded, loadAgents, status]);
+
+  useEffect(() => {
+    if (status !== "connected" || !agentsLoaded) return;
+    const handleFocus = () => {
+      if (document.visibilityState !== "visible") return;
+      void loadAgents({
+        minIntervalMs: 15_000,
+        settingsMaxAgeMs: 30_000,
+        silent: true,
+      });
+    };
+    window.addEventListener("focus", handleFocus);
+    document.addEventListener("visibilitychange", handleFocus);
+    return () => {
+      window.removeEventListener("focus", handleFocus);
+      document.removeEventListener("visibilitychange", handleFocus);
+    };
+  }, [agentsLoaded, loadAgents, status]);
+
+  useEffect(() => {
+    setOfficeTriggerState((previous) =>
+      reconcileOfficeAnimationTriggerState({
+        state: previous,
+        agents: state.agents,
+      }),
+    );
+  }, [state.agents]);
+
+  useEffect(() => {
+    setMarketplaceGymHoldByAgentId((previous) => {
+      const activeAgentIds = new Set(
+        state.agents.map((agent) => agent.agentId),
+      );
+      const next = Object.fromEntries(
+        Object.entries(previous).filter(
+          ([agentId, held]) => held && activeAgentIds.has(agentId),
+        ),
+      );
+      if (
+        Object.keys(previous).length === Object.keys(next).length &&
+        Object.keys(previous).every(
+          (agentId) => previous[agentId] === next[agentId],
+        )
+      ) {
+        return previous;
+      }
+      return next;
+    });
+  }, [state.agents]);
+
+  useEffect(() => {
+    if (!monitorAgentId) return;
+    if (state.agents.some((agent) => agent.agentId === monitorAgentId)) return;
+    setMonitorAgentId(null);
+  }, [monitorAgentId, state.agents]);
+
+  useEffect(() => {
+    if (!githubReviewAgentId) return;
+    if (state.agents.some((agent) => agent.agentId === githubReviewAgentId)) {
+      return;
+    }
+    setGithubReviewAgentId(null);
+  }, [githubReviewAgentId, state.agents]);
+
+  useEffect(() => {
+    if (!qaTestingAgentId) return;
+    if (state.agents.some((agent) => agent.agentId === qaTestingAgentId)) {
+      return;
+    }
+    setQaTestingAgentId(null);
+  }, [qaTestingAgentId, state.agents]);
+
+  useEffect(() => {
+    if (status !== "connected") return;
+    if (!runtimeSupportsModels) return;
+    let cancelled = false;
+    void (async () => {
+      try {
+        const result = await provider.call<{ models: GatewayModelChoice[] }>(
+          "models.list",
+          {},
+        );
+        if (!cancelled) {
+          setGatewayModels(
+            buildGatewayModelChoices(
+              Array.isArray(result.models) ? result.models : [],
+              null,
+            ),
+          );
+        }
+      } catch {
+        // Models are optional - chat still works without model selection.
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [status, provider, runtimeSupportsModels]);
+
+  useEffect(() => {
+    if (chatOpen && !selectedChatAgentId && state.agents.length > 0) {
+      setSelectedChatAgentId(state.agents[0].agentId);
+    }
+  }, [chatOpen, selectedChatAgentId, state.agents]);
+
+  const remoteChatAgentIds = useMemo(
+    () => (remoteOfficeSnapshot?.agents ?? []).map((agent) => `remote:${agent.agentId}`),
+    [remoteOfficeSnapshot],
+  );
+
+  const chatController = useChatInteractionController({
+    client: provider,
+    status,
+    agents: state.agents,
+    dispatch: (action) => dispatch(action as never),
+    setError,
+    getAgents: () => stateRef.current.agents,
+    clearRunTracking: () => {},
+    clearHistoryInFlight: () => {},
+    clearSpecialUpdateMarker: () => {},
+    clearSpecialLatestUpdateInFlight: () => {},
+    setInspectSidebarNull: () => {},
+    setMobilePaneChat: () => {},
+  });
+
+  const focusedChatAgent = selectedChatAgentId
+    ? (state.agents.find((agent) => agent.agentId === selectedChatAgentId) ??
+      null)
+    : null;
+  const selectedLocalChatAgentId = focusedChatAgent?.agentId ?? null;
+  const agentEditorAgent = agentEditorAgentId
+    ? (state.agents.find((agent) => agent.agentId === agentEditorAgentId) ?? null)
+    : null;
+  const mainAgent =
+    state.agents.find((agent) => agent.agentId === MAIN_AGENT_ID) ?? null;
+
+  useEffect(() => {
+    if (!selectedChatAgentId) return;
+    if (state.agents.some((agent) => agent.agentId === selectedChatAgentId)) return;
+    if (remoteChatAgentIds.includes(selectedChatAgentId)) return;
+    setSelectedChatAgentId(null);
+  }, [remoteChatAgentIds, selectedChatAgentId, state.agents]);
+
+  useEffect(() => {
+    if (!agentEditorAgentId) return;
+    if (state.agents.some((agent) => agent.agentId === agentEditorAgentId)) return;
+    setAgentEditorAgentId(null);
+  }, [agentEditorAgentId, state.agents]);
+
+  const runLog = useRunLog({
+    client,
+    status,
+    enabled: runtimeSupportsRunLifecycle,
+    agents: state.agents,
+  });
+  const standupAgentSnapshots = useMemo<StandupAgentSnapshot[]>(
+    () =>
+      state.agents.map((agent) => ({
+        agentId: agent.agentId,
+        name: agent.name || agent.agentId,
+        latestPreview: agent.latestPreview,
+        lastUserMessage: agent.lastUserMessage,
+      })),
+    [state.agents],
+  );
+  const standupController = useOfficeStandupController({
+    gatewayUrl,
+    agents: standupAgentSnapshots,
+  });
+  const taskBoard = useTaskBoardController({
+    gatewayUrl,
+    settingsCoordinator,
+    client,
+    status,
+    cronEnabled: runtimeSupportsCron,
+    agents: state.agents,
+    runLog,
+    standup: standupController,
+  });
+  const ingestTaskBoardEvent = taskBoard.ingestGatewayEvent;
+  taskBoardEventHandlerRef.current = ingestTaskBoardEvent;
+  taskBoardRefreshRef.current = async () => {
+    await taskBoard.refreshSharedTasks();
+    await taskBoard.refreshRemoteTasks();
+  };
+  const handleMarketplaceGymStart = useCallback((agentId: string) => {
+    setMarketplaceGymHoldByAgentId((previous) => ({
+      ...previous,
+      [agentId]: true,
+    }));
+  }, []);
+  const handleMarketplaceGymEnd = useCallback((agentId: string) => {
+    setMarketplaceGymHoldByAgentId((previous) => {
+      if (!previous[agentId]) return previous;
+      const next = { ...previous };
+      delete next[agentId];
+      return next;
+    });
+  }, []);
+  const marketplace = useOfficeSkillsMarketplace({
+    client,
+    status,
+    enabled: runtimeSupportsSkills,
+    agents: state.agents,
+    preferredAgentId: selectedLocalChatAgentId,
+    onSkillActivityStart: handleMarketplaceGymStart,
+    onSkillActivityEnd: handleMarketplaceGymEnd,
+  });
+  const skillTriggers = useOfficeSkillTriggers({
+    client,
+    status,
+    enabled: runtimeSupportsSkills,
+    agents: state.agents,
+  });
+  const animationNowMs = Date.now();
+  const officeAnimationState = useMemo(() => {
+    const base = buildOfficeAnimationState({
+      state: officeTriggerState,
+      agents: state.agents,
+      marketplaceGymHoldByAgentId,
+      nowMs: animationNowMs,
+    });
+    const skillTriggerHoldMaps = buildOfficeSkillTriggerHoldMaps(
+      skillTriggers.movementTargetByAgentId,
+    );
+
+    return {
+      ...base,
+      danceUntilByAgentId: danceUntilByAgentId,
+      deskHoldByAgentId: {
+        ...base.deskHoldByAgentId,
+        ...skillTriggerHoldMaps.deskHoldByAgentId,
+      },
+      githubHoldByAgentId: {
+        ...base.githubHoldByAgentId,
+        ...skillTriggerHoldMaps.githubHoldByAgentId,
+      },
+      gymHoldByAgentId: {
+        ...base.gymHoldByAgentId,
+        ...skillTriggerHoldMaps.gymHoldByAgentId,
+      },
+      jukeboxHoldByAgentId: {
+        ...base.jukeboxHoldByAgentId,
+        ...skillTriggerHoldMaps.jukeboxHoldByAgentId,
+      },
+      qaHoldByAgentId: {
+        ...base.qaHoldByAgentId,
+        ...skillTriggerHoldMaps.qaHoldByAgentId,
+      },
+      skillGymHoldByAgentId: {
+        ...base.skillGymHoldByAgentId,
+        ...skillTriggerHoldMaps.skillGymHoldByAgentId,
+      },
+    };
+  }, [
+    animationNowMs,
+    danceUntilByAgentId,
+    marketplaceGymHoldByAgentId,
+    officeTriggerState,
+    skillTriggers.movementTargetByAgentId,
+    state.agents,
+  ]);
+  const {
+    deskHoldByAgentId,
+    githubHoldByAgentId,
+    jukeboxHoldByAgentId,
+    manualGymUntilByAgentId,
+    pendingStandupRequest,
+    phoneBoothHoldByAgentId,
+    phoneCallByAgentId,
+    qaHoldByAgentId,
+    smsBoothHoldByAgentId,
+    skillGymHoldByAgentId,
+    textMessageByAgentId,
+    workingUntilByAgentId,
+  } = officeAnimationState;
+  const immediateGymHoldByAgentId = useMemo(
+    () => ({
+      ...marketplaceGymHoldByAgentId,
+      ...skillGymHoldByAgentId,
+    }),
+    [marketplaceGymHoldByAgentId, skillGymHoldByAgentId],
+  );
+
+  useEffect(() => {
+    const now = Date.now();
+    setGymCooldownUntilByAgentId((previous) => {
+      const next: Record<string, number> = {};
+      for (const agent of state.agents) {
+        const agentId = agent.agentId;
+        const immediateHeld = Boolean(immediateGymHoldByAgentId[agentId]);
+        const wasImmediateHeld =
+          prevImmediateGymHoldRef.current[agentId] ?? false;
+        const previousUntil = previous[agentId] ?? 0;
+        if (immediateHeld) {
+          if (previousUntil > now) {
+            next[agentId] = previousUntil;
+          }
+          continue;
+        }
+        if (wasImmediateHeld) {
+          next[agentId] = now + GYM_WORKOUT_LATCH_MS;
+          continue;
+        }
+        if (previousUntil > now) {
+          next[agentId] = previousUntil;
+        }
+      }
+      prevImmediateGymHoldRef.current = Object.fromEntries(
+        state.agents.map((agent) => [
+          agent.agentId,
+          Boolean(immediateGymHoldByAgentId[agent.agentId]),
+        ]),
+      );
+      const prevKeys = Object.keys(previous);
+      const nextKeys = Object.keys(next);
+      if (
+        prevKeys.length === nextKeys.length &&
+        nextKeys.every((key) => previous[key] === next[key])
+      ) {
+        return previous;
+      }
+      return next;
+    });
+  }, [immediateGymHoldByAgentId, state.agents]);
+
+  const activeGithubReviewAgentId = useMemo(
+    () =>
+      state.agents.find((agent) => githubHoldByAgentId[agent.agentId])
+        ?.agentId ?? null,
+    [githubHoldByAgentId, state.agents],
+  );
+  const activeQaTestingAgentId = useMemo(
+    () =>
+      state.agents.find((agent) => qaHoldByAgentId[agent.agentId])?.agentId ??
+      null,
+    [qaHoldByAgentId, state.agents],
+  );
+  useEffect(() => {
+    setGithubReviewAgentId(activeGithubReviewAgentId);
+  }, [activeGithubReviewAgentId]);
+
+  useEffect(() => {
+    if (!activeGithubReviewAgentId) return;
+    focusLocalAgent(activeGithubReviewAgentId);
+  }, [activeGithubReviewAgentId, focusLocalAgent]);
+
+  useEffect(() => {
+    setQaTestingAgentId(activeQaTestingAgentId);
+  }, [activeQaTestingAgentId]);
+
+  useEffect(() => {
+    if (!activeQaTestingAgentId) return;
+    focusLocalAgent(activeQaTestingAgentId);
+  }, [activeQaTestingAgentId, focusLocalAgent]);
+
+  useEffect(() => {
+    const activeKeys = new Set(
+      Object.values(phoneCallByAgentId).map((request) => request.key),
+    );
+    promptedPhoneCallKeysRef.current = new Set(
+      [...promptedPhoneCallKeysRef.current].filter((key) => activeKeys.has(key)),
+    );
+    preparedPhoneCallKeysRef.current = new Set(
+      [...preparedPhoneCallKeysRef.current].filter((key) => activeKeys.has(key)),
+    );
+    spokenPhoneCallKeysRef.current = new Set(
+      [...spokenPhoneCallKeysRef.current].filter((key) => activeKeys.has(key)),
+    );
+    setPreparedPhoneCallsByAgentId((previous) => {
+      const next = Object.fromEntries(
+        Object.entries(previous).filter(([, entry]) => activeKeys.has(entry.requestKey)),
+      );
+      if (
+        Object.keys(previous).length === Object.keys(next).length &&
+        Object.keys(previous).every((agentId) => previous[agentId] === next[agentId])
+      ) {
+        return previous;
+      }
+      return next;
+    });
+  }, [phoneCallByAgentId]);
+
+  useEffect(() => {
+    const requests = Object.entries(phoneCallByAgentId);
+    if (requests.length === 0) return;
+
+    const appendPromptForAgent = (agentId: string, request: OfficePhoneCallRequest) => {
+      const agent = state.agents.find((entry) => entry.agentId === agentId);
+      if (!agent) return;
+      promptedPhoneCallKeysRef.current.add(request.key);
+      void fetch("/api/office/call", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          callee: request.callee,
+          message: null,
+        }),
+      })
+        .then(async (response) => {
+          const body = (await response.json().catch(() => null)) as {
+            scenario?: MockPhoneCallScenario;
+          } | null;
+          const promptText = body?.scenario?.promptText?.trim();
+          if (!response.ok || !promptText) {
+            promptedPhoneCallKeysRef.current.delete(request.key);
+            return;
+          }
+          focusLocalAgent(agentId);
+          dispatch({
+            type: "appendOutput",
+            agentId,
+            line: buildPhoneCallOutputLine(promptText),
+          });
+        })
+        .catch(() => {
+          promptedPhoneCallKeysRef.current.delete(request.key);
+        });
+    };
+
+    const prepareScenarioForAgent = (agentId: string, request: OfficePhoneCallRequest) => {
+      preparedPhoneCallKeysRef.current.add(request.key);
+      void fetch("/api/office/call", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          callee: request.callee,
+          message: request.message,
+        }),
+      })
+        .then(async (response) => {
+          const body = (await response.json().catch(() => null)) as {
+            scenario?: MockPhoneCallScenario;
+          } | null;
+          const scenario = body?.scenario;
+          if (!response.ok || !scenario) {
+            preparedPhoneCallKeysRef.current.delete(request.key);
+            return;
+          }
+          setPreparedPhoneCallsByAgentId((previous) => ({
+            ...previous,
+            [agentId]: {
+              requestKey: request.key,
+              scenario,
+            },
+          }));
+        })
+        .catch(() => {
+          preparedPhoneCallKeysRef.current.delete(request.key);
+        });
+    };
+
+    for (const [agentId, request] of requests) {
+      if (
+        request.phase === "needs_message" &&
+        !promptedPhoneCallKeysRef.current.has(request.key)
+      ) {
+        appendPromptForAgent(agentId, request);
+      }
+      if (
+        request.phase === "ready_to_call" &&
+        !preparedPhoneCallKeysRef.current.has(request.key)
+      ) {
+        prepareScenarioForAgent(agentId, request);
+      }
+    }
+  }, [dispatch, focusLocalAgent, phoneCallByAgentId, state.agents]);
+
+  const activePhoneBoothAgentId = useMemo(
+    () =>
+      state.agents.find((agent) => {
+        if (!phoneBoothHoldByAgentId[agent.agentId]) return false;
+        const prepared = preparedPhoneCallsByAgentId[agent.agentId];
+        const request = phoneCallByAgentId[agent.agentId];
+        return Boolean(prepared && request && prepared.requestKey === request.key);
+      })?.agentId ?? null,
+    [phoneBoothHoldByAgentId, phoneCallByAgentId, preparedPhoneCallsByAgentId, state.agents],
+  );
+
+  const activePhoneCallScenario = useMemo(() => {
+    if (!activePhoneBoothAgentId) return null;
+    return preparedPhoneCallsByAgentId[activePhoneBoothAgentId]?.scenario ?? null;
+  }, [activePhoneBoothAgentId, preparedPhoneCallsByAgentId]);
+
+  const handlePhoneCallSpeak = useCallback(
+    ({ agentId, requestKey }: PhoneCallSpeakPayload) => {
+      if (spokenPhoneCallKeysRef.current.has(requestKey)) return;
+      spokenPhoneCallKeysRef.current.add(requestKey);
+      focusLocalAgent(agentId);
+    },
+    [focusLocalAgent],
+  );
+
+  const handlePhoneCallComplete = useCallback(
+    (agentId: string) => {
+      setPreparedPhoneCallsByAgentId((previous) => {
+        const next = { ...previous };
+        delete next[agentId];
+        return next;
+      });
+      const request = phoneCallByAgentId[agentId];
+      if (request) {
+        dispatch({
+          type: "appendOutput",
+          agentId,
+          line: buildPhoneCallOutputLine(`Call with ${request.callee} finished.`),
+        });
+      }
+      setOfficeTriggerState((previous) =>
+        clearOfficeAnimationTriggerHold({
+          state: previous,
+          hold: "call",
+          agentId,
+        }),
+      );
+    },
+    [dispatch, phoneCallByAgentId],
+  );
+
+  useEffect(() => {
+    const activeKeys = new Set(
+      Object.values(textMessageByAgentId).map((request) => request.key),
+    );
+    promptedTextMessageKeysRef.current = new Set(
+      [...promptedTextMessageKeysRef.current].filter((key) => activeKeys.has(key)),
+    );
+    preparedTextMessageKeysRef.current = new Set(
+      [...preparedTextMessageKeysRef.current].filter((key) => activeKeys.has(key)),
+    );
+    setPreparedTextMessagesByAgentId((previous) => {
+      const next = Object.fromEntries(
+        Object.entries(previous).filter(([, entry]) => activeKeys.has(entry.requestKey)),
+      );
+      if (
+        Object.keys(previous).length === Object.keys(next).length &&
+        Object.keys(previous).every((agentId) => previous[agentId] === next[agentId])
+      ) {
+        return previous;
+      }
+      return next;
+    });
+  }, [textMessageByAgentId]);
+
+  useEffect(() => {
+    const requests = Object.entries(textMessageByAgentId);
+    if (requests.length === 0) return;
+
+    const appendPromptForAgent = (agentId: string, request: OfficeTextMessageRequest) => {
+      const agent = state.agents.find((entry) => entry.agentId === agentId);
+      if (!agent) return;
+      promptedTextMessageKeysRef.current.add(request.key);
+      void fetch("/api/office/text", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          recipient: request.recipient,
+          message: null,
+        }),
+      })
+        .then(async (response) => {
+          const body = (await response.json().catch(() => null)) as {
+            scenario?: MockTextMessageScenario;
+          } | null;
+          const promptText = body?.scenario?.promptText?.trim();
+          if (!response.ok || !promptText) {
+            promptedTextMessageKeysRef.current.delete(request.key);
+            return;
+          }
+          focusLocalAgent(agentId);
+          dispatch({
+            type: "appendOutput",
+            agentId,
+            line: buildTextMessageOutputLine(promptText),
+          });
+        })
+        .catch(() => {
+          promptedTextMessageKeysRef.current.delete(request.key);
+        });
+    };
+
+    const prepareScenarioForAgent = (agentId: string, request: OfficeTextMessageRequest) => {
+      preparedTextMessageKeysRef.current.add(request.key);
+      void fetch("/api/office/text", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          recipient: request.recipient,
+          message: request.message,
+        }),
+      })
+        .then(async (response) => {
+          const body = (await response.json().catch(() => null)) as {
+            scenario?: MockTextMessageScenario;
+          } | null;
+          const scenario = body?.scenario;
+          if (!response.ok || !scenario) {
+            preparedTextMessageKeysRef.current.delete(request.key);
+            return;
+          }
+          setPreparedTextMessagesByAgentId((previous) => ({
+            ...previous,
+            [agentId]: {
+              requestKey: request.key,
+              scenario,
+            },
+          }));
+        })
+        .catch(() => {
+          preparedTextMessageKeysRef.current.delete(request.key);
+        });
+    };
+
+    for (const [agentId, request] of requests) {
+      if (
+        request.phase === "needs_message" &&
+        !promptedTextMessageKeysRef.current.has(request.key)
+      ) {
+        appendPromptForAgent(agentId, request);
+      }
+      if (
+        request.phase === "ready_to_send" &&
+        !preparedTextMessageKeysRef.current.has(request.key)
+      ) {
+        prepareScenarioForAgent(agentId, request);
+      }
+    }
+  }, [dispatch, focusLocalAgent, state.agents, textMessageByAgentId]);
+
+  const activeSmsBoothAgentId = useMemo(
+    () =>
+      state.agents.find((agent) => {
+        if (!smsBoothHoldByAgentId[agent.agentId]) return false;
+        const prepared = preparedTextMessagesByAgentId[agent.agentId];
+        const request = textMessageByAgentId[agent.agentId];
+        return Boolean(prepared && request && prepared.requestKey === request.key);
+      })?.agentId ?? null,
+    [preparedTextMessagesByAgentId, smsBoothHoldByAgentId, state.agents, textMessageByAgentId],
+  );
+
+  const activeTextMessageScenario = useMemo(() => {
+    if (!activeSmsBoothAgentId) return null;
+    return preparedTextMessagesByAgentId[activeSmsBoothAgentId]?.scenario ?? null;
+  }, [activeSmsBoothAgentId, preparedTextMessagesByAgentId]);
+
+  const handleTextMessageComplete = useCallback(
+    (agentId: string) => {
+      setPreparedTextMessagesByAgentId((previous) => {
+        const next = { ...previous };
+        delete next[agentId];
+        return next;
+      });
+      const request = textMessageByAgentId[agentId];
+      if (request) {
+        dispatch({
+          type: "appendOutput",
+          agentId,
+          line: buildTextMessageOutputLine(`Message to ${request.recipient} sent.`),
+        });
+      }
+      setOfficeTriggerState((previous) =>
+        clearOfficeAnimationTriggerHold({
+          state: previous,
+          hold: "text",
+          agentId,
+        }),
+      );
+    },
+    [dispatch, textMessageByAgentId],
+  );
+
+  const gymHoldByAgentId = useMemo(() => {
+    const next: Record<string, boolean> = {};
+    for (const agent of state.agents) {
+      const agentId = agent.agentId;
+      if (
+        immediateGymHoldByAgentId[agentId] ||
+        (manualGymUntilByAgentId[agentId] ?? 0) > animationNowMs ||
+        (gymCooldownUntilByAgentId[agentId] ?? 0) > animationNowMs
+      ) {
+        next[agentId] = true;
+      }
+    }
+    return next;
+  }, [
+    animationNowMs,
+    gymCooldownUntilByAgentId,
+    immediateGymHoldByAgentId,
+    manualGymUntilByAgentId,
+    state.agents,
+  ]);
+
+  const handleOpenAgentChat = useCallback(
+    (agentId: string) => {
+      focusChatTarget(agentId);
+    },
+    [focusChatTarget],
+  );
+  const updateRemoteChatSession = useCallback(
+    (
+      agentId: string,
+      updater: (session: RemoteChatSessionState) => RemoteChatSessionState,
+    ) => {
+      setRemoteChatByAgentId((previous) => {
+        const current = previous[agentId] ?? EMPTY_REMOTE_CHAT_SESSION;
+        return {
+          ...previous,
+          [agentId]: updater(current),
+        };
+      });
+    },
+    [],
+  );
+  const handleRemoteAgentChatSend = useCallback(
+    async (agentId: string, message: string) => {
+      const trimmed = message.trim();
+      if (!trimmed) return;
+      if (trimmed.length > MAX_REMOTE_MESSAGE_CHARS) {
+        updateRemoteChatSession(agentId, (session) => ({
+          ...session,
+          sending: false,
+          error: `Remote message must be ${MAX_REMOTE_MESSAGE_CHARS} characters or fewer.`,
+        }));
+        return;
+      }
+      const remoteAgentId = isRemoteOfficeAgentId(agentId)
+        ? agentId.slice("remote:".length)
+        : agentId;
+      const sentAt = Date.now();
+      updateRemoteChatSession(agentId, (session) => ({
+        ...session,
+        draft: "",
+        sending: true,
+        handoffing: false,
+        error: null,
+        messages: [
+          ...session.messages,
+          {
+            id: randomUUID(),
+            role: "user",
+            text: trimmed,
+            timestampMs: sentAt,
+          },
+        ],
+      }));
+      try {
+        const deliveryMode =
+          (remoteChatByAgentId[agentId]?.mode ?? EMPTY_REMOTE_CHAT_SESSION.mode) === "interval"
+            ? "interval"
+            : "direct";
+        const response = await fetch("/api/office/remote-message", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            agentId: remoteAgentId,
+            message: trimmed,
+            mode: deliveryMode,
+          }),
+        });
+        const payload = (await response.json()) as {
+          error?: string;
+          assistantText?: string | null;
+        };
+        if (!response.ok) {
+          throw new Error(payload.error || "Failed to deliver the remote office message.");
+        }
+        const assistantText =
+          typeof payload.assistantText === "string" ? payload.assistantText.trim() : "";
+        updateRemoteChatSession(agentId, (session) => ({
+          ...session,
+          sending: false,
+          error: null,
+          messages: [
+            ...session.messages,
+            {
+              id: randomUUID(),
+              role: "system",
+              text: "Delivered to the remote agent.",
+              timestampMs: Date.now(),
+            },
+            ...(assistantText
+              ? [
+                  {
+                    id: randomUUID(),
+                    role: "assistant" as const,
+                    text: assistantText,
+                    timestampMs: Date.now(),
+                  },
+                ]
+              : []),
+          ],
+        }));
+      } catch (error) {
+        const messageText =
+          error instanceof Error
+            ? error.message
+            : "Failed to deliver the remote office message.";
+        updateRemoteChatSession(agentId, (session) => ({
+          ...session,
+          sending: false,
+          error: messageText,
+          messages: [
+            ...session.messages,
+            {
+              id: randomUUID(),
+              role: "system",
+              text: `Delivery failed: ${messageText}`,
+              timestampMs: Date.now(),
+            },
+          ],
+        }));
+      }
+    },
+    [remoteChatByAgentId, updateRemoteChatSession],
+  );
+
+  const handleRemoteAgentHandoff = useCallback(
+    async (agentId: string, task: string) => {
+      const trimmed = task.trim();
+      if (!trimmed) return;
+      if (trimmed.length > MAX_REMOTE_MESSAGE_CHARS) {
+        updateRemoteChatSession(agentId, (session) => ({
+          ...session,
+          handoffing: false,
+          error: `Remote handoff must be ${MAX_REMOTE_MESSAGE_CHARS} characters or fewer.`,
+        }));
+        return;
+      }
+      const remoteAgentId = isRemoteOfficeAgentId(agentId)
+        ? agentId.slice("remote:".length)
+        : agentId;
+      const sessionSnapshot = remoteChatByAgentId[agentId] ?? EMPTY_REMOTE_CHAT_SESSION;
+      const sentAt = Date.now();
+      updateRemoteChatSession(agentId, (session) => ({
+        ...session,
+        draft: "",
+        sending: false,
+        handoffing: true,
+        error: null,
+        messages: [
+          ...session.messages,
+          {
+            id: randomUUID(),
+            role: "system",
+            text: `Handoff queued: ${trimmed}`,
+            timestampMs: sentAt,
+          },
+        ],
+      }));
+      try {
+        const historyContext = (
+          sessionSnapshot.messages ?? []
+        )
+          .slice(-6)
+          .map((entry) => `${entry.role}: ${entry.text}`)
+          .join("\n");
+        const response = await fetch("/api/office/remote-handoff", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            agentId: remoteAgentId,
+            task: trimmed,
+            context: sessionSnapshot.handoffContext.trim() || historyContext || undefined,
+            deliverables:
+              sessionSnapshot.handoffDeliverables
+                .split(",")
+                .map((entry) => entry.trim())
+                .filter(Boolean).length > 0
+                ? sessionSnapshot.handoffDeliverables
+                    .split(",")
+                    .map((entry) => entry.trim())
+                    .filter(Boolean)
+                : ["Acknowledge ownership", "Send the next checkpoint or blocking question"],
+            acceptanceCriteria:
+              sessionSnapshot.handoffAcceptance.trim() ||
+              "Respond with an acknowledgement or the next concrete update.",
+          }),
+        });
+        const payload = (await response.json()) as { error?: string };
+        if (!response.ok) {
+          throw new Error(payload.error || "Failed to deliver the remote handoff.");
+        }
+        updateRemoteChatSession(agentId, (session) => ({
+          ...session,
+          handoffing: false,
+          error: null,
+          messages: [
+            ...session.messages,
+            {
+              id: randomUUID(),
+              role: "system",
+              text: "Handoff delivered to the remote agent.",
+              timestampMs: Date.now(),
+            },
+          ],
+        }));
+      } catch (error) {
+        const messageText =
+          error instanceof Error ? error.message : "Failed to deliver the remote handoff.";
+        updateRemoteChatSession(agentId, (session) => ({
+          ...session,
+          handoffing: false,
+          error: messageText,
+          messages: [
+            ...session.messages,
+            {
+              id: randomUUID(),
+              role: "system",
+              text: `Handoff failed: ${messageText}`,
+              timestampMs: Date.now(),
+            },
+          ],
+        }));
+      }
+    },
+    [remoteChatByAgentId, updateRemoteChatSession],
+  );
+
+  const lastStandupTriggerKeyRef = useRef<string | null>(null);
+  const triggerStandupMeeting = useCallback(
+    async (message: string) => {
+      const trimmed = message.trim();
+      if (!trimmed) return false;
+      if (
+        standupController.meeting &&
+        standupController.meeting.phase !== "complete"
+      ) {
+        return false;
+      }
+      await standupController.startMeeting("manual");
+      return true;
+    },
+    [standupController],
+  );
+
+  const handleGithubReviewDismiss = useCallback(() => {
+    if (!githubReviewAgentId) return;
+    setOfficeTriggerState((previous) =>
+      clearOfficeAnimationTriggerHold({
+        state: previous,
+        hold: "github",
+        agentId: githubReviewAgentId,
+      }),
+    );
+  }, [githubReviewAgentId]);
+
+  const handleQaDismiss = useCallback(() => {
+    if (!qaTestingAgentId) return;
+    setOfficeTriggerState((previous) =>
+      clearOfficeAnimationTriggerHold({
+        state: previous,
+        hold: "qa",
+        agentId: qaTestingAgentId,
+      }),
+    );
+  }, [qaTestingAgentId]);
+
+  const handleChatSend = useCallback(
+    async (agentId: string, sessionKey: string, message: string) => {
+      stopVoiceReplyPlayback();
+      const trimmed = message.trim();
+      if (!trimmed) return;
+      if (isRemoteOfficeAgentId(agentId)) {
+        await handleRemoteAgentChatSend(agentId, trimmed);
+        return;
+      }
+
+      const intentSnapshot = resolveOfficeIntentSnapshot(trimmed);
+      setOpenClawLogEntries((previous) => {
+        const next = [
+          ...previous,
+          createOpenClawLogEntry({
+            eventName: "office-intent",
+            eventKind: "derived",
+            summary: `agent=${agentId} gym=${intentSnapshot.gym?.source ?? "-"} qa=${intentSnapshot.qa ?? "-"} github=${intentSnapshot.github ?? "-"} desk=${intentSnapshot.desk ?? "-"} text=${intentSnapshot.text?.phase ?? "-"}`,
+            payload: {
+              agentId,
+              message: trimmed,
+              normalized: intentSnapshot.normalized,
+              intentSnapshot,
+            },
+          }),
+        ];
+        return next.slice(-MAX_OPENCLAW_LOG_ENTRIES);
+      });
+      const pendingPhoneCall = phoneCallByAgentId[agentId] ?? null;
+      const pendingTextMessage = textMessageByAgentId[agentId] ?? null;
+      const hasImmediateOfficeTrigger = Boolean(
+        intentSnapshot.desk ||
+          intentSnapshot.github ||
+          intentSnapshot.gym ||
+          intentSnapshot.qa ||
+          intentSnapshot.standup ||
+          intentSnapshot.text,
+      );
+      const isPhoneCallFollowUp =
+        pendingPhoneCall?.phase === "needs_message" &&
+        !intentSnapshot.call &&
+        !intentSnapshot.text &&
+        !intentSnapshot.desk &&
+        !intentSnapshot.github &&
+        !intentSnapshot.gym &&
+        !intentSnapshot.qa &&
+        !intentSnapshot.standup;
+      const isTextMessageFollowUp =
+        pendingTextMessage?.phase === "needs_message" &&
+        !intentSnapshot.call &&
+        !intentSnapshot.text &&
+        !intentSnapshot.desk &&
+        !intentSnapshot.github &&
+        !intentSnapshot.gym &&
+        !intentSnapshot.qa &&
+        !intentSnapshot.standup;
+
+      if (
+        hasImmediateOfficeTrigger &&
+        !intentSnapshot.call &&
+        !isPhoneCallFollowUp &&
+        !isTextMessageFollowUp
+      ) {
+        const nowMs = Date.now();
+        const runId = randomUUID();
+        setOfficeTriggerState((previous) =>
+          reduceOfficeAnimationTriggerEvent({
+            state: previous,
+            agents: stateRef.current.agents,
+            nowMs,
+            event: {
+              type: "event",
+              event: "chat",
+              payload: {
+                runId,
+                sessionKey,
+                state: "final",
+                message: {
+                  role: "user",
+                  content: trimmed,
+                },
+              },
+            },
+          }),
+        );
+      }
+
+      if (intentSnapshot.call || isPhoneCallFollowUp) {
+        const nowMs = Date.now();
+        const runId = randomUUID();
+        dispatch({
+          type: "updateAgent",
+          agentId,
+          patch: {
+            draft: "",
+            lastUserMessage: trimmed,
+            lastActivityAt: nowMs,
+          },
+        });
+        dispatch({
+          type: "appendOutput",
+          agentId,
+          line: `> ${trimmed}`,
+          transcript: {
+            source: "local-send",
+            runId,
+            sessionKey,
+            timestampMs: nowMs,
+            role: "user",
+            kind: "user",
+            confirmed: true,
+          },
+        });
+        setOfficeTriggerState((previous) =>
+          reduceOfficeAnimationTriggerEvent({
+            state: previous,
+            agents: stateRef.current.agents,
+            nowMs,
+            event: {
+              type: "event",
+              event: "chat",
+              payload: {
+                runId,
+                sessionKey,
+                state: "final",
+                message: {
+                  role: "user",
+                  content: trimmed,
+                },
+              },
+            },
+          }),
+        );
+        return;
+      }
+
+      await chatController.handleSend(agentId, sessionKey, trimmed);
+    },
+    [
+      chatController,
+      dispatch,
+      handleRemoteAgentChatSend,
+      phoneCallByAgentId,
+      stopVoiceReplyPlayback,
+      textMessageByAgentId,
+    ],
+  );
+
+  useEffect(() => {
+    if (!pendingStandupRequest) return;
+    if (lastStandupTriggerKeyRef.current === pendingStandupRequest.key) return;
+    if (
+      standupController.meeting &&
+      standupController.meeting.phase !== "complete"
+    ) {
+      return;
+    }
+    lastStandupTriggerKeyRef.current = pendingStandupRequest.key;
+    void triggerStandupMeeting(pendingStandupRequest.message).catch((error) => {
+      console.error("Failed to trigger standup meeting.", error);
+    });
+  }, [pendingStandupRequest, standupController.meeting, triggerStandupMeeting]);
+
+  const transcribeVoicePayload = useCallback(
+    async (payload: VoiceSendPayload) => {
+      const file = new File([payload.blob], payload.fileName, {
+        type: payload.mimeType,
+      });
+      const formData = new FormData();
+      formData.set("audio", file);
+      const response = await fetch("/api/office/voice/transcribe", {
+        method: "POST",
+        body: formData,
+      });
+      const result = (await response.json().catch(() => null)) as {
+        transcript?: string | null;
+        error?: string;
+        ignored?: boolean;
+      } | null;
+      if (!response.ok) {
+        throw new Error(
+          result?.error?.trim() || "Failed to transcribe voice input.",
+        );
+      }
+      if (result?.ignored) {
+        return null;
+      }
+      const transcript = result?.transcript?.trim() ?? "";
+      if (!transcript) {
+        throw new Error("OpenClaw returned an empty transcript.");
+      }
+      return transcript;
+    },
+    [],
+  );
+
+  const sendVoicePayloadToAgent = useCallback(
+    async (
+      agent: Pick<AgentState, "agentId" | "sessionKey"> | null,
+      payload: VoiceSendPayload,
+    ) => {
+      if (!agent) {
+        throw new Error("Target agent not found.");
+      }
+      const transcript = await transcribeVoicePayload(payload);
+      if (!transcript) return;
+      await handleChatSend(agent.agentId, agent.sessionKey, transcript);
+    },
+    [handleChatSend, transcribeVoicePayload],
+  );
+
+  const handleVoiceSend = useCallback(
+    async (payload: VoiceSendPayload) => {
+      if (!focusedChatAgent) {
+        throw new Error("Select an agent before using push-to-talk.");
+      }
+      await sendVoicePayloadToAgent(focusedChatAgent, payload);
+    },
+    [focusedChatAgent, sendVoicePayloadToAgent],
+  );
+
+  const {
+    state: mainVoiceState,
+    error: mainVoiceError,
+    supported: mainVoiceSupported,
+    start: startMainVoiceRecording,
+    stop: stopMainVoiceRecording,
+    clearError: clearMainVoiceError,
+  } = useVoiceRecorder({
+    enabled: status === "connected" && Boolean(mainAgent),
+    onVoiceSend: async (payload) => {
+      if (!mainAgent) {
+        throw new Error("Main agent not found.");
+      }
+      await sendVoicePayloadToAgent(mainAgent, payload);
+    },
+  });
+
+  useFinalizedAssistantReplyListener(state.agents, ({ text }) => {
+    if (!voiceRepliesLoaded || !voiceRepliesEnabled) return;
+    enqueueVoiceReply({
+      text,
+      provider: voiceRepliesPreference.provider,
+      voiceId: voiceRepliesPreference.voiceId,
+    });
+  });
+
+  useEffect(() => {
+    const optionHeldRef = { current: false };
+    const handleKeyDown = (event: globalThis.KeyboardEvent) => {
+      if (event.key !== "Alt" || event.repeat || optionHeldRef.current) return;
+      optionHeldRef.current = true;
+      event.preventDefault();
+      void startMainVoiceRecording();
+    };
+    const handleKeyUp = (event: globalThis.KeyboardEvent) => {
+      if (event.key !== "Alt") return;
+      optionHeldRef.current = false;
+      event.preventDefault();
+      stopMainVoiceRecording();
+    };
+    const handleWindowBlur = () => {
+      optionHeldRef.current = false;
+      stopMainVoiceRecording();
+    };
+    window.addEventListener("keydown", handleKeyDown, true);
+    window.addEventListener("keyup", handleKeyUp, true);
+    window.addEventListener("blur", handleWindowBlur);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown, true);
+      window.removeEventListener("keyup", handleKeyUp, true);
+      window.removeEventListener("blur", handleWindowBlur);
+    };
+  }, [startMainVoiceRecording, stopMainVoiceRecording]);
+
+  useEffect(() => {
+    if (!mainVoiceError) return;
+    const timer = window.setTimeout(() => {
+      clearMainVoiceError();
+    }, 4000);
+    return () => {
+      window.clearTimeout(timer);
+    };
+  }, [clearMainVoiceError, mainVoiceError]);
+
+  const officeAgents = useMemo(() => {
+    void clockTick;
+    const now = Date.now();
+    const nextCache = new Map<
+      string,
+      {
+        agent: AgentState;
+        deskHeld: boolean;
+        gymHeld: boolean;
+        latchedWorking: boolean;
+        officeAgent: OfficeAgent;
+        phoneBoothHeld: boolean;
+        qaHeld: boolean;
+        smsBoothHeld: boolean;
+      }
+    >();
+    const nextOfficeAgents = state.agents.map((agent) => {
+      const latchedWorking = (workingUntilByAgentId[agent.agentId] ?? 0) > now;
+      const deskHeld = Boolean(deskHoldByAgentId[agent.agentId]);
+      const gymHeld = Boolean(gymHoldByAgentId[agent.agentId]);
+      const phoneBoothHeld = Boolean(phoneBoothHoldByAgentId[agent.agentId]);
+      const qaHeld = Boolean(qaHoldByAgentId[agent.agentId]);
+      const smsBoothHeld = Boolean(smsBoothHoldByAgentId[agent.agentId]);
+      const cached = officeAgentCacheRef.current.get(agent.agentId);
+      if (
+        cached &&
+        cached.agent === agent &&
+        cached.latchedWorking === latchedWorking &&
+        cached.deskHeld === deskHeld &&
+        cached.gymHeld === gymHeld &&
+        cached.phoneBoothHeld === phoneBoothHeld &&
+        cached.qaHeld === qaHeld &&
+        cached.smsBoothHeld === smsBoothHeld
+      ) {
+        nextCache.set(agent.agentId, cached);
+        return cached.officeAgent;
+      }
+      const effectiveAgent: AgentState =
+        latchedWorking && agent.status !== "error"
+          ? {
+              ...agent,
+              status: "running",
+              runId: agent.runId ?? `latched-${agent.agentId}`,
+            }
+          : (deskHeld || gymHeld || qaHeld || phoneBoothHeld || smsBoothHeld) &&
+              agent.status !== "error"
+            ? {
+                ...agent,
+                status: "running",
+                runId:
+                  agent.runId ??
+                  (qaHeld
+                    ? `qa-hold-${agent.agentId}`
+                    : smsBoothHeld
+                      ? `text-hold-${agent.agentId}`
+                    : phoneBoothHeld
+                      ? `call-hold-${agent.agentId}`
+                    : gymHeld
+                      ? `gym-hold-${agent.agentId}`
+                      : `desk-hold-${agent.agentId}`),
+              }
+            : agent;
+      const officeAgent = mapAgentToOffice(effectiveAgent);
+      nextCache.set(agent.agentId, {
+        agent,
+        deskHeld,
+        gymHeld,
+        latchedWorking,
+        officeAgent,
+        phoneBoothHeld,
+        qaHeld,
+        smsBoothHeld,
+      });
+      return officeAgent;
+    });
+    officeAgentCacheRef.current = nextCache;
+    return nextOfficeAgents;
+  }, [
+    clockTick,
+    deskHoldByAgentId,
+    gymHoldByAgentId,
+    phoneBoothHoldByAgentId,
+    qaHoldByAgentId,
+    smsBoothHoldByAgentId,
+    state.agents,
+    workingUntilByAgentId,
+  ]);
+  const streamingTextByAgentId = useMemo(() => {
+    const map: Record<string, string | null> = {};
+    for (const agent of state.agents) {
+      if (agent.streamText?.trim()) {
+        map[agent.agentId] = agent.streamText.trim();
+      }
+    }
+    return map;
+  }, [state.agents]);
+  const openClawLiveStateText = useMemo(() => {
+    const lines = ["== LIVE OPENCLAW STATE =="];
+    if (state.agents.length === 0) {
+      lines.push("No agents loaded yet.");
+      return lines.join("\n");
+    }
+
+    for (const agent of state.agents) {
+      lines.push("");
+      lines.push(`[${agent.agentId}] ${agent.name || "Agent"}`);
+      lines.push(
+        `status=${agent.status} runId=${agent.runId ?? "-"} session=${agent.sessionKey}`,
+      );
+      lines.push(
+        `lastActivity=${agent.lastActivityAt ? formatOpenClawTimestamp(agent.lastActivityAt) : "-"} lastAssistant=${agent.lastAssistantMessageAt ? formatOpenClawTimestamp(agent.lastAssistantMessageAt) : "-"}`,
+      );
+      lines.push(
+        `latestPreview=${formatOpenClawValue(agent.latestPreview)} lastUser=${formatOpenClawValue(agent.lastUserMessage)}`,
+      );
+      if (agent.thinkingTrace?.trim()) {
+        lines.push("thinking>");
+        lines.push(agent.thinkingTrace.trim());
+      }
+      if (agent.streamText?.trim()) {
+        lines.push("assistant_stream>");
+        lines.push(agent.streamText.trim());
+      }
+      const recentOutput = agent.outputLines
+        .slice(-MAX_OPENCLAW_AGENT_OUTPUT_LINES)
+        .map((line) => line.trimEnd())
+        .filter(Boolean);
+      if (recentOutput.length > 0) {
+        lines.push("recent_output>");
+        lines.push(...recentOutput);
+      }
+    }
+
+    return lines.join("\n");
+  }, [state.agents]);
+  const remoteOfficeAgents = useMemo(
+    () =>
+      (remoteOfficeSnapshot?.agents ?? []).map((agent) =>
+        mapRemotePresenceAgentToOffice(agent)
+      ),
+    [remoteOfficeSnapshot]
+  );
+  const chatRosterEntries = useMemo<ChatRosterEntry[]>(
+    () => [
+      ...state.agents.map((agent) => ({
+        id: agent.agentId,
+        name: agent.name || agent.agentId,
+        kind: "local" as const,
+        isRunning: agent.status === "running",
+      })),
+      ...remoteOfficeAgents.map((agent) => ({
+        id: agent.id,
+        name: agent.name || agent.id,
+        kind: "remote" as const,
+        isRunning: agent.status === "working",
+      })),
+    ],
+    [remoteOfficeAgents, state.agents],
+  );
+  const focusedRemoteChatTarget = selectedChatAgentId
+    ? (remoteOfficeAgents.find((agent) => agent.id === selectedChatAgentId) ?? null)
+    : null;
+  const focusedRemoteChatState = focusedRemoteChatTarget
+    ? (remoteChatByAgentId[focusedRemoteChatTarget.id] ?? EMPTY_REMOTE_CHAT_SESSION)
+    : null;
+  const allVisibleAgents = useMemo(
+    () => [...officeAgents, ...remoteOfficeAgents],
+    [officeAgents, remoteOfficeAgents],
+  );
+  const remoteOfficeVisible =
+    remoteOfficeEnabled &&
+    (remoteOfficeSourceKind === "presence_endpoint"
+      ? remoteOfficePresenceUrl.trim().length > 0
+      : remoteOfficeGatewayUrl.trim().length > 0);
+  const remoteOfficeStatusText = !remoteOfficeVisible
+    ? "Remote office disabled."
+    : remoteOfficeError
+      ? remoteOfficeError
+      : !remoteOfficeLoaded
+        ? "Loading remote office."
+        : remoteOfficeAgents.length > 0
+          ? `${remoteOfficeAgents.length} agents visible.`
+          : remoteOfficeSourceKind === "openclaw_gateway"
+            ? "Connected to remote gateway. No agents visible yet."
+          : remoteOfficeTokenConfigured
+            ? "Connected. No agents visible yet."
+            : "No agents visible yet.";
+  const remoteMessagingAvailable =
+    remoteOfficeSourceKind === "openclaw_gateway" &&
+    remoteOfficeGatewayUrl.trim().length > 0;
+  const remoteMessagingDisabledReason = remoteMessagingAvailable
+    ? null
+    : remoteOfficeSourceKind !== "openclaw_gateway"
+      ? "Remote messaging currently works only with the remote gateway source."
+      : remoteOfficeGatewayUrl.trim().length === 0
+      ? "Remote messaging requires a remote gateway URL in office settings."
+      : "Remote messaging is unavailable until the remote gateway is configured.";
+  const normalizedOpenClawConsoleSearch = openClawConsoleSearch
+    .trim()
+    .toLowerCase();
+  const filteredOpenClawLogEntries = useMemo(() => {
+    if (!normalizedOpenClawConsoleSearch) return openClawLogEntries;
+    return openClawLogEntries.filter((entry) =>
+      [
+        entry.timestamp,
+        entry.eventName,
+        entry.eventKind,
+        entry.summary,
+        entry.role ?? "",
+        entry.messageText ?? "",
+        entry.thinkingText ?? "",
+        entry.streamText ?? "",
+        entry.toolText ?? "",
+        entry.payloadText,
+      ]
+        .join("\n")
+        .toLowerCase()
+        .includes(normalizedOpenClawConsoleSearch),
+    );
+  }, [normalizedOpenClawConsoleSearch, openClawLogEntries]);
+  const openClawLiveStateMatchesSearch = useMemo(() => {
+    if (!normalizedOpenClawConsoleSearch) return true;
+    return openClawLiveStateText
+      .toLowerCase()
+      .includes(normalizedOpenClawConsoleSearch);
+  }, [normalizedOpenClawConsoleSearch, openClawLiveStateText]);
+  const openClawConsoleExportJson = useMemo(
+    () =>
+      safeJsonStringify({
+        exportedAt: new Date().toISOString(),
+        searchQuery: openClawConsoleSearch,
+        visibleEventCount: filteredOpenClawLogEntries.length,
+        totalEventCount: openClawLogEntries.length,
+        liveStateMatchesSearch: openClawLiveStateMatchesSearch,
+        liveStateText: openClawLiveStateText,
+        events: filteredOpenClawLogEntries,
+      }),
+    [
+      filteredOpenClawLogEntries,
+      openClawConsoleSearch,
+      openClawLiveStateMatchesSearch,
+      openClawLiveStateText,
+      openClawLogEntries.length,
+    ],
+  );
+
+  const handleClearOpenClawConsole = useCallback(() => {
+    setOpenClawLogEntries([]);
+  }, []);
+  const handleCopyOpenClawConsoleJson = useCallback(async () => {
+    try {
+      await navigator.clipboard.writeText(openClawConsoleExportJson);
+      setOpenClawConsoleCopyStatus("copied");
+      window.setTimeout(() => {
+        setOpenClawConsoleCopyStatus("idle");
+      }, 1800);
+    } catch (error) {
+      console.error("Failed to copy OpenClaw console JSON.", error);
+      setOpenClawConsoleCopyStatus("error");
+      window.setTimeout(() => {
+        setOpenClawConsoleCopyStatus("idle");
+      }, 1800);
+    }
+  }, [openClawConsoleExportJson]);
+  const handleDownloadOpenClawConsoleJson = useCallback(() => {
+    const blob = new Blob([openClawConsoleExportJson], {
+      type: "application/json;charset=utf-8",
+    });
+    const url = window.URL.createObjectURL(blob);
+    const anchor = document.createElement("a");
+    anchor.href = url;
+    anchor.download = `openclaw-events-${Date.now()}.json`;
+    document.body.appendChild(anchor);
+    anchor.click();
+    anchor.remove();
+    window.URL.revokeObjectURL(url);
+  }, [openClawConsoleExportJson]);
+
+  const monitorByAgentId = useMemo(
+    () => {
+      const nextCache = new Map<
+        string,
+        { agent: AgentState; monitor: OfficeDeskMonitor }
+      >();
+      const nextMonitorByAgentId: Record<string, OfficeDeskMonitor> = {};
+
+      for (const agent of state.agents) {
+        const cached = deskMonitorCacheRef.current.get(agent.agentId);
+        if (cached && cached.agent === agent) {
+          nextCache.set(agent.agentId, cached);
+          nextMonitorByAgentId[agent.agentId] = cached.monitor;
+          continue;
+        }
+
+        const monitor = buildOfficeDeskMonitor(agent);
+        const entry = { agent, monitor };
+        nextCache.set(agent.agentId, entry);
+        nextMonitorByAgentId[agent.agentId] = monitor;
+      }
+
+      deskMonitorCacheRef.current = nextCache;
+      return nextMonitorByAgentId;
+    },
+    [state.agents],
+  );
+  const githubSkill = useMemo<SkillStatusEntry | null>(
+    () =>
+      marketplace.skillsReport?.skills.find((skill) => {
+        const normalizedKey = skill.skillKey.trim().toLowerCase();
+        const normalizedName = skill.name.trim().toLowerCase();
+        return normalizedKey === "github" || normalizedName === "github";
+      }) ?? null,
+    [marketplace.skillsReport],
+  );
+  const soundclawSkill = useMemo<SkillStatusEntry | null>(
+    () =>
+      marketplace.skillsReport?.skills.find((skill) => {
+        const normalizedKey = skill.skillKey.trim().toLowerCase();
+        const normalizedName = skill.name.trim().toLowerCase();
+        return normalizedKey === "soundclaw" || normalizedName === "soundclaw";
+      }) ?? null,
+    [marketplace.skillsReport],
+  );
+  const taskManagerSkill = useMemo<SkillStatusEntry | null>(
+    () =>
+      marketplace.skillsReport?.skills.find((skill) => {
+        const normalizedKey = skill.skillKey.trim().toLowerCase();
+        const normalizedName = skill.name.trim().toLowerCase();
+        return normalizedKey === "task-manager" || normalizedName === "task-manager";
+      }) ?? null,
+    [marketplace.skillsReport],
+  );
+  const taskManagerReady = useMemo(
+    () => (taskManagerSkill ? deriveSkillReadinessState(taskManagerSkill) === "ready" : false),
+    [taskManagerSkill],
+  );
+  const soundclawReady = useMemo(
+    () => (soundclawSkill ? deriveSkillReadinessState(soundclawSkill) === "ready" : false),
+    [soundclawSkill]
+  );
+
+  useEffect(() => {
+    if (!soundclawReady || !jukeboxToken) {
+      return;
+    }
+
+    const pending = pendingJukeboxCommandTimeoutsRef.current;
+    const activeAgentIds = new Set<string>();
+
+    for (const agent of state.agents) {
+      if (skillTriggers.movementTargetByAgentId[agent.agentId] !== "jukebox") {
+        continue;
+      }
+
+      const request = getLatestUserRequestForAgent(agent);
+      if (!request) {
+        continue;
+      }
+
+      activeAgentIds.add(agent.agentId);
+      const handledKey = handledJukeboxRequestKeyByAgentIdRef.current[agent.agentId];
+      if (handledKey === request.requestKey) {
+        continue;
+      }
+
+      const existing = pending.get(agent.agentId);
+      if (existing?.requestKey === request.requestKey) {
+        continue;
+      }
+      if (existing) {
+        window.clearTimeout(existing.timeoutId);
+        pending.delete(agent.agentId);
+      }
+
+      const timeoutId = window.setTimeout(() => {
+        void executeBrowserJukeboxCommand(request.text).then((result) => {
+          if (result.ok) {
+            handledJukeboxRequestKeyByAgentIdRef.current[agent.agentId] = request.requestKey;
+            setJukeboxOpen(true);
+            dispatch({
+              type: "appendOutput",
+              agentId: agent.agentId,
+              line: result.reply,
+              transcript: {
+                role: "assistant",
+                kind: "assistant",
+                source: "legacy",
+                sessionKey: agent.sessionKey,
+                timestampMs: Date.now(),
+                confirmed: true,
+              },
+            });
+            dispatch({
+              type: "updateAgent",
+              agentId: agent.agentId,
+              patch: {
+                latestOverride: result.reply,
+                latestOverrideKind: null,
+                latestPreview: result.reply,
+                lastAssistantMessageAt: Date.now(),
+              },
+            });
+          }
+          const latest = pendingJukeboxCommandTimeoutsRef.current.get(agent.agentId);
+          if (latest?.timeoutId === timeoutId) {
+            pendingJukeboxCommandTimeoutsRef.current.delete(agent.agentId);
+          }
+        });
+      }, 1400);
+
+      pending.set(agent.agentId, {
+        requestKey: request.requestKey,
+        timeoutId,
+      });
+    }
+
+    for (const [agentId, pendingEntry] of pending.entries()) {
+      if (activeAgentIds.has(agentId)) continue;
+      window.clearTimeout(pendingEntry.timeoutId);
+      pending.delete(agentId);
+    }
+  }, [
+    jukeboxToken,
+    skillTriggers.movementTargetByAgentId,
+    soundclawReady,
+    state.agents,
+  ]);
+
+  // No longer force-close the jukebox panel when skill is disabled;
+  // the panel handles the disabled state itself.
+
+  useEffect(() => {
+    if (
+      status === "connecting" &&
+      !agentsLoaded &&
+      gatewayUrl.trim().length > 0 &&
+      !shouldPromptForConnect
+    ) {
+      const timeoutId = window.setTimeout(() => {
+        setShowDelayedGatewayLoadingOverlay(true);
+      }, GATEWAY_LOADING_OVERLAY_DELAY_MS);
+      return () => {
+        window.clearTimeout(timeoutId);
+      };
+    }
+    setShowDelayedGatewayLoadingOverlay(false);
+  }, [agentsLoaded, gatewayUrl, shouldPromptForConnect, status]);
+
+  useEffect(() => {
+    if (
+      status === "disconnected" &&
+      !agentsLoaded &&
+      didAttemptGatewayConnect &&
+      !shouldPromptForConnect
+    ) {
+      const timeoutId = window.setTimeout(() => {
+        setShowDelayedGatewayConnectOverlay(true);
+      }, GATEWAY_CONNECT_OVERLAY_DELAY_MS);
+      return () => {
+        window.clearTimeout(timeoutId);
+      };
+    }
+    setShowDelayedGatewayConnectOverlay(false);
+  }, [agentsLoaded, didAttemptGatewayConnect, shouldPromptForConnect, status]);
+
+  const showGatewayLoadingOverlay =
+    !agentsLoaded &&
+    (!connectPromptReady ||
+      (gatewayUrl.trim().length > 0 &&
+        !shouldPromptForConnect &&
+        ((!didAttemptGatewayConnect && showDelayedGatewayLoadingOverlay) ||
+          (status === "connecting" && showDelayedGatewayLoadingOverlay))));
+  const showGatewayConnectOverlay =
+    connectPromptReady &&
+    status === "disconnected" &&
+    !agentsLoaded &&
+    (shouldPromptForConnect || showDelayedGatewayConnectOverlay);
+
+  const runningCount = state.agents.filter(
+    (agent) =>
+      agent.status === "running" ||
+      deskHoldByAgentId[agent.agentId] ||
+      gymHoldByAgentId[agent.agentId] ||
+      jukeboxHoldByAgentId[agent.agentId] ||
+      phoneBoothHoldByAgentId[agent.agentId] ||
+      smsBoothHoldByAgentId[agent.agentId] ||
+      qaHoldByAgentId[agent.agentId],
+  ).length;
+  const unseenInboxCount = state.agents.filter(
+    (agent) => agent.hasUnseenActivity,
+  ).length;
+  const showEmptyFleetBanner =
+    status === "connected" && agentsLoaded && state.agents.length === 0;
+  const emptyFleetMessage =
+    state.error?.trim() ||
+    "Connected to the gateway, but no agents were loaded into the office.";
+
+  return (
+    <main className="relative h-full w-full overflow-hidden bg-black">
+      {showGatewayLoadingOverlay ? (
+        <div
+          className="pointer-events-none absolute inset-0 z-40 flex items-center justify-center bg-[#120a05]/76"
+          aria-label="Connecting to runtime"
+          role="status"
+        >
+          <div className="rounded-xl border border-amber-700/45 bg-[#1a1008] px-8 py-6 shadow-2xl">
+            <RunningAvatarLoader
+              size={28}
+              trackWidth={76}
+              label="Connecting to your runtime..."
+              labelClassName="text-amber-100/80"
+            />
+          </div>
+        </div>
+      ) : null}
+      {showGatewayConnectOverlay ? (
+        <div className="pointer-events-auto absolute inset-0 z-50 flex items-start justify-center bg-[#120a05]/76 px-4 py-10">
+          <div className="w-full max-w-[860px] rounded-2xl border border-amber-900/55 bg-[#120a05]/98 p-3 shadow-2xl">
+            <GatewayConnectScreen
+              gatewayUrl={gatewayUrl}
+              token={token}
+              selectedAdapterType={selectedAdapterType}
+              activeAdapterType={activeAdapterType}
+              localGatewayDefaults={localGatewayDefaults}
+              status={status}
+              error={gatewayError}
+              showApprovalHint={didAttemptGatewayConnect}
+              onGatewayUrlChange={setGatewayUrl}
+              onTokenChange={setToken}
+              onAdapterTypeChange={setSelectedAdapterType}
+              onUseLocalDefaults={useLocalGatewayDefaults}
+              onConnect={() => void connect()}
+            />
+          </div>
+        </div>
+      ) : null}
+      <OfficeFloorNav
+        activeFloorId={activeFloor.id}
+        floorRosterCache={floorRosterCache}
+        onSelectFloor={(floorId) => {
+          void handleSelectFloor(floorId);
+        }}
+        activeAdapterType={(selectedAdapterType as FloorProvider) ?? null}
+      />
+      <section className="relative h-full min-h-0 min-w-0 overflow-hidden">
+        <RetroOffice3D
+          key={activeFloor.id}
+          agents={allVisibleAgents}
+          storageNamespace={activeFloor.id}
+          layoutPreset={activeFloor.kind === "lobby" ? "lobby" : "office"}
+          officeCenterSignal={officeCameraCenterSignal}
+          animationState={officeAnimationState}
+          deskAssignmentByDeskUid={deskAssignmentByDeskUid}
+          githubReviewAgentId={githubReviewAgentId}
+          qaTestingAgentId={qaTestingAgentId}
+          phoneBoothAgentId={activePhoneBoothAgentId}
+          phoneCallScenario={activePhoneCallScenario}
+          smsBoothAgentId={activeSmsBoothAgentId}
+          textMessageScenario={activeTextMessageScenario}
+          monitorAgentId={monitorAgentId}
+          monitorByAgentId={monitorByAgentId}
+          githubSkill={githubSkill}
+          taskManagerEnabled={taskManagerReady}
+          soundclawEnabled={soundclawReady}
+          officeTitle={officeTitle}
+          officeTitleLoaded={officeTitleLoaded}
+          remoteOfficeEnabled={remoteOfficeEnabled}
+          remoteOfficeSourceKind={remoteOfficeSourceKind}
+          remoteOfficeLabel={remoteOfficeLabel}
+          remoteOfficePresenceUrl={remoteOfficePresenceUrl}
+          remoteOfficeGatewayUrl={remoteOfficeGatewayUrl}
+          remoteOfficeStatusText={remoteOfficeStatusText}
+          remoteLayoutSnapshot={remoteOfficeLayoutSnapshot}
+          remoteOfficeTokenConfigured={remoteOfficeTokenConfigured}
+          voiceRepliesEnabled={voiceRepliesEnabled}
+          voiceRepliesVoiceId={voiceRepliesVoiceId}
+          voiceRepliesSpeed={voiceRepliesSpeed}
+          voiceRepliesLoaded={voiceRepliesLoaded}
+          onOfficeTitleChange={setOfficeTitle}
+          onRemoteOfficeEnabledChange={setRemoteOfficeEnabled}
+          onRemoteOfficeSourceKindChange={setRemoteOfficeSourceKind}
+          onRemoteOfficeLabelChange={setRemoteOfficeLabel}
+          onRemoteOfficePresenceUrlChange={setRemoteOfficePresenceUrl}
+          onRemoteOfficeGatewayUrlChange={setRemoteOfficeGatewayUrl}
+          onRemoteOfficeTokenChange={setRemoteOfficeToken}
+          onVoiceRepliesToggle={setVoiceRepliesEnabled}
+          onVoiceRepliesVoiceChange={setVoiceRepliesVoiceId}
+          onVoiceRepliesSpeedChange={setVoiceRepliesSpeed}
+          onVoiceRepliesPreview={(voiceId, voiceName) => {
+            void previewVoiceReply({
+              text: `Hi, how can I help you? My name is ${voiceName}.`,
+              provider: voiceRepliesPreference.provider,
+              voiceId,
+              speed: voiceRepliesSpeed,
+            });
+          }}
+          atmAnalytics={{
+            client,
+            status,
+            agents: state.agents,
+            gatewayUrl,
+            settingsCoordinator,
+          }}
+          gatewayUrl={gatewayUrl}
+          gatewayToken={token}
+          selectedAdapterType={selectedAdapterType}
+          activeAdapterType={activeAdapterType}
+          onGatewayDisconnect={disconnect}
+          onGatewayConnect={() => void connect()}
+          onGatewayUrlChange={setGatewayUrl}
+          onGatewayTokenChange={setToken}
+          onGatewayAdapterTypeChange={setSelectedAdapterType}
+          onOpenOnboarding={handleOpenOnboarding}
+          feedEvents={feedEvents}
+          gatewayStatus={status}
+          runCountByAgentId={runCountByAgentId}
+          lastSeenByAgentId={lastSeenByAgentId}
+          streamingTextByAgentId={streamingTextByAgentId}
+          standupMeeting={standupController.meeting}
+          standupAutoOpenBoard={standupController.openBoardByDefault}
+          onStandupArrivalsChange={(arrivedAgentIds) => {
+            void standupController.reportArrivals(arrivedAgentIds);
+          }}
+          onStandupStartRequested={() => {
+            if (
+              !standupController.meeting ||
+              standupController.meeting.phase === "complete"
+            ) {
+              void standupController.startMeeting("manual");
+            }
+          }}
+          onMonitorSelect={(agentId) => {
+            setMonitorAgentId(agentId);
+            if (agentId && !isRemoteOfficeAgentId(agentId)) {
+              focusLocalAgent(agentId, { openChat: false });
+            }
+          }}
+          onAgentChatSelect={(agentId) => {
+            handleOpenAgentChat(agentId);
+          }}
+          onAddAgent={handleOpenCreateAgentWizard}
+          onAgentEdit={(agentId) => {
+            openAgentEditor(agentId, "avatar");
+          }}
+          onAgentDelete={(agentId) => {
+            void handleDeleteAgent(agentId);
+          }}
+          onDeskAssignmentChange={handleDeskAssignmentChange}
+          onDeskAssignmentsReset={handleDeskAssignmentsReset}
+          onGithubReviewDismiss={() => {
+            handleGithubReviewDismiss();
+          }}
+          onQaLabDismiss={() => {
+            handleQaDismiss();
+          }}
+          onPhoneCallSpeak={handlePhoneCallSpeak}
+          onPhoneCallComplete={handlePhoneCallComplete}
+          onTextMessageComplete={handleTextMessageComplete}
+          onOpenGithubSkillSetup={() => {
+            setMarketplaceOpen(true);
+          }}
+          onJukeboxInteract={() => {
+            setJukeboxOpen(true);
+          }}
+          onKanbanInteract={() => {
+            setKanbanInstallPromptOpen(true);
+          }}
+          taskBoardAgents={state.agents}
+          taskBoardCardsByStatus={taskBoard.cardsByStatus}
+          taskBoardSelectedCard={taskBoard.selectedCard}
+          taskBoardActiveRuns={taskBoard.activeRuns}
+          taskBoardCronJobs={taskBoard.cronJobs}
+          taskBoardCronLoading={taskBoard.cronLoading}
+          taskBoardCronError={
+            taskBoard.sharedTasksError ?? taskBoard.gatewayTasksError ?? taskBoard.cronError
+          }
+          taskBoardCaptureDebug={showOpenClawConsole ? taskBoard.taskCaptureDebug : undefined}
+          onTaskBoardCreateCard={() => {
+            taskBoard.createManualCard();
+          }}
+          onTaskBoardMoveCard={taskBoard.moveCard}
+          onTaskBoardSelectCard={(cardId) => {
+            taskBoard.selectCard(cardId);
+          }}
+          onTaskBoardUpdateCard={taskBoard.updateCard}
+          onTaskBoardDeleteCard={taskBoard.removeCard}
+          onTaskBoardRefreshCronJobs={() => {
+            void taskBoard.refreshSharedTasks();
+            void taskBoard.refreshRemoteTasks();
+            void taskBoard.refreshCronJobs();
+          }}
+        />
+        {jukeboxOpen ? (
+          soundclawReady ? (
+            <JukeboxPanel
+              client={client}
+              onClose={() => setJukeboxOpen(false)}
+              selectedAgentName={focusedChatAgent?.name ?? null}
+            />
+          ) : (
+            <JukeboxDisabledPanel
+              onClose={() => setJukeboxOpen(false)}
+              onInstall={() => {
+                setJukeboxOpen(false);
+                setMarketplaceOpen(true);
+              }}
+            />
+          )
+        ) : null}
+        {kanbanInstallPromptOpen ? (
+          <KanbanDisabledPanel
+            onClose={() => {
+              if (kanbanInstallProgress.active) {
+                return;
+              }
+              setKanbanInstallPromptOpen(false);
+              setKanbanInstallProgress({
+                active: false,
+                percent: 0,
+                message: "",
+                error: null,
+              });
+            }}
+            onInstall={() => {
+              const targetAgentId =
+                (selectedChatAgentId ?? state.selectedAgentId ?? state.agents[0]?.agentId ?? "")
+                  .trim() || null;
+              setKanbanInstallProgress({
+                active: true,
+                percent: 8,
+                message: "Starting task-manager installation.",
+                error: null,
+              });
+              void (async () => {
+                try {
+                  await marketplace.handleInstallPackagedSkillAndEnable({
+                    skillKey: "task-manager",
+                    agentId: targetAgentId,
+                    onProgress: ({ percent, message }) => {
+                      setKanbanInstallProgress({
+                        active: true,
+                        percent,
+                        message,
+                        error: null,
+                      });
+                    },
+                  });
+                  setKanbanInstallProgress({
+                    active: true,
+                    percent: 100,
+                    message: "Refreshing task-manager state in Claw3D.",
+                    error: null,
+                  });
+                  setKanbanInstallPromptOpen(false);
+                  setKanbanInstallProgress({
+                    active: false,
+                    percent: 0,
+                    message: "",
+                    error: null,
+                  });
+                } catch (error) {
+                  setKanbanInstallProgress((current) => ({
+                    ...current,
+                    active: false,
+                    error:
+                      error instanceof Error
+                        ? error.message
+                        : "Failed to install task-manager.",
+                  }));
+                }
+              })();
+            }}
+            installing={kanbanInstallProgress.active}
+            progressPercent={kanbanInstallProgress.percent}
+            progressMessage={kanbanInstallProgress.message}
+            errorMessage={kanbanInstallProgress.error}
+          />
+        ) : null}
+      </section>
+
+      {showEmptyFleetBanner ? (
+        <div className="pointer-events-none fixed left-1/2 top-16 z-40 w-full max-w-xl -translate-x-1/2 px-4">
+          <div className="pointer-events-auto rounded-lg border border-amber-400/35 bg-black/80 px-4 py-3 shadow-2xl backdrop-blur">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-amber-200/80">
+                  Office fleet status
+                </p>
+                <p className="mt-1 text-sm text-amber-50">{emptyFleetMessage}</p>
+              </div>
+              <div className="flex shrink-0 items-center gap-2">
+                <button
+                  type="button"
+                  className="ui-btn-secondary px-3 py-2 text-xs font-semibold tracking-[0.05em] text-foreground"
+                  onClick={() => {
+                    handleOpenCreateAgentWizard();
+                  }}
+                >
+                  Add Agent
+                </button>
+                <button
+                  type="button"
+                  className="ui-btn-secondary px-3 py-2 text-xs font-semibold tracking-[0.05em] text-foreground"
+                  onClick={() => {
+                    handleOpenCompanyBuilder();
+                  }}
+                >
+                  Build Company
+                </button>
+                <button
+                  type="button"
+                  className="ui-btn-secondary px-3 py-2 text-xs font-semibold tracking-[0.05em] text-foreground"
+                  onClick={() => {
+                    void loadAgents({ forceSettings: true });
+                  }}
+                >
+                  Retry
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      {deleteAgentStatusLine ? (
+        <div className="pointer-events-none fixed left-1/2 top-5 z-40 -translate-x-1/2 px-4">
+          <div className="pointer-events-auto rounded-lg border border-red-400/30 bg-black/85 px-4 py-3 shadow-2xl backdrop-blur">
+            <div className="font-mono text-[10px] uppercase tracking-[0.16em] text-red-200/75">
+              Fleet mutation
+            </div>
+            <div className="mt-1 text-sm text-red-50">{deleteAgentStatusLine}</div>
+          </div>
+        </div>
+      ) : null}
+
+      {!debugEnabled ? (
+        <HQSidebar
+          open={sidebarOpen}
+          activeTab={activeSidebarTab}
+          inboxCount={unseenInboxCount}
+          onToggle={() => setSidebarOpen((prev) => !prev)}
+          onTabChange={setActiveSidebarTab}
+          onOpenMarketplace={() => setMarketplaceOpen(true)}
+          onAddAgent={handleOpenCreateAgentWizard}
+          onOpenCompanyBuilder={handleOpenCompanyBuilder}
+          inboxPanel={
+            <InboxPanel
+              agents={state.agents}
+              onSelectAgent={(agentId) => {
+                handleOpenAgentChat(agentId);
+                setActiveSidebarTab("inbox");
+              }}
+            />
+          }
+          historyPanel={
+            <HistoryPanel
+              runs={runLog}
+              agents={state.agents}
+              onSelectAgent={(agentId) => {
+                handleOpenAgentChat(agentId);
+                setActiveSidebarTab("history");
+              }}
+            />
+          }
+          kanbanPanel={
+            <TaskBoardPanel
+              agents={state.agents}
+              cardsByStatus={taskBoard.cardsByStatus}
+              selectedCard={taskBoard.selectedCard}
+              activeRuns={taskBoard.activeRuns}
+              cronJobs={taskBoard.cronJobs}
+              cronLoading={taskBoard.cronLoading}
+              cronError={
+                taskBoard.sharedTasksError ?? taskBoard.gatewayTasksError ?? taskBoard.cronError
+              }
+              taskCaptureDebug={showOpenClawConsole ? taskBoard.taskCaptureDebug : undefined}
+              onCreateCard={() => {
+                taskBoard.createManualCard();
+                setActiveSidebarTab("kanban");
+              }}
+              onMoveCard={taskBoard.moveCard}
+              onSelectCard={taskBoard.selectCard}
+              onUpdateCard={taskBoard.updateCard}
+              onDeleteCard={taskBoard.removeCard}
+              onRefreshCronJobs={() => {
+                void taskBoard.refreshSharedTasks();
+                void taskBoard.refreshRemoteTasks();
+                void taskBoard.refreshCronJobs();
+              }}
+            />
+          }
+          playbooksPanel={
+            <PlaybooksPanel
+              client={client}
+              status={status}
+              cronEnabled={runtimeSupportsCron}
+              agents={state.agents}
+              standup={standupController}
+            />
+          }
+          analyticsPanel={
+            <AnalyticsPanel
+              client={client}
+              status={status}
+              approvalsEnabled={runtimeSupportsApprovals}
+              agents={state.agents}
+              runLog={runLog}
+              gatewayUrl={gatewayUrl}
+              settingsCoordinator={settingsCoordinator}
+              onSelectAgent={(agentId) => {
+                handleOpenAgentChat(agentId);
+                setActiveSidebarTab("analytics");
+              }}
+            />
+          }
+        />
+      ) : null}
+
+      <SkillsMarketplaceModal
+        open={marketplaceOpen}
+        marketplace={marketplace}
+        onClose={() => setMarketplaceOpen(false)}
+        onSelectAgent={(agentId) => {
+          handleOpenAgentChat(agentId);
+          setMarketplaceOpen(false);
+        }}
+        onOpenAgentSettings={(agentId) => {
+          handleOpenAgentChat(agentId);
+          setMarketplaceOpen(false);
+          router.push("/office");
+        }}
+      />
+
+      {showOnboardingWizard ? (
+        <OnboardingWizard
+          key={companyCreatedSignal > 0 ? `onboarding-company-created-${companyCreatedSignal}` : "onboarding-default"}
+          gatewayConnected={status === "connected"}
+          agentCount={state.agents.length}
+          gatewayUrl={gatewayUrl}
+          token={token}
+          onGatewayUrlChange={setGatewayUrl}
+          onTokenChange={setToken}
+          onConnect={() => {
+            void connect();
+          }}
+          onComplete={handleCompleteOnboarding}
+          onOpenCompanyBuilder={handleOpenCompanyBuilder}
+          initialStep={companyCreatedSignal > 0 ? "complete" : "welcome"}
+          initialCompletedSteps={
+            companyCreatedSignal > 0
+              ? ["welcome", "prerequisites", "connect", "agents", "company", "complete"]
+              : undefined
+          }
+          createdCompanyName={createdCompanyName}
+          companyCreated={companyCreatedSignal > 0}
+          connectionError={gatewayError}
+          connecting={status === "connecting"}
+        />
+      ) : null}
+
+      {showOpenClawConsole ? (
+        <section className="pointer-events-auto fixed bottom-3 left-3 z-30 flex w-[520px] max-w-[calc(100vw-1.5rem)] flex-col overflow-hidden rounded border border-cyan-500/25 bg-black/78 shadow-2xl backdrop-blur">
+          <div className="flex items-center justify-between border-b border-cyan-500/15 px-3 py-2 font-mono text-[11px] uppercase tracking-[0.18em] text-cyan-200/80">
+            <span>Agent Event Console</span>
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] text-cyan-100/45">
+                agents {state.agents.length} | events{" "}
+                {filteredOpenClawLogEntries.length}/{openClawLogEntries.length}
+              </span>
+              <button
+                type="button"
+                onClick={() => {
+                  void handleCopyOpenClawConsoleJson();
+                }}
+                className="rounded border border-cyan-500/20 px-2 py-0.5 text-[9px] text-cyan-100/70 transition-colors hover:border-cyan-400/45 hover:text-cyan-50"
+              >
+                {openClawConsoleCopyStatus === "copied"
+                  ? "Copied"
+                  : openClawConsoleCopyStatus === "error"
+                    ? "Copy Failed"
+                    : "Copy JSON"}
+              </button>
+              <button
+                type="button"
+                onClick={handleDownloadOpenClawConsoleJson}
+                className="rounded border border-cyan-500/20 px-2 py-0.5 text-[9px] text-cyan-100/70 transition-colors hover:border-cyan-400/45 hover:text-cyan-50"
+              >
+                Download JSON
+              </button>
+              <button
+                type="button"
+                onClick={handleClearOpenClawConsole}
+                className="rounded border border-cyan-500/20 px-2 py-0.5 text-[9px] text-cyan-100/70 transition-colors hover:border-cyan-400/45 hover:text-cyan-50"
+              >
+                Clear
+              </button>
+              <button
+                type="button"
+                onClick={() =>
+                  setOpenClawConsoleCollapsed((previous) => !previous)
+                }
+                className="rounded border border-cyan-500/20 px-2 py-0.5 text-[9px] text-cyan-100/70 transition-colors hover:border-cyan-400/45 hover:text-cyan-50"
+              >
+                {openClawConsoleCollapsed ? "Expand" : "Minimize"}
+              </button>
+            </div>
+          </div>
+          {!openClawConsoleCollapsed ? (
+            <div className="flex h-[320px] flex-col gap-3 overflow-y-auto bg-[#02090b]/96 px-3 py-2 font-mono text-[10px] leading-4">
+            <div className="rounded border border-cyan-500/10 bg-cyan-950/10 p-2">
+              <div className="flex items-center gap-2">
+                <input
+                  type="text"
+                  value={openClawConsoleSearch}
+                  onChange={(event) =>
+                    setOpenClawConsoleSearch(event.target.value)
+                  }
+                  placeholder="Search logs, payloads, thinking, user text."
+                  className="min-w-0 flex-1 rounded border border-cyan-500/20 bg-black/35 px-2 py-1 text-[10px] normal-case tracking-normal text-cyan-50 placeholder:text-cyan-100/30 focus:border-cyan-400/40 focus:outline-none"
+                />
+                {openClawConsoleSearch ? (
+                  <button
+                    type="button"
+                    onClick={() => setOpenClawConsoleSearch("")}
+                    className="rounded border border-cyan-500/20 px-2 py-1 text-[9px] uppercase tracking-[0.16em] text-cyan-100/70 transition-colors hover:border-cyan-400/45 hover:text-cyan-50"
+                  >
+                    Reset
+                  </button>
+                ) : null}
+              </div>
+            </div>
+            {openClawLiveStateMatchesSearch ? (
+              <div className="rounded border border-cyan-500/10 bg-cyan-950/10 p-2">
+                <div className="mb-1 text-[9px] uppercase tracking-[0.16em] text-cyan-300/70">
+                  Live OpenClaw State
+                </div>
+                <pre className="whitespace-pre-wrap break-words text-cyan-100/80">
+                  {renderOpenClawHighlightedText(
+                    openClawLiveStateText,
+                    openClawConsoleSearch,
+                  )}
+                </pre>
+              </div>
+            ) : (
+              <div className="rounded border border-cyan-500/10 bg-cyan-950/10 p-2 text-cyan-100/45">
+                Live OpenClaw state does not match the current search.
+              </div>
+            )}
+            <div className="text-[9px] uppercase tracking-[0.16em] text-cyan-300/70">
+              Raw OpenClaw Gateway Events
+            </div>
+            {filteredOpenClawLogEntries.length === 0 ? (
+              <div className="rounded border border-cyan-500/10 bg-cyan-950/10 p-2 text-cyan-100/45">
+                {openClawLogEntries.length === 0
+                  ? "No OpenClaw gateway events received yet."
+                  : "No OpenClaw events match the current search."}
+              </div>
+            ) : (
+              filteredOpenClawLogEntries.map((entry) => {
+                const isUserMessage = entry.role === "user";
+                return (
+                  <div
+                    key={entry.id}
+                    className={`rounded border p-2 ${
+                      isUserMessage
+                        ? "border-amber-400/30 bg-amber-950/12"
+                        : "border-cyan-500/12 bg-cyan-950/8"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between gap-3">
+                      <div
+                        className={`text-[9px] uppercase tracking-[0.16em] ${
+                          isUserMessage
+                            ? "text-amber-300/85"
+                            : "text-cyan-300/75"
+                        }`}
+                      >
+                        {renderOpenClawHighlightedText(
+                          `[${entry.timestamp}] ${entry.eventName} / ${entry.eventKind}`,
+                          openClawConsoleSearch,
+                        )}
+                      </div>
+                      {entry.role ? (
+                        <span
+                          className={`rounded px-1.5 py-0.5 text-[9px] uppercase ${
+                            isUserMessage
+                              ? "bg-amber-400/15 text-amber-200"
+                              : "bg-cyan-400/10 text-cyan-200/80"
+                          }`}
+                        >
+                          {entry.role}
+                        </span>
+                      ) : null}
+                    </div>
+                    <div className="mt-1 whitespace-pre-wrap break-words text-cyan-100/55">
+                      {renderOpenClawHighlightedText(
+                        entry.summary,
+                        openClawConsoleSearch,
+                      )}
+                    </div>
+                    {entry.messageText ? (
+                      <div className="mt-2 rounded border border-amber-400/20 bg-amber-950/25 px-2 py-1 text-amber-100">
+                        <div className="text-[9px] uppercase tracking-[0.16em] text-amber-300/75">
+                          User / Message Text
+                        </div>
+                        <div className="mt-1 whitespace-pre-wrap break-words">
+                          {renderOpenClawHighlightedText(
+                            entry.messageText,
+                            openClawConsoleSearch,
+                          )}
+                        </div>
+                      </div>
+                    ) : null}
+                    {entry.thinkingText ? (
+                      <div className="mt-2 rounded border border-fuchsia-400/15 bg-fuchsia-950/15 px-2 py-1 text-fuchsia-100/90">
+                        <div className="text-[9px] uppercase tracking-[0.16em] text-fuchsia-300/70">
+                          Thinking
+                        </div>
+                        <div className="mt-1 whitespace-pre-wrap break-words">
+                          {renderOpenClawHighlightedText(
+                            entry.thinkingText,
+                            openClawConsoleSearch,
+                          )}
+                        </div>
+                      </div>
+                    ) : null}
+                    {entry.streamText ? (
+                      <div className="mt-2 rounded border border-cyan-400/15 bg-cyan-950/18 px-2 py-1 text-cyan-50/90">
+                        <div className="text-[9px] uppercase tracking-[0.16em] text-cyan-300/70">
+                          Stream
+                        </div>
+                        <div className="mt-1 whitespace-pre-wrap break-words">
+                          {renderOpenClawHighlightedText(
+                            entry.streamText,
+                            openClawConsoleSearch,
+                          )}
+                        </div>
+                      </div>
+                    ) : null}
+                    {entry.toolText ? (
+                      <div className="mt-2 rounded border border-violet-400/15 bg-violet-950/15 px-2 py-1 text-violet-100/90">
+                        <div className="text-[9px] uppercase tracking-[0.16em] text-violet-300/70">
+                          Tool Output
+                        </div>
+                        <div className="mt-1 whitespace-pre-wrap break-words">
+                          {renderOpenClawHighlightedText(
+                            entry.toolText,
+                            openClawConsoleSearch,
+                          )}
+                        </div>
+                      </div>
+                    ) : null}
+                    <details className="mt-2">
+                      <summary className="cursor-pointer text-[9px] uppercase tracking-[0.16em] text-cyan-300/55">
+                        Raw Payload
+                      </summary>
+                      <pre className="mt-1 whitespace-pre-wrap break-words text-cyan-100/45">
+                        {renderOpenClawHighlightedText(
+                          entry.payloadText,
+                          openClawConsoleSearch,
+                        )}
+                      </pre>
+                    </details>
+                  </div>
+                );
+              })
+            )}
+            </div>
+          ) : null}
+        </section>
+      ) : null}
+
+      <div
+        className={`fixed bottom-3 z-30 flex flex-col items-end gap-2 ${sidebarOpen ? "right-84" : "right-3"} ${
+          debugEnabled ? "hidden" : ""
+        }`}
+      >
+        {chatOpen && (
+          <div
+            className="flex overflow-hidden rounded border border-white/10 bg-[#0e0a04] shadow-2xl"
+            style={{
+              width: chatRosterCollapsed
+                ? "min(680px, calc(100vw - 1.5rem))"
+                : "min(780px, calc(100vw - 1.5rem))",
+              height: "min(560px, calc(100vh - 5.5rem))",
+            }}
+          >
+            <div
+              className={`flex shrink-0 flex-col border-r border-white/10 transition-[width] ${
+                chatRosterCollapsed ? "w-12" : "w-52"
+              }`}
+            >
+              <div className="flex items-center justify-between border-b border-white/10 px-3 py-2">
+                {!chatRosterCollapsed ? (
+                  <>
+                    <span className="font-mono text-[11px] font-semibold uppercase tracking-widest text-white/60">
+                      Agents
+                    </span>
+                    <span className="font-mono text-[10px] text-white/40">
+                      {chatRosterEntries.length}
+                    </span>
+                  </>
+                ) : (
+                  <span className="mx-auto font-mono text-[10px] text-white/45">
+                    {chatRosterEntries.length}
+                  </span>
+                )}
+              </div>
+              <button
+                type="button"
+                onClick={() => setChatRosterCollapsed((current) => !current)}
+                className="mx-2 mt-2 inline-flex items-center justify-center rounded border border-white/10 bg-white/5 px-2 py-2 text-white/65 transition hover:border-white/20 hover:bg-white/10 hover:text-white"
+                aria-label={chatRosterCollapsed ? "Expand agent list" : "Collapse agent list"}
+                title={chatRosterCollapsed ? "Expand agent list" : "Collapse agent list"}
+              >
+                {chatRosterCollapsed ? (
+                  <ChevronRight className="h-4 w-4" />
+                ) : (
+                  <ChevronLeft className="h-4 w-4" />
+                )}
+              </button>
+              <div className="flex-1 overflow-y-auto">
+                {chatRosterCollapsed ? (
+                  <div className="flex flex-col items-center gap-2 px-1 py-2">
+                    {chatRosterEntries.map((agent) => {
+                      const isSelected = agent.id === selectedChatAgentId;
+                      return (
+                        <button
+                          key={agent.id}
+                          type="button"
+                          onClick={() => handleOpenAgentChat(agent.id)}
+                          className={`inline-flex h-8 w-8 items-center justify-center rounded border font-mono text-[10px] transition ${
+                            isSelected
+                              ? "border-cyan-400/45 bg-cyan-950/50 text-cyan-100"
+                              : "border-white/10 bg-white/5 text-white/55 hover:border-white/20 hover:bg-white/10 hover:text-white/80"
+                          }`}
+                          title={agent.name}
+                        >
+                          {agent.name.slice(0, 1).toUpperCase()}
+                        </button>
+                      );
+                    })}
+                  </div>
+                ) : chatRosterEntries.length === 0 ? (
+                  <div className="px-3 py-4 font-mono text-[11px] text-white/30">
+                    No agents.
+                  </div>
+                ) : (
+                  chatRosterEntries.map((agent) => {
+                    const isSelected = agent.id === selectedChatAgentId;
+                    const isRunning = agent.isRunning;
+                    return (
+                      <button
+                        key={agent.id}
+                        type="button"
+                        onClick={() => handleOpenAgentChat(agent.id)}
+                        className={`flex w-full items-center gap-2 px-3 py-2.5 text-left transition-colors ${
+                          isSelected
+                            ? "bg-white/10 text-white"
+                            : "text-white/50 hover:bg-white/5 hover:text-white/80"
+                        }`}
+                      >
+                        <span
+                          className={`h-1.5 w-1.5 shrink-0 rounded-full ${isRunning ? "bg-emerald-400" : "bg-white/20"}`}
+                        />
+                        <span className="min-w-0 flex-1 truncate font-mono text-[11px]">
+                          {agent.name}
+                        </span>
+                        {agent.kind === "remote" ? (
+                          <span className="shrink-0 font-mono text-[9px] uppercase tracking-[0.14em] text-cyan-300/60">
+                            Remote
+                          </span>
+                        ) : null}
+                        <span className="sr-only">
+                          {agent.kind === "remote" ? "Remote agent" : "Local agent"}
+                        </span>
+                      </button>
+                    );
+                  })
+                )}
+              </div>
+            </div>
+
+            <div className="flex min-w-0 flex-1 flex-col">
+              {focusedChatAgent ? (
+                <AgentChatPanel
+                  agent={focusedChatAgent}
+                  isSelected={false}
+                  canSend={status === "connected"}
+                  models={gatewayModels}
+                  stopBusy={
+                    chatController.stopBusyAgentId === focusedChatAgent.agentId
+                  }
+                  onLoadMoreHistory={() => {}}
+                  onOpenSettings={() =>
+                    openAgentEditor(focusedChatAgent.agentId, "IDENTITY.md")
+                  }
+                  onNewSession={() =>
+                    chatController.handleNewSession(focusedChatAgent.agentId)
+                  }
+                  onModelChange={(value) =>
+                    dispatch({
+                      type: "updateAgent",
+                      agentId: focusedChatAgent.agentId,
+                      patch: { model: value ?? undefined },
+                    })
+                  }
+                  onThinkingChange={(value) =>
+                    dispatch({
+                      type: "updateAgent",
+                      agentId: focusedChatAgent.agentId,
+                      patch: { thinkingLevel: value ?? undefined },
+                    })
+                  }
+                  onDraftChange={(value) =>
+                    chatController.handleDraftChange(
+                      focusedChatAgent.agentId,
+                      value,
+                    )
+                  }
+                  onSend={(message) => {
+                    void handleChatSend(
+                      focusedChatAgent.agentId,
+                      focusedChatAgent.sessionKey,
+                      message,
+                    );
+                  }}
+                  onRemoveQueuedMessage={(index) =>
+                    chatController.removeQueuedMessage(
+                      focusedChatAgent.agentId,
+                      index,
+                    )
+                  }
+                  onStopRun={() => {
+                    void chatController.handleStopRun(
+                      focusedChatAgent.agentId,
+                      focusedChatAgent.sessionKey,
+                    );
+                  }}
+                  onAvatarShuffle={() =>
+                    openAgentEditor(focusedChatAgent.agentId, "avatar")
+                  }
+                  onVoiceSend={handleVoiceSend}
+                />
+              ) : focusedRemoteChatTarget && focusedRemoteChatState ? (
+                <RemoteAgentChatPanel
+                  agentName={focusedRemoteChatTarget.name}
+                  canSend={remoteMessagingAvailable}
+                  sending={focusedRemoteChatState.sending}
+                  handoffing={focusedRemoteChatState.handoffing}
+                  draft={focusedRemoteChatState.draft}
+                  mode={focusedRemoteChatState.mode}
+                  handoffContext={focusedRemoteChatState.handoffContext}
+                  handoffDeliverables={focusedRemoteChatState.handoffDeliverables}
+                  handoffAcceptance={focusedRemoteChatState.handoffAcceptance}
+                  error={focusedRemoteChatState.error}
+                  messages={focusedRemoteChatState.messages}
+                  disabledReason={remoteMessagingDisabledReason}
+                  onDraftChange={(value) => {
+                    updateRemoteChatSession(focusedRemoteChatTarget.id, (session) => ({
+                      ...session,
+                      draft: value,
+                      error: null,
+                    }));
+                  }}
+                  onModeChange={(value) => {
+                    updateRemoteChatSession(focusedRemoteChatTarget.id, (session) => ({
+                      ...session,
+                      mode: value,
+                      error: null,
+                    }));
+                  }}
+                  onHandoffContextChange={(value) => {
+                    updateRemoteChatSession(focusedRemoteChatTarget.id, (session) => ({
+                      ...session,
+                      handoffContext: value,
+                    }));
+                  }}
+                  onHandoffDeliverablesChange={(value) => {
+                    updateRemoteChatSession(focusedRemoteChatTarget.id, (session) => ({
+                      ...session,
+                      handoffDeliverables: value,
+                    }));
+                  }}
+                  onHandoffAcceptanceChange={(value) => {
+                    updateRemoteChatSession(focusedRemoteChatTarget.id, (session) => ({
+                      ...session,
+                      handoffAcceptance: value,
+                    }));
+                  }}
+                  onSend={(message) => {
+                    void handleRemoteAgentChatSend(focusedRemoteChatTarget.id, message);
+                  }}
+                  onHandoff={(message) => {
+                    void handleRemoteAgentHandoff(focusedRemoteChatTarget.id, message);
+                  }}
+                />
+              ) : (
+                <div className="flex flex-1 items-center justify-center font-mono text-[12px] text-white/30">
+                  Select an agent to chat.
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        <button
+          type="button"
+          onClick={() => setChatOpen((prev) => !prev)}
+          className="flex items-center gap-1.5 rounded border border-amber-700/50 bg-[#0e0a04]/90 px-3 py-1.5 font-mono text-[11px] font-medium tracking-wider text-amber-500/80 shadow-lg backdrop-blur transition-colors hover:border-amber-600/70 hover:text-amber-400"
+        >
+          {chatOpen ? (
+            <>
+              <ChevronDown className="h-3.5 w-3.5" />
+              <span>HIDE CHAT</span>
+            </>
+          ) : (
+            <>
+              <MessageSquare className="h-3.5 w-3.5" />
+              <span>CHAT</span>
+              {runningCount > 0 ? (
+                <span className="rounded bg-amber-500/20 px-1 text-[10px] text-amber-400">
+                  {runningCount}
+                </span>
+              ) : null}
+            </>
+          )}
+        </button>
+      </div>
+
+      {mainVoiceState !== "idle" || mainVoiceError ? (
+        <div className="pointer-events-none fixed inset-x-0 bottom-6 z-40 flex justify-center">
+          <div
+            className={`flex min-w-[220px] items-center gap-3 rounded-full border px-4 py-3 font-mono text-[12px] shadow-2xl backdrop-blur ${
+              mainVoiceError
+                ? "border-red-500/45 bg-red-950/75 text-red-100"
+                : "border-cyan-400/35 bg-black/70 text-white"
+            }`}
+          >
+            <div
+              className={`flex h-10 w-10 items-center justify-center rounded-full ${
+                mainVoiceState === "recording"
+                  ? "bg-red-500/25 text-red-200"
+                  : mainVoiceState === "transcribing"
+                    ? "bg-cyan-400/20 text-cyan-100"
+                    : "bg-white/10 text-white"
+              }`}
+            >
+              <Mic className="h-5 w-5" />
+            </div>
+            <div className="flex flex-col">
+              <span className="text-[10px] uppercase tracking-[0.18em] text-white/55">
+                Main agent
+              </span>
+              <span className="text-[12px] font-medium text-white">
+                {mainVoiceError
+                  ? mainVoiceError
+                  : mainVoiceState === "recording"
+                    ? "Listening. Release Option to send."
+                    : mainVoiceState === "transcribing"
+                      ? "Transcribing your voice note."
+                      : mainVoiceState === "requesting"
+                        ? "Requesting microphone access."
+                        : !mainVoiceSupported
+                          ? "Voice shortcuts are not supported in this browser."
+                          : "Voice shortcut ready."}
+              </span>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      {debugEnabled ? (
+        <section className="fixed bottom-3 right-3 z-50 max-h-[45vh] w-[560px] overflow-auto rounded border border-slate-700 bg-black/90 p-3 font-mono text-[11px] text-slate-100">
+          <div className="mb-2 font-semibold text-cyan-300">office debug</div>
+          <div className="mb-2 text-slate-400">
+            status: {status} | agents: {state.agents.length}
+          </div>
+          {debugRows.length === 0 ? (
+            <div className="text-slate-500">No debug data yet.</div>
+          ) : (
+            <div className="space-y-2">
+              {debugRows.map((row) => (
+                <div
+                  key={row.agentId}
+                  className="rounded border border-slate-800 p-2"
+                >
+                  <div className="text-cyan-200">
+                    {row.name} ({row.agentId})
+                  </div>
+                  <div>
+                    storeStatus={row.storeStatus} runId={row.runId ?? "null"}{" "}
+                    inferredRunning=
+                    {String(row.inferredRunning)}
+                  </div>
+                  <div>
+                    lastRole={row.lastRole} messages={row.messageCount}
+                  </div>
+                  <div className="truncate text-slate-400">
+                    detectedSession={row.detectedSessionKey || "-"}
+                  </div>
+                  <div className="truncate text-slate-400">
+                    lastText={row.lastText || "-"}
+                  </div>
+                  <div className="truncate text-slate-500">
+                    sessions={row.inspectedSessions || "-"}
+                  </div>
+                  <div className="text-slate-500">
+                    source={row.inferenceSource}
+                  </div>
+                  <div className="text-slate-500">at={row.at}</div>
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
+      ) : null}
+      {agentEditorAgent ? (
+        <AgentEditorModal
+          key={`${agentEditorAgent.agentId}:${agentEditorInitialSection}`}
+          open
+          client={client}
+          agents={state.agents}
+          agent={agentEditorAgent}
+          initialSection={agentEditorInitialSection}
+          onClose={() => {
+            setAgentEditorAgentId(null);
+          }}
+          onAvatarSave={handleAvatarProfileSave}
+          onRename={async (agentId, name) => {
+            if (!client) return false;
+            try {
+              await renameGatewayAgent({ client, agentId, name });
+              dispatch({ type: "updateAgent", agentId, patch: { name } });
+              return true;
+            } catch {
+              return false;
+            }
+          }}
+          onDelete={async (agentId) => {
+            await handleDeleteAgent(agentId);
+          }}
+          onNavigateAgent={(agentId, section) => {
+            openAgentEditor(agentId, section);
+          }}
+        />
+      ) : null}
+      <AgentCreateWizardModal
+        key={`create-agent-${createAgentWizardNonce}`}
+        open={createAgentWizardOpen}
+        suggestedName={`Agent ${state.agents.length + 1}`}
+        busy={createAgentBusy}
+        submitError={createAgentModalError}
+        statusLine={createAgentStatusLine}
+        onClose={handleCloseCreateAgentWizard}
+        onCreateAgent={handleCreateAgentFromIdentity}
+        onFinishWizard={handleFinishCreateAgentAvatar}
+      />
+      <CompanyBuilderModal
+        key={`company-builder-${companyBuilderNonce}`}
+        open={companyBuilderOpen}
+        connected={status === "connected"}
+        agentCount={state.agents.length}
+        plannerAgentName={plannerAgent?.name ?? null}
+        busy={companyBuilderBusy}
+        error={companyBuilderError}
+        statusLine={companyBuilderStatusLine}
+        initialInput={companyBuilderInput}
+        initialPlan={lastCompanyPlan}
+        onClose={handleCloseCompanyBuilder}
+        onClear={handleClearCompanyBuilder}
+        onImproveBrief={handleImproveCompanyBrief}
+        onGeneratePlan={handleGenerateCompanyPlan}
+        onCreateCompany={handleCreateCompanyFromPlan}
+      />
+    </main>
+  );
+}

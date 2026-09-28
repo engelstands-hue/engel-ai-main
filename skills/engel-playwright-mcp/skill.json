@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-25T21:48:52Z",
+  "created_by": "storage-pull-next-stage",
+  "description": "Local Playwright browser MCP staged from storage-pull for Engel AI Main. Default allowlist is localhost/file only.",
+  "name": "Engel Playwright MCP",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-playwright-mcp",
+  "skill_md_sha256": "5f51531db278c9ef7609287f778f8a3dbb4ffdffe90e623e384583d31b51e684",
+  "source": "engel-ai-main-server",
+  "updated_at_utc": "2026-08-25T21:48:52Z"
+}

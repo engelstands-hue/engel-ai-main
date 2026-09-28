@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-20T16:39:06Z",
+  "created_by": "josh-grover-wire-20260820",
+  "description": "Verified Grover quadratic-search logic for Engel AI Main: explain, simulate, and AES-bit heuristic with Shor/PQC caveats. Local only.",
+  "name": "Engel Grover Algorithm",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-grover-algorithm",
+  "skill_md_sha256": "530b8471933df6df2780b5aa18330c54046f1ab7c37d0d21c264bf36926a2aa2",
+  "source": "engel-ai-main-server",
+  "updated_at_utc": "2026-08-20T16:39:06Z"
+}

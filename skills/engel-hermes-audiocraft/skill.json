@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-26T00:45:20Z",
+  "created_by": "hermes-root-catalog-import-20260825",
+  "description": "AudioCraft: MusicGen text-to-music, AudioGen text-to-sound.",
+  "name": "Engel Hermes audiocraft-audio-generation",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-hermes-audiocraft",
+  "skill_md_sha256": "bead2e0b44af8f6fc769691db2ad0ba9b6161f1d8e9206c9da7fdaf95dd64041",
+  "source": "engel-ai-main-server",
+  "updated_at_utc": "2026-08-26T00:45:20Z"
+}

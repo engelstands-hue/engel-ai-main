@@ -1,0 +1,10 @@
+{
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-grok-bot",
+  "name": "Engel Grok Bot",
+  "description": "Named persistent Engel teammates on the shared cluster computer.",
+  "source": "engel-ai-main",
+  "created_at_utc": "2026-08-17T00:00:00Z",
+  "updated_at_utc": "2026-08-17T00:00:00Z",
+  "created_by": "grok-engel-grok-bot-build"
+}

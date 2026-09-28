@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-26T00:56:15Z",
+  "created_by": "hermes-optional-catalog-import-20260825",
+  "description": "Control LLM output with regex and grammars, guarantee valid JSON/XML/code generation, enforce structured formats, and build multi-step workflows with Guidance - Microsoft Research's constrained generation framework",
+  "name": "Engel Guidance",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-hermes-guidance",
+  "skill_md_sha256": "6af379693e9a72dc75183bcfad1408829faeb60e966e8deac0521f62dfedf8c0",
+  "source": "engel-ai-main-server",
+  "updated_at_utc": "2026-08-26T00:56:15Z"
+}

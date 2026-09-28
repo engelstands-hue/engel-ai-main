@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-26T00:56:15Z",
+  "created_by": "hermes-optional-catalog-import-20260825",
+  "description": "Optional Hermes skill fitness-nutrition recreated for Engel AI Main.",
+  "name": "Engel Fitness Nutrition",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-hermes-fitness-nutrition",
+  "skill_md_sha256": "2f9bb99457e1d73bcd7f88804ba9b1749ba7d7ddace1cc29bb728123bc1f221c",
+  "source": "engel-ai-main-server",
+  "updated_at_utc": "2026-08-26T00:56:15Z"
+}

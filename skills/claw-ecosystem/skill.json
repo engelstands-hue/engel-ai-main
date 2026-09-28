@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-04T14:56:01Z",
+  "created_by": "managed-mirror registration via claude-cowork",
+  "description": "This skill should be used when the user asks to \"start all claws\", \"start claw gateways\", \"run all gateways\", \"start openclaw nanobot picoclaw zeroclaw nanoclaw\", \"launch claw ecosystem\", \"stop all claws\", \"stop gateways\", \"claw status\", \"check gateway status\", or \"open claws\". Manages all five Claw ecosystem gateways (OpenClaw, ZeroClaw, NanoBot, PicoClaw, NanoClaw) as a unified fleet.",
+  "name": "Claw Ecosystem Gateway Manager",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "claw-ecosystem",
+  "skill_md_sha256": "af2b9ab3ef4a944c26816cceae7db69cc83f5b99edbb522e2583b0fd6de917d7",
+  "source": "managed-skills-mirror",
+  "updated_at_utc": "2026-08-04T14:56:01Z"
+}

@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-26T00:45:19Z",
+  "created_by": "hermes-root-catalog-import-20260825",
+  "description": "Songwriting craft and Suno AI music prompts.",
+  "name": "Engel Hermes songwriting-and-ai-music",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-hermes-songwriting-and-ai-music",
+  "skill_md_sha256": "29168380aa6ab238d2636f3d2c336ce9fdc9345804376a6cf1d032c994d82819",
+  "source": "engel-ai-main-server",
+  "updated_at_utc": "2026-08-26T00:45:19Z"
+}

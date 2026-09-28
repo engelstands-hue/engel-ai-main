@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-26T00:45:20Z",
+  "created_by": "hermes-root-catalog-import-20260825",
+  "description": "Throwaway experiments to validate an idea before build.",
+  "name": "Engel Hermes spike",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-hermes-spike",
+  "skill_md_sha256": "56b3ba8c180553d4435a092cbb84ad41b1e3c6c021734b69de1cba3cafd0df12",
+  "source": "engel-ai-main-server",
+  "updated_at_utc": "2026-08-26T00:45:20Z"
+}

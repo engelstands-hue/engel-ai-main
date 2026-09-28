@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-04T14:56:01Z",
+  "created_by": "claude-cowork + engel-skill-creator",
+  "description": "Operate and extend the Engel AI Main 490-route command system. Use whenever a request involves running a route, asking Engel a phrase, the route explorer, route smoke tests, adding a new route, or debugging why a phrase hit the wrong route.",
+  "name": "Engel Route Dispatch",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-route-dispatch",
+  "skill_md_sha256": "8a70f44718a8daf5dc9a46d24fe7ec7f26d56f621fb7ec5f4bae28d914bdfe8f",
+  "source": "claude-skill-creator",
+  "updated_at_utc": "2026-08-04T14:56:01Z"
+}

@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-26T00:56:15Z",
+  "created_by": "hermes-optional-catalog-import-20260825",
+  "description": "OpenAI's model connecting vision and language. Enables zero-shot image classification, image-text matching, and cross-modal retrieval. Trained on 400M image-text pairs. Use for image search, content moderation, or vision-language tasks without fine-tuning. Best for general-purpose image understanding.",
+  "name": "Engel Clip",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-hermes-clip",
+  "skill_md_sha256": "9e36a2e36b5809358e4b3cdc659509e295e302ca90859b7a047db544035cd79e",
+  "source": "engel-ai-main-server",
+  "updated_at_utc": "2026-08-26T00:56:15Z"
+}

@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-26T00:56:15Z",
+  "created_by": "hermes-optional-catalog-import-20260825",
+  "description": "Build leveraged buyout models in Excel — sources & uses, debt schedule, cash sweep, exit multiple, IRR/MOIC sensitivity. Pairs with excel-author. Use for PE screening, sponsor-case valuation, or illustrative LBO in a pitch.",
+  "name": "Engel Lbo Model",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-hermes-lbo-model",
+  "skill_md_sha256": "de5554e7f5cd1f9b133b864a3593d15f96405b55828c16faa7f8da864b7caa09",
+  "source": "engel-ai-main-server",
+  "updated_at_utc": "2026-08-26T00:56:15Z"
+}

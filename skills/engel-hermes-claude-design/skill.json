@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-26T00:45:19Z",
+  "created_by": "hermes-root-catalog-import-20260825",
+  "description": "Design one-off HTML artifacts (landing, deck, prototype).",
+  "name": "Engel Hermes claude-design",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-hermes-claude-design",
+  "skill_md_sha256": "6991ebafb3d579014dc63892878f3e9d3d21c9a0291e8ef08158cdcc357e6d9e",
+  "source": "engel-ai-main-server",
+  "updated_at_utc": "2026-08-26T00:45:19Z"
+}

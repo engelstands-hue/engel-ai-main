@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-26T00:45:20Z",
+  "created_by": "hermes-root-catalog-import-20260825",
+  "description": "YouTube transcripts to summaries, threads, blogs.",
+  "name": "Engel Hermes youtube-content",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-hermes-youtube-content",
+  "skill_md_sha256": "bfc33ceb8b736ad02f96c946ef978ed70b5556b52e9fe065bea43b7e5cbfcbad",
+  "source": "engel-ai-main-server",
+  "updated_at_utc": "2026-08-26T00:45:20Z"
+}

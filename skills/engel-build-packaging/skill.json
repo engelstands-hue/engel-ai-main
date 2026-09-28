@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-04T14:56:01Z",
+  "created_by": "claude-cowork + engel-skill-creator",
+  "description": "Build and package Engel deliverables: Engel.exe, the SuperSwarm exe, approved staged artifacts, and the Android worker APK. Use whenever a request mentions building an exe, PyInstaller, packaging, staging artifacts, rebuilding the APK, or why a folder shows as MISSING inside a packaged exe.",
+  "name": "Engel Build and Packaging",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-build-packaging",
+  "skill_md_sha256": "8e1dfeee3be60a772ae977c7e6c2eec678d3c200107b54cbcfea6ae2bf249d51",
+  "source": "claude-skill-creator",
+  "updated_at_utc": "2026-08-04T14:56:01Z"
+}

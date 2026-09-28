@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-26T00:45:20Z",
+  "created_by": "hermes-root-catalog-import-20260825",
+  "description": "Karpathy's LLM Wiki: build/query interlinked markdown KB.",
+  "name": "Engel Hermes llm-wiki",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-hermes-llm-wiki",
+  "skill_md_sha256": "2dc36390453961ffc3f0e73333b00d42d93d1e869be0a273a4c9306599a2d93c",
+  "source": "engel-ai-main-server",
+  "updated_at_utc": "2026-08-26T00:45:20Z"
+}

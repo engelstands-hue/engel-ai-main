@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-26T00:45:19Z",
+  "created_by": "hermes-root-catalog-import-20260825",
+  "description": "Control a running TouchDesigner instance via twozero MCP — create operators, set parameters, wire connections, execute Python, build real-time visuals. 36 native tools.",
+  "name": "Engel Hermes touchdesigner-mcp",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-hermes-touchdesigner-mcp",
+  "skill_md_sha256": "7697732360ef5839819d7bb43f1c39f406eff385c04acb009e16c829a9224c2b",
+  "source": "engel-ai-main-server",
+  "updated_at_utc": "2026-08-26T00:45:19Z"
+}

@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-26T02:11:16Z",
+  "created_by": "models-brains-catalog-20260825",
+  "description": "Inventory of Engel AI Main local models, SLM brains, speech, and Sub-Engel helper lanes. Live 7B stays on CT246.",
+  "name": "Engel Models and Brains Catalog",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-models-brains-catalog",
+  "skill_md_sha256": "015812d5f5decdef87bb266ff68bcbebf860343653c23814d64d7cb602aa9d72",
+  "source": "engel-ai-main-server",
+  "updated_at_utc": "2026-08-26T02:11:16Z"
+}

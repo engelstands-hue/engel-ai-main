@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-26T00:45:20Z",
+  "created_by": "hermes-root-catalog-import-20260825",
+  "description": "Execute plans via delegate_task subagents (2-stage review).",
+  "name": "Engel Hermes subagent-driven-development",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-hermes-subagent-driven-development",
+  "skill_md_sha256": "a0b1c499aba0e9e22a2c4b46f0db022563bcc0602e49899f6c43f869a68e7464",
+  "source": "engel-ai-main-server",
+  "updated_at_utc": "2026-08-26T00:45:20Z"
+}

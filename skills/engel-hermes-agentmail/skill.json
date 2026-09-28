@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-26T00:56:15Z",
+  "created_by": "hermes-optional-catalog-import-20260825",
+  "description": "Give the agent its own dedicated email inbox via AgentMail. Send, receive, and manage email autonomously using agent-owned email addresses (e.g. engel-agent@agentmail.to).",
+  "name": "Engel Agentmail",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-hermes-agentmail",
+  "skill_md_sha256": "14d4e2118076ec1ecb254e883c809e9b10f97c4329b3d805c8481cdb723898e9",
+  "source": "engel-ai-main-server",
+  "updated_at_utc": "2026-08-26T00:56:15Z"
+}

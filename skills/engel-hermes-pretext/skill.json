@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-26T00:45:19Z",
+  "created_by": "hermes-root-catalog-import-20260825",
+  "description": "Use when building creative browser demos with @chenglou/pretext — DOM-free text layout for ASCII art, typographic flow around obstacles, text-as-geometry games, kinetic typography, and text-powered generative art. Produces single-file HTML demos by default.",
+  "name": "Engel Hermes pretext",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-hermes-pretext",
+  "skill_md_sha256": "52eb35a374dd6de27714a9091779e45017d5ee92b529f6763a6bc472474a6540",
+  "source": "engel-ai-main-server",
+  "updated_at_utc": "2026-08-26T00:45:19Z"
+}

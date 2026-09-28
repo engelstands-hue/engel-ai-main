@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-26T00:45:20Z",
+  "created_by": "hermes-root-catalog-import-20260825",
+  "description": "Edit PDF text/typos/titles via nano-pdf CLI (NL prompts).",
+  "name": "Engel Hermes nano-pdf",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-hermes-nano-pdf",
+  "skill_md_sha256": "7bb1deed1c6255ca4c6bb541b46f6dd7cff06e38206f0489f783fdd9bfdb7295",
+  "source": "engel-ai-main-server",
+  "updated_at_utc": "2026-08-26T00:45:20Z"
+}

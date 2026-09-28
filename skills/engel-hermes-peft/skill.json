@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-26T00:56:15Z",
+  "created_by": "hermes-optional-catalog-import-20260825",
+  "description": "Parameter-efficient fine-tuning for LLMs using LoRA, QLoRA, and 25+ methods. Use when fine-tuning large models (7B-70B) with limited GPU memory, when you need to train <1% of parameters with minimal accuracy loss, or for multi-adapter serving. HuggingFace's official library integrated with transformers ecosystem.",
+  "name": "Engel Peft Fine Tuning",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-hermes-peft",
+  "skill_md_sha256": "e8a1e5e251e0a114a22cf720ce96ad92e44b989d2cd6a8f44c502a4a05f20ba5",
+  "source": "engel-ai-main-server",
+  "updated_at_utc": "2026-08-26T00:56:15Z"
+}

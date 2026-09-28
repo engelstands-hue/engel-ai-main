@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-26T00:56:16Z",
+  "created_by": "hermes-optional-catalog-import-20260825",
+  "description": "Shop.app: product search, order tracking, returns, reorder.",
+  "name": "Engel Shop App",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-hermes-shop-app",
+  "skill_md_sha256": "ea4e1c6f3d0e65c012434cd0de040edf311c24462588ad65cec5a442bba493f4",
+  "source": "engel-ai-main-server",
+  "updated_at_utc": "2026-08-26T00:56:16Z"
+}

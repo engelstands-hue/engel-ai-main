@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-26T00:45:19Z",
+  "created_by": "hermes-root-catalog-import-20260825",
+  "description": "Generate project ideas via creative constraints.",
+  "name": "Engel Hermes ideation",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-hermes-creative-ideation",
+  "skill_md_sha256": "13305fb52da3ba788b3a10872b0ba40518b36668954cf40529f683a8641e5639",
+  "source": "engel-ai-main-server",
+  "updated_at_utc": "2026-08-26T00:45:19Z"
+}

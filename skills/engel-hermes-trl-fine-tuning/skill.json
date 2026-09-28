@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-26T00:56:15Z",
+  "created_by": "hermes-optional-catalog-import-20260825",
+  "description": "TRL: SFT, DPO, PPO, GRPO, reward modeling for LLM RLHF.",
+  "name": "Engel Fine Tuning With Trl",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-hermes-trl-fine-tuning",
+  "skill_md_sha256": "56503502129694b3a2ae8be9aef3c335accb6f7a591c5f4be965ad78c0d3757a",
+  "source": "engel-ai-main-server",
+  "updated_at_utc": "2026-08-26T00:56:15Z"
+}

@@ -1,0 +1,19 @@
+{
+  "packet_version": "1",
+  "packet_id": "manual-test-001",
+  "created_by": "Engel Core",
+  "trust_level": "untrusted_until_reviewed",
+  "task_type": "draft_notes",
+  "title": "Review research summary",
+  "instructions": "Prepare draft notes only. Do not execute commands.",
+  "allowed_outputs": ["draft_result_json"],
+  "blocked_actions": [
+    "execute_commands",
+    "write_trusted_memory",
+    "mutate_queue",
+    "mutate_routes",
+    "mutate_source",
+    "control_engel",
+    "auto_apply_fixes"
+  ]
+}

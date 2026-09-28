@@ -1,0 +1,12 @@
+{
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-universal-reps",
+  "name": "Engel Universal REPS",
+  "description": "Universal Engel AI Main Record/Evaluate/Propose/Sign-off loop for every AI lane, not only Claude.",
+  "source": "engel-ai-main-server",
+  "created_at_utc": "2026-06-29T19:15:00Z",
+  "updated_at_utc": "2026-06-29T19:15:00Z",
+  "created_by": "codex-reps-template-install",
+  "template_path": "memory/ENGEL_UNIVERSAL_REPS_TEMPLATE_V1.json"
+}
+

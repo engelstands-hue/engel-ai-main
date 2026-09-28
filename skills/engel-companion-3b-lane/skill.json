@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-25T21:48:52Z",
+  "created_by": "storage-pull-next-stage",
+  "description": "Merged Qwen2 3B Engel companion GGUF for Daily Local / phone RAM lane. Not live 7B chat.",
+  "name": "Engel Companion 3B Lane",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-companion-3b-lane",
+  "skill_md_sha256": "41ea66c058ca4e260515a06ea7168bca82f2e0f9a66d40a78e0ce6943ecb011d",
+  "source": "engel-ai-main-server",
+  "updated_at_utc": "2026-08-25T21:48:52Z"
+}

@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-26T00:56:15Z",
+  "created_by": "hermes-optional-catalog-import-20260825",
+  "description": "Poll RSS, JSON APIs, and GitHub with watermark dedup.",
+  "name": "Engel Watchers",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-hermes-watchers",
+  "skill_md_sha256": "0433c26c716f3e2a944ae4cafbca5dedd82e71e855a4722ece2ca201518589c7",
+  "source": "engel-ai-main-server",
+  "updated_at_utc": "2026-08-26T00:56:15Z"
+}

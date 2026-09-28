@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-26T00:45:20Z",
+  "created_by": "hermes-root-catalog-import-20260825",
+  "description": "vLLM: high-throughput LLM serving, OpenAI API, quantization.",
+  "name": "Engel Hermes serving-llms-vllm",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-hermes-vllm",
+  "skill_md_sha256": "28f5cbdecc263cae235eb0500b947b68b051156cf975d503b87313eb2cd90605",
+  "source": "engel-ai-main-server",
+  "updated_at_utc": "2026-08-26T00:45:20Z"
+}

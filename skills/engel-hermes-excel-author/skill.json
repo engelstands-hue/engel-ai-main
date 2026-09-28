@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-26T00:56:15Z",
+  "created_by": "hermes-optional-catalog-import-20260825",
+  "description": "Build auditable Excel workbooks headless with openpyxl — blue/black/green cell conventions, formulas over hardcodes, named ranges, balance checks, sensitivity tables. Use for financial models, audit outputs, reconciliations.",
+  "name": "Engel Excel Author",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-hermes-excel-author",
+  "skill_md_sha256": "ac81b2e4e83fc5a442fd2bd2ddbd485d12e25f59de09e868084637f027c0ab37",
+  "source": "engel-ai-main-server",
+  "updated_at_utc": "2026-08-26T00:56:15Z"
+}

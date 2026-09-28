@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-25T21:48:52Z",
+  "created_by": "storage-pull-next-stage",
+  "description": "Offline STT/TTS pair staged from shared-room: faster-whisper-base and Piper Amy ONNX.",
+  "name": "Engel Local Speech Whisper Piper",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-local-speech-whisper-piper",
+  "skill_md_sha256": "514c3dd1b3aa5bdd9b6b0bb1a335700cd6dc799d68f169e4df6981d70508a523",
+  "source": "engel-ai-main-server",
+  "updated_at_utc": "2026-08-25T21:48:52Z"
+}

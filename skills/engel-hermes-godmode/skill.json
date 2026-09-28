@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-26T00:45:20Z",
+  "created_by": "hermes-root-catalog-import-20260825",
+  "description": "Jailbreak LLMs: Parseltongue, GODMODE, ULTRAPLINIAN.",
+  "name": "Engel Hermes godmode",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-hermes-godmode",
+  "skill_md_sha256": "9506387ad224177b12002a2838a3567b3c99309dd63131d816a201811d42c534",
+  "source": "engel-ai-main-server",
+  "updated_at_utc": "2026-08-26T00:45:20Z"
+}

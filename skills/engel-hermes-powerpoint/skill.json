@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-26T00:45:20Z",
+  "created_by": "hermes-root-catalog-import-20260825",
+  "description": "Create, read, edit .pptx decks, slides, notes, templates.",
+  "name": "Engel Hermes powerpoint",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-hermes-powerpoint",
+  "skill_md_sha256": "6c451a692c3f63752bb0b7c5ffa4be0b9d6b8a3aeeae3c56e586f30370a0d282",
+  "source": "engel-ai-main-server",
+  "updated_at_utc": "2026-08-26T00:45:20Z"
+}

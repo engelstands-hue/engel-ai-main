@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-26T00:45:20Z",
+  "created_by": "hermes-root-catalog-import-20260825",
+  "description": "Query Polymarket: markets, prices, orderbooks, history.",
+  "name": "Engel Hermes polymarket",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-hermes-polymarket",
+  "skill_md_sha256": "eb56486209e48c4b1a03bc5a3ba6f9391e2a5cb11dca500d9cc414299f9fbd0b",
+  "source": "engel-ai-main-server",
+  "updated_at_utc": "2026-08-26T00:45:20Z"
+}

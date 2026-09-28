@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-04T14:56:01Z",
+  "created_by": "claude-cowork + engel-skill-creator",
+  "description": "Dispatch, monitor, and provision the USB/LAN Android worker phone fleet (alpha + beta). Use whenever a request mentions android workers, phone jobs, ADB dispatch, worker queues, LAN pairing, or installing the Engel remote worker APK.",
+  "name": "Engel Android Worker Fleet",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-android-worker-fleet",
+  "skill_md_sha256": "2ee20363a2db20fa0b79e7809e634e5b835690e41c176decff69c1ad4d1e5b6a",
+  "source": "claude-skill-creator",
+  "updated_at_utc": "2026-08-04T16:19:54Z"
+}

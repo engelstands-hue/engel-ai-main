@@ -1,0 +1,165 @@
+# Python bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Local secrets (Discord bot token etc.) — NEVER commit
+.env
+.env.local
+.env.*.local
+run/secrets/*.env
+!run/secrets/*.env.example
+
+# Playwright browser-profile caches generated every session by the
+# browser-AI bridge. Already-tracked files in this tree stay tracked
+# until manually removed; this rule only prevents NEW cache files from
+# auto-entering the index.
+browser_profile/*/Default/Cache/
+browser_profile/*/Default/Code Cache/
+browser_profile/*/Default/GPUCache/
+browser_profile/*/Default/IndexedDB/
+browser_profile/*/Default/Service Worker/
+browser_profile/*/Default/Session Storage/
+browser_profile/*/Default/Local Storage/
+browser_profile/*/ShaderCache/
+browser_profile/*/GrShaderCache/
+
+# Codex/local usage state
+.codex/usage/
+
+# Generated backups and product test workspaces
+backups/
+products/
+
+# Local evacuation archives from C:/Temp/AppData cleanup sweeps.
+# Keep these on D: if needed, but do not track personal/temp dumps or secrets.
+archive/c_drive_project_evacuated_*/
+archive/os_temp_evacuated_*/
+
+# Untrusted external code review extractions
+external_reviews/
+
+# Local product smoke folders
+echo-arg/
+explain-code/
+
+# Build outputs and work directories
+staging/app/build_output/
+staging/app/build_work/
+build_super_swarm/
+live/
+
+# Generated Human Command smoke/install reports
+reports/codex_bridge/HUMAN_COMMAND_MODE_NEXT_STEP_SMOKE_RUN_*.md
+reports/codex_bridge/HUMAN_COMMAND_PACKAGE_INSTALL_REQUEST_*.md
+
+# Generated Code Companion local smoke/status reports
+reports/codex_bridge/ENGEL_CODE_COMPANION_DESIGN_FIRST_TESTING.md
+reports/codex_bridge/ENGEL_CODE_COMPANION_DESIGN_TEST_MATRIX.md
+reports/codex_bridge/ENGEL_CODE_COMPANION_FUNCTIONAL_SMOKE.md
+reports/codex_bridge/ENGEL_CODE_COMPANION_MULTI_LANGUAGE_STATUS_UPDATE.md
+
+# Generated screenshots
+reports/codex_bridge/*_SCREENSHOT.png
+reports/codex_bridge/*_LIVE_AI_BODY*.png
+
+# Generated Research Intake receipts/summaries
+reports/research_intake/receipts/
+reports/research_intake/summaries/
+reports/research_intake/lesson_candidates/
+reports/research_intake/lesson_reviews/
+
+# Generated Browser Queen runtime receipts/manual page text
+reports/browser_queen/action_receipts/
+reports/browser_queen/manual_page_text/
+
+# Generated memory candidate proposal reports
+reports/memory_candidate_proposals/
+
+# Route smoke harness output log
+_route_smoke.log
+
+# Vendored subtree runtime logs (generated when smoke tests fire build/start routes)
+engel3d_office_main/.engel3d_server.log
+engel_lan_main/.engel_lan_app.log
+engel_lan_main/.engel_lan_receive.log
+
+# Runtime PID files (generated at runtime, not project state)
+memory/*.pid
+memory/octogent_server.pid
+runtime/tmp/
+
+# Generated runtime queues, verifier scratch, and dependency caches.
+# Durable reports/artifacts belong under reports/ or artifacts/ instead.
+runtime/cache/
+runtime/data/
+runtime/npm_cache/
+runtime/browser_test_deps/
+runtime/game_dev_deps/
+runtime/engel_os_bridge_verifier/
+runtime/game_factory_meeting_room_verifier/
+runtime/game_factory_verifier/
+runtime/prompt_bridge_selection_verifier/
+runtime/trading_dashboard_verifier/
+runtime/desktop_ui_bridge_connection/
+runtime/desktop_ui_executable_e2e/
+runtime/meeting_room/engel_os/
+runtime/meeting_room/game_factory/
+runtime/meeting_room/trading_dashboard/
+runtime/meeting_room/main_ui_orders/*.json
+runtime/meeting_room/sub_engel_prompts/**/*.json
+remote_workers/communication_queen_assignments/approved/*.json
+remote_workers/communication_queen_assignments/claimed/*.json
+remote_workers/communication_queen_assignments/claim_locks/*.lock
+
+# Local Python environments and cached profile environments
+venv/
+.venv/
+**/venv/
+**/.venv/
+
+# Build artifacts
+rust/**/target/
+build/pyinstaller_work_v2/
+build/EngelDesktopV2/
+build/Engel/
+build/EngelSuperSwarmHive3D/
+
+# Knowledge graph build outputs (large generated files)
+engel_graphify-out/
+
+# --------------------------------------------------------------------------
+# (2026-08-14) Provenance repair: exclude every remaining GENERATED or
+# heavyweight tree so the checkpoint commit records authored work, not build
+# output. Sizes per the 2026-08-14 forensic audit: archives 90 GiB, runtime
+# 78 GiB, Tauri targets 64 GiB, dist 8.8 GiB, plus model weights and Flutter
+# build output. Already-tracked files under these paths stay tracked until
+# removed with git rm --cached; these rules stop NEW generated content.
+# --------------------------------------------------------------------------
+archives/
+archive/
+runtime/
+dist/
+*.gguf
+*.safetensors
+*.onnx
+*.iso
+*.7z
+*.tar
+*.tar.gz
+models/
+models-active/
+hf-cache/
+.pytest_cache/
+.dart_tool/
+.gradle/
+node_modules/
+engel_flutter_main/build/
+engel_main/src-tauri/target/
+engel_main/node_modules/
+engel_main/dist/
+*.pyc
+# Live files rewritten mid-run by services - unindexable while hot (git add died
+# on a short read of one during the 2026-08-14 checkpoint) and worthless as history.
+**/LATEST.json
+reports/engel_lifted_intent/

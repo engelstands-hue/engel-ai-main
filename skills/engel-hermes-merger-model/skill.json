@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-26T00:56:15Z",
+  "created_by": "hermes-optional-catalog-import-20260825",
+  "description": "Build accretion/dilution (merger) models in Excel — pro-forma P&L, synergies, financing mix, EPS impact. Pairs with excel-author. Use for M&A pitches, board materials, or deal evaluation.",
+  "name": "Engel Merger Model",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-hermes-merger-model",
+  "skill_md_sha256": "4e7d94fbc0c5e4effbbc072e0da7a198bc1a45c4334c62b0782eaffe4ca968d7",
+  "source": "engel-ai-main-server",
+  "updated_at_utc": "2026-08-26T00:56:15Z"
+}

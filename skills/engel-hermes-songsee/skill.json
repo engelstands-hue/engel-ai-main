@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-26T00:45:20Z",
+  "created_by": "hermes-root-catalog-import-20260825",
+  "description": "Audio spectrograms/features (mel, chroma, MFCC) via CLI.",
+  "name": "Engel Hermes songsee",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-hermes-songsee",
+  "skill_md_sha256": "30dc53a6bdc9ffcdafe77ad44d181dac4f12543f3bee505cb8fdbfe8c9b9cf0a",
+  "source": "engel-ai-main-server",
+  "updated_at_utc": "2026-08-26T00:45:20Z"
+}

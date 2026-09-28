@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-26T00:45:20Z",
+  "created_by": "hermes-root-catalog-import-20260825",
+  "description": "Notion API + ntn CLI: pages, databases, markdown, Workers.",
+  "name": "Engel Hermes notion",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-hermes-notion",
+  "skill_md_sha256": "b65791bf465c7e349781992658b6cb83c245cc114f4e1f1b9e116671af5222b2",
+  "source": "engel-ai-main-server",
+  "updated_at_utc": "2026-08-26T00:45:20Z"
+}

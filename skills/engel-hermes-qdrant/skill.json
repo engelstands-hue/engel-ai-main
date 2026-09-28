@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-26T00:56:15Z",
+  "created_by": "hermes-optional-catalog-import-20260825",
+  "description": "High-performance vector similarity search engine for RAG and semantic search. Use when building production RAG systems requiring fast nearest neighbor search, hybrid search with filtering, or scalable vector storage with Rust-powered performance.",
+  "name": "Engel Qdrant Vector Search",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-hermes-qdrant",
+  "skill_md_sha256": "4a2a98567d0b9fa1eb7f3f96c11977913b2b8f102e17a31eec870eca316bef93",
+  "source": "engel-ai-main-server",
+  "updated_at_utc": "2026-08-26T00:56:15Z"
+}

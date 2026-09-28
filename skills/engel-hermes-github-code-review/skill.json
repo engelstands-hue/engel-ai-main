@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-26T00:45:20Z",
+  "created_by": "hermes-root-catalog-import-20260825",
+  "description": "Review PRs: diffs, inline comments via gh or REST.",
+  "name": "Engel Hermes github-code-review",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-hermes-github-code-review",
+  "skill_md_sha256": "0bcb40ececec05b1946e9e42d9c24c4b2fb73ec10e1c03ab404a8967770d8814",
+  "source": "engel-ai-main-server",
+  "updated_at_utc": "2026-08-26T00:45:20Z"
+}

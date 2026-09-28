@@ -1,0 +1,16 @@
+[Unit]
+Description=Engel AI Main Nemotron 3.5 Lightning llama-server
+After=network.target
+Documentation=file:/opt/engel/memory/models/ENGEL_NEMOTRON_3_5_LIGHTNING_30B_A3B_INSTALL.json
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/engel/tools/llama-cpp-b10423/llama-b10423
+Environment=LD_LIBRARY_PATH=/opt/engel/tools/llama-cpp-b10423/llama-b10423
+ExecStart=/opt/engel/tools/llama-cpp-b10423/llama-b10423/llama-server -m /opt/engel/models-active/llm/nemotron-3.5-lightning-30b-a3b/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-UD-Q4_K_M.gguf --host 127.0.0.1 --port 8905 -c 2048 -t 6 --temp 1.0 --top-p 0.95 -ngl 0
+Restart=on-failure
+RestartSec=8
+MemoryMax=36G
+
+[Install]
+WantedBy=multi-user.target

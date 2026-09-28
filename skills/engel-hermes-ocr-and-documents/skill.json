@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-26T00:45:20Z",
+  "created_by": "hermes-root-catalog-import-20260825",
+  "description": "Extract text from PDFs/scans (pymupdf, marker-pdf).",
+  "name": "Engel Hermes ocr-and-documents",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-hermes-ocr-and-documents",
+  "skill_md_sha256": "7ba6371a372586362856beaaf9bcba1ea5ab173223932b6d00d3188a20139cd3",
+  "source": "engel-ai-main-server",
+  "updated_at_utc": "2026-08-26T00:45:20Z"
+}

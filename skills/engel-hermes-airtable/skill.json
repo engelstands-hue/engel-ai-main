@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-26T00:45:20Z",
+  "created_by": "hermes-root-catalog-import-20260825",
+  "description": "Airtable REST API via curl. Records CRUD, filters, upserts.",
+  "name": "Engel Hermes airtable",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-hermes-airtable",
+  "skill_md_sha256": "f6a92499e3a4704a5ef7839f493fd021e66108365c86856d7abe7f2844fa1808",
+  "source": "engel-ai-main-server",
+  "updated_at_utc": "2026-08-26T00:45:20Z"
+}

@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-26T00:56:15Z",
+  "created_by": "hermes-optional-catalog-import-20260825",
+  "description": "Use the mcporter CLI to list, configure, auth, and call MCP servers/tools directly (HTTP or stdio), including ad-hoc servers, config edits, and CLI/type generation.",
+  "name": "Engel Mcporter",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-hermes-mcporter",
+  "skill_md_sha256": "d1419218b7c0cb73e4a591757acef0f8c81f2069bf72dcc212bcba59152449f5",
+  "source": "engel-ai-main-server",
+  "updated_at_utc": "2026-08-26T00:56:15Z"
+}

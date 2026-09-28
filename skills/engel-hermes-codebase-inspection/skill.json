@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-26T00:45:20Z",
+  "created_by": "hermes-root-catalog-import-20260825",
+  "description": "Inspect codebases w/ pygount: LOC, languages, ratios.",
+  "name": "Engel Hermes codebase-inspection",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-hermes-codebase-inspection",
+  "skill_md_sha256": "babb1f3e08ec7882be3f4e7617d796cee0e489370b30ccfa9d662a37dcf4d8f3",
+  "source": "engel-ai-main-server",
+  "updated_at_utc": "2026-08-26T00:45:20Z"
+}

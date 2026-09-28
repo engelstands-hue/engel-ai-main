@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-26T00:45:19Z",
+  "created_by": "hermes-root-catalog-import-20260825",
+  "description": "Humanize text: strip AI-isms and add real voice.",
+  "name": "Engel Hermes humanizer",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-hermes-humanizer",
+  "skill_md_sha256": "d7bdaaee00cb9e923ece7689f37fb067f0f159eca58b4085265f6f1ff850b507",
+  "source": "engel-ai-main-server",
+  "updated_at_utc": "2026-08-26T00:45:19Z"
+}

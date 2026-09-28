@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-26T00:45:20Z",
+  "created_by": "hermes-root-catalog-import-20260825",
+  "description": "Debug Node.js via --inspect + Chrome DevTools Protocol CLI.",
+  "name": "Engel Hermes node-inspect-debugger",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-hermes-node-inspect-debugger",
+  "skill_md_sha256": "f4a60fabfebb20073086bde549dc0bfb2b75171f8095da5183cc5abce58bcb2c",
+  "source": "engel-ai-main-server",
+  "updated_at_utc": "2026-08-26T00:45:20Z"
+}

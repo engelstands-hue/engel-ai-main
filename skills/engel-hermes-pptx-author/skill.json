@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-26T00:56:15Z",
+  "created_by": "hermes-optional-catalog-import-20260825",
+  "description": "Build PowerPoint decks headless with python-pptx. Pairs with excel-author for model-backed decks where every number traces to a workbook cell. Use for pitch decks, IC memos, earnings notes.",
+  "name": "Engel Pptx Author",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-hermes-pptx-author",
+  "skill_md_sha256": "088f9f57d32bb19a620a4a22835453e87f18c1c8216148397539715392a2c1d1",
+  "source": "engel-ai-main-server",
+  "updated_at_utc": "2026-08-26T00:56:15Z"
+}

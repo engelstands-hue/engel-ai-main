@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-26T00:56:15Z",
+  "created_by": "hermes-optional-catalog-import-20260825",
+  "description": "Stock quotes, history, search, compare, crypto via Yahoo.",
+  "name": "Engel Stocks",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-hermes-stocks",
+  "skill_md_sha256": "b855a9ecaa7e43cc6b982d0e8b61fd5c69af9c116a7d2b8ad8d7091d9e4ff966",
+  "source": "engel-ai-main-server",
+  "updated_at_utc": "2026-08-26T00:56:15Z"
+}

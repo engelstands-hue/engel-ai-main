@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-26T00:45:19Z",
+  "created_by": "hermes-root-catalog-import-20260825",
+  "description": "Generate images, video, and audio with ComfyUI — install, launch, manage nodes/models, run workflows with parameter injection. Uses the official comfy-cli for lifecycle and direct REST/WebSocket API for execution.",
+  "name": "Engel Hermes comfyui",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-hermes-comfyui",
+  "skill_md_sha256": "4c8b71f174a03819ff4e7bc086f1cf08438e2cd4bfe1e4b72a3283ca85a59875",
+  "source": "engel-ai-main-server",
+  "updated_at_utc": "2026-08-26T00:45:19Z"
+}

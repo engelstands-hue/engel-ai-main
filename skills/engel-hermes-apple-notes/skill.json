@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-26T00:45:19Z",
+  "created_by": "hermes-root-catalog-import-20260825",
+  "description": "Manage Apple Notes via memo CLI: create, search, edit.",
+  "name": "Engel Hermes apple-notes",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-hermes-apple-notes",
+  "skill_md_sha256": "a393f57ffa40dec6a6219cf7621dd998e42ef8b219cc07615e9f97233c233e28",
+  "source": "engel-ai-main-server",
+  "updated_at_utc": "2026-08-26T00:45:19Z"
+}

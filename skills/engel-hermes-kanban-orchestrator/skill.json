@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-26T00:45:19Z",
+  "created_by": "hermes-root-catalog-import-20260825",
+  "description": "Decomposition playbook + anti-temptation rules for an orchestrator profile routing work through Kanban. The \"don't do the work yourself\" rule and the basic lifecycle are auto-injected into every kanban worker's system prompt; this skill is the deeper playbook when you're specifically playing the orchestrator role.",
+  "name": "Engel Hermes kanban-orchestrator",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-hermes-kanban-orchestrator",
+  "skill_md_sha256": "9e420172800e03a0fd7d0bbde9bd0a62e8871e79a541c8a6a8aec061c6c29ea2",
+  "source": "engel-ai-main-server",
+  "updated_at_utc": "2026-08-26T00:45:19Z"
+}

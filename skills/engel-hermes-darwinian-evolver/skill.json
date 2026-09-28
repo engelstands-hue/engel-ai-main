@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-26T00:56:16Z",
+  "created_by": "hermes-optional-catalog-import-20260825",
+  "description": "Evolve prompts/regex/SQL/code with Imbue's evolution loop.",
+  "name": "Engel Darwinian Evolver",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-hermes-darwinian-evolver",
+  "skill_md_sha256": "b7ce1e0fe79cfc2cb2f59ca73bece10f3e8040566ec02edb62b8639bcbc9c07c",
+  "source": "engel-ai-main-server",
+  "updated_at_utc": "2026-08-26T00:56:16Z"
+}

@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-26T00:45:20Z",
+  "created_by": "hermes-root-catalog-import-20260825",
+  "description": "Search arXiv papers by keyword, author, category, or ID.",
+  "name": "Engel Hermes arxiv",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-hermes-arxiv",
+  "skill_md_sha256": "9a294172a66d1c24dac5fcf447bb7724b3972ea809756bb7836dbd28e265b7d1",
+  "source": "engel-ai-main-server",
+  "updated_at_utc": "2026-08-26T00:45:20Z"
+}

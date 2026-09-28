@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-26T00:56:15Z",
+  "created_by": "hermes-optional-catalog-import-20260825",
+  "description": "Build comparable company analysis in Excel — operating metrics, valuation multiples, statistical benchmarking vs peer sets. Pairs with excel-author. Use for public-company valuation, IPO pricing, sector benchmarking, or outlier detection.",
+  "name": "Engel Comps Analysis",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-hermes-comps-analysis",
+  "skill_md_sha256": "7313f01b363922322169b137b091e2eb8d861675c8225f3b8e2c3088466860d1",
+  "source": "engel-ai-main-server",
+  "updated_at_utc": "2026-08-26T00:56:15Z"
+}

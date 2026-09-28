@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-26T00:45:20Z",
+  "created_by": "hermes-root-catalog-import-20260825",
+  "description": "Webhook subscriptions: event-driven agent runs.",
+  "name": "Engel Hermes webhook-subscriptions",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-hermes-webhook-subscriptions",
+  "skill_md_sha256": "9b9f1272ffd11ea98d53755698121fa301cfba478d58e13e6eced146706b4c7c",
+  "source": "engel-ai-main-server",
+  "updated_at_utc": "2026-08-26T00:45:20Z"
+}

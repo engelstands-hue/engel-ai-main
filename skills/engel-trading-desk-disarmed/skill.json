@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-25T21:48:52Z",
+  "created_by": "storage-pull-next-stage",
+  "description": "Survival/Live TypeScript desk UI and sim engine. CLOB posting stays disarmed.",
+  "name": "Engel Trading Desk Disarmed",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-trading-desk-disarmed",
+  "skill_md_sha256": "e891ac836104d891cb9c388c3eb9caad12b49d0d277d918d23e4fb55e024e9f1",
+  "source": "engel-ai-main-server",
+  "updated_at_utc": "2026-08-25T21:48:52Z"
+}

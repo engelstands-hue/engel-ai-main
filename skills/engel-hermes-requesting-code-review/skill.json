@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-26T00:45:20Z",
+  "created_by": "hermes-root-catalog-import-20260825",
+  "description": "Pre-commit review: security scan, quality gates, auto-fix.",
+  "name": "Engel Hermes requesting-code-review",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-hermes-requesting-code-review",
+  "skill_md_sha256": "d7e4f53d4b9144ebfb23c3de1203df15dd4398f9b8d14a82d785561dcb4172f1",
+  "source": "engel-ai-main-server",
+  "updated_at_utc": "2026-08-26T00:45:20Z"
+}

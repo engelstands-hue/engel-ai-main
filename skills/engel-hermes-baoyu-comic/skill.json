@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-26T00:45:19Z",
+  "created_by": "hermes-root-catalog-import-20260825",
+  "description": "Knowledge comics (知识漫画): educational, biography, tutorial.",
+  "name": "Engel Hermes baoyu-comic",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-hermes-baoyu-comic",
+  "skill_md_sha256": "02d7e3a7d9f74ba544fb3e0c417440f460cc40634268ca59648e0bae515b0ccb",
+  "source": "engel-ai-main-server",
+  "updated_at_utc": "2026-08-26T00:45:19Z"
+}

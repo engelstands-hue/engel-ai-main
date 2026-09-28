@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-26T00:45:19Z",
+  "created_by": "hermes-root-catalog-import-20260825",
+  "description": "Author/validate/export Google's DESIGN.md token spec files.",
+  "name": "Engel Hermes design-md",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-hermes-design-md",
+  "skill_md_sha256": "1b8c3be95546a56c1ab8c9c21a6ae7b0860dffd06bc20111820fea075d784300",
+  "source": "engel-ai-main-server",
+  "updated_at_utc": "2026-08-26T00:45:19Z"
+}

@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-26T00:56:16Z",
+  "created_by": "hermes-optional-catalog-import-20260825",
+  "description": "Give Engel phone capabilities without core tool changes. Provision and persist a Twilio number, send and receive SMS/MMS, make direct calls, and place AI-driven outbound calls through Bland.ai or Vapi.",
+  "name": "Engel Telephony",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-hermes-telephony",
+  "skill_md_sha256": "661cf977bddd69609de89151f5c46e6cf087a04db743bf2e40dd7d5fad800da4",
+  "source": "engel-ai-main-server",
+  "updated_at_utc": "2026-08-26T00:56:16Z"
+}

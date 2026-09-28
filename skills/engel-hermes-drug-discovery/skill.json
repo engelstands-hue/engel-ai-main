@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-26T00:56:16Z",
+  "created_by": "hermes-optional-catalog-import-20260825",
+  "description": "Optional Hermes skill drug-discovery recreated for Engel AI Main.",
+  "name": "Engel Drug Discovery",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-hermes-drug-discovery",
+  "skill_md_sha256": "5b62ff9336965c377d14cda4d956284954299559061924971d97f10b2cbfec99",
+  "source": "engel-ai-main-server",
+  "updated_at_utc": "2026-08-26T00:56:16Z"
+}

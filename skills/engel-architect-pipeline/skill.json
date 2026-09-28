@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-04T14:56:01Z",
+  "created_by": "claude-cowork + engel-skill-creator",
+  "description": "Drive the Engel Architect Agent: 13-section discovery-to-engineering pipeline feeding a 10-stage planner with a mandatory Founder Approval Gate at stage H. Use whenever a request mentions the architect, planning a build, plan/spec/prompt outputs, sections, planner stages, or the founder gate.",
+  "name": "Engel Architect Pipeline",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-architect-pipeline",
+  "skill_md_sha256": "cacfd053088f7e11ff67e2a34a8db6511e74d8ce05fca341e473efc1812204de",
+  "source": "claude-skill-creator",
+  "updated_at_utc": "2026-08-04T14:56:01Z"
+}

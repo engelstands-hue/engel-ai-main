@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-04T14:56:01Z",
+  "created_by": "claude-cowork + engel-skill-creator",
+  "description": "Route orders through the Engel Agent Meeting Room: API-only intake, per-equipment dispatch to Local Engel AI, Android workers, or Sub-Engel. Use whenever a request mentions the meeting room, submitting or completing orders, equipment dispatch, or meeting room windows and routes.",
+  "name": "Engel Meeting Room Dispatch",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-meeting-room-dispatch",
+  "skill_md_sha256": "a1ea44ecc9f52c74d1b86f34b7dc450fece273f9b14216bd2dbf5a7237c1b75f",
+  "source": "claude-skill-creator",
+  "updated_at_utc": "2026-08-04T14:56:01Z"
+}

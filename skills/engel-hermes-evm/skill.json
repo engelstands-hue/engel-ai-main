@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-26T00:56:14Z",
+  "created_by": "hermes-optional-catalog-import-20260825",
+  "description": "Read-only EVM client: wallets, tokens, gas across 8 chains.",
+  "name": "Engel Evm",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-hermes-evm",
+  "skill_md_sha256": "0a87bb9b81cff606a89a8c7b6a8631b619e99f06e004e9f669f3a4669a7e74c2",
+  "source": "engel-ai-main-server",
+  "updated_at_utc": "2026-08-26T00:56:14Z"
+}

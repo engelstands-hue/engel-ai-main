@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-26T00:45:19Z",
+  "created_by": "hermes-root-catalog-import-20260825",
+  "description": "Manim CE animations: 3Blue1Brown math/algo videos.",
+  "name": "Engel Hermes manim-video",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-hermes-manim-video",
+  "skill_md_sha256": "3f8e274d530597627b9b27b633c7c312b06109381fb5656c133774bd89249d9a",
+  "source": "engel-ai-main-server",
+  "updated_at_utc": "2026-08-26T00:45:19Z"
+}

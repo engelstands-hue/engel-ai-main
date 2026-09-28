@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-26T00:56:15Z",
+  "created_by": "hermes-optional-catalog-import-20260825",
+  "description": "Provides guidance for training and analyzing Sparse Autoencoders (SAEs) using SAELens to decompose neural network activations into interpretable features. Use when discovering interpretable features, analyzing superposition, or studying monosemantic representations in language models.",
+  "name": "Engel Sparse Autoencoder Training",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-hermes-saelens",
+  "skill_md_sha256": "c74d6cb83e467aa320d58fb4a3180adef24a5cec60d86ee58884233d54423557",
+  "source": "engel-ai-main-server",
+  "updated_at_utc": "2026-08-26T00:56:15Z"
+}

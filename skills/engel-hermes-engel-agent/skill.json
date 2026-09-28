@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-26T00:45:19Z",
+  "created_by": "hermes-root-catalog-import-20260825",
+  "description": "Configure, extend, or contribute to Engel Agent.",
+  "name": "Engel Hermes engel-agent",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-hermes-engel-agent",
+  "skill_md_sha256": "20042ec2146d929830a4ab06763959a7033cc621e0f0ad0939daab890bd4f949",
+  "source": "engel-ai-main-server",
+  "updated_at_utc": "2026-08-26T00:45:19Z"
+}

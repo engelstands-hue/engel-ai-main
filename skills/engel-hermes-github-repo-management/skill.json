@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-26T00:45:20Z",
+  "created_by": "hermes-root-catalog-import-20260825",
+  "description": "Clone/create/fork repos; manage remotes, releases.",
+  "name": "Engel Hermes github-repo-management",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-hermes-github-repo-management",
+  "skill_md_sha256": "20f1324343a29fec8a02a897dbbf68b1e5560019ddf7ed9925bfcb96a7cf56c0",
+  "source": "engel-ai-main-server",
+  "updated_at_utc": "2026-08-26T00:45:20Z"
+}

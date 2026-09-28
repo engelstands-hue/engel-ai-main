@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-26T00:45:20Z",
+  "created_by": "hermes-root-catalog-import-20260825",
+  "description": "Search/download GIFs from Tenor via curl + jq.",
+  "name": "Engel Hermes gif-search",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-hermes-gif-search",
+  "skill_md_sha256": "010d6e53f97055c463a4fe6bbd6c38c700317efd48a0eb149fcf765be5fdf174",
+  "source": "engel-ai-main-server",
+  "updated_at_utc": "2026-08-26T00:45:20Z"
+}

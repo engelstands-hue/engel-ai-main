@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-26T00:56:15Z",
+  "created_by": "hermes-optional-catalog-import-20260825",
+  "description": "Fast tokenizers optimized for research and production. Rust-based implementation tokenizes 1GB in <20 seconds. Supports BPE, WordPiece, and Unigram algorithms. Train custom vocabularies, track alignments, handle padding/truncation. Integrates seamlessly with transformers. Use when you need high-performance tokenization or custom tokenizer training.",
+  "name": "Engel Huggingface Tokenizers",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-hermes-huggingface-tokenizers",
+  "skill_md_sha256": "594232ae85643c0f11a39dff2632db5480a09e713b950e7dc7cfae539f7ba878",
+  "source": "engel-ai-main-server",
+  "updated_at_utc": "2026-08-26T00:56:15Z"
+}

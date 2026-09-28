@@ -1,0 +1,21 @@
+[
+  { "path": "/", "title": "Engel AI Main | Local-first Windows AI workspace", "description": "Meet Engel AI Main, Engel AI Labs' local-first Windows workspace for chat, reviewed tasks, model routing, worker coordination, governed training, and proof.", "index": true },
+  { "path": "/engel-ai-main", "title": "Engel AI Main | Complete product map", "description": "Explore Engel AI Main: Chat, Discord, Status, Settings, and Advanced, plus the tools behind Advanced.", "index": true },
+  { "path": "/about", "title": "About | Engel AI Labs", "description": "Why Engel AI Labs is building understandable, local-first intelligence with people in control.", "index": true },
+  { "path": "/technology", "title": "Technology | Engel AI Labs", "description": "Explore Engel AI Labs' local-first architecture and the qualified, evidence-backed history of the Engel Core Rust rewrite.", "index": true },
+  { "path": "/platform", "title": "Platform | Engel AI Labs", "description": "A public overview of the Engel AI Labs platform direction, verification model, and human-guided operating principles.", "index": true },
+  { "path": "/apps", "title": "Applications | Engel AI Labs", "description": "Explore the distinct application concepts in the Engel AI Labs portfolio.", "index": true },
+  { "path": "/agents", "title": "Engel AI Ambassador | Engel AI Labs", "description": "Meet the claimed Engel AI Ambassador and its explicit human-review workflow for one-at-a-time public posts and discussion replies.", "index": true },
+  { "path": "/genesis", "title": "Genesis Archive | Engel AI Labs", "description": "Follow the public milestones that shaped Engel AI Labs, including the May 31–June 2 Engel Core Rust rewrite.", "index": true },
+  { "path": "/archive-editions", "title": "Archive Editions Design Study | Engel AI Labs", "description": "A concept-only, non-sale design study for possible Engel Genesis Archive cards, with evidence and rights review still pending.", "index": false },
+  { "path": "/community", "title": "Community | Engel AI Labs", "description": "See how the Engel AI Ambassador joins relevant public discussions through explicit discovery, exact-draft review, and separate human-confirmed sending.", "index": true },
+  { "path": "/docs", "title": "Public Documentation | Engel AI Labs", "description": "Read the public platform overview, operating principles, and public boundary for Engel AI Labs.", "index": true },
+  { "path": "/status", "title": "Public Status | Engel AI Labs", "description": "Review a static snapshot of Engel AI Main, the claimed Ambassador, its human-review console, and disabled recurring automation.", "index": true },
+  { "path": "/privacy", "title": "Privacy | Engel AI Labs", "description": "Read how the static Engel AI Labs public website minimizes data collection and separates third-party destinations.", "index": true },
+  { "path": "/terms", "title": "Website Terms | Engel AI Labs", "description": "Read the terms for the informational Engel AI Labs public website.", "index": true },
+  { "path": "/security", "title": "Security | Engel AI Labs", "description": "Review the security boundary for the static Engel AI Labs website and human-supervised public Ambassador.", "index": true },
+  { "path": "/contact", "title": "Contact | Engel AI Labs", "description": "Find the official public Engel AI Labs communication channel.", "index": true },
+  { "path": "/api", "title": "Public API Placeholder | Engel AI Labs", "description": "A deliberately inactive placeholder with no private system connected.", "index": false },
+  { "path": "/auth", "title": "Identity Placeholder | Engel AI Labs", "description": "A deliberately inactive placeholder with no authentication provider configured.", "index": false },
+  { "path": "/workers", "title": "Worker Portal Placeholder | Engel AI Labs", "description": "A deliberately inactive placeholder with no devices discovered, contacted, or controlled.", "index": false }
+]

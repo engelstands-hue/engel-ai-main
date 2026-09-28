@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-26T00:45:20Z",
+  "created_by": "hermes-root-catalog-import-20260825",
+  "description": "Geocode, POIs, routes, timezones via OpenStreetMap/OSRM.",
+  "name": "Engel Hermes maps",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-hermes-maps",
+  "skill_md_sha256": "16be2e1aeca6ea9235d0f794bf0fe79f31248bb40c35970214dea9e9f712ae32",
+  "source": "engel-ai-main-server",
+  "updated_at_utc": "2026-08-26T00:45:20Z"
+}

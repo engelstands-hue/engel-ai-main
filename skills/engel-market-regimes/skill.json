@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-25T21:48:52Z",
+  "created_by": "storage-pull-next-stage",
+  "description": "Local 100-year market-regime research skill staged from the storage-pull SKILL.md.",
+  "name": "Engel Market Regimes",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-market-regimes",
+  "skill_md_sha256": "b2105583e53b87cb61b94f74bfc4f52a683dbaf0bef942557867666ce0024634",
+  "source": "engel-ai-main-server",
+  "updated_at_utc": "2026-08-25T21:48:52Z"
+}

@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-26T00:56:15Z",
+  "created_by": "hermes-optional-catalog-import-20260825",
+  "description": "Expert guidance for Fully Sharded Data Parallel training with PyTorch FSDP - parameter sharding, mixed precision, CPU offloading, FSDP2",
+  "name": "Engel Pytorch Fsdp",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-hermes-pytorch-fsdp",
+  "skill_md_sha256": "ac2c14aa2064d6b6d3ac403e0f807f5dd79e201cf40cf4a21f3fc8f275ec9515",
+  "source": "engel-ai-main-server",
+  "updated_at_utc": "2026-08-26T00:56:15Z"
+}

@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-26T00:56:16Z",
+  "created_by": "hermes-optional-catalog-import-20260825",
+  "description": "Set up and use 1Password CLI (op). Use when installing the CLI, enabling desktop app integration, signing in, and reading/injecting secrets for commands.",
+  "name": "Engel 1Password",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-hermes-1password",
+  "skill_md_sha256": "08b15dcc4b09fa04d513d904a203b8b84b5f438bb3d75438a491c7ea76b36d47",
+  "source": "engel-ai-main-server",
+  "updated_at_utc": "2026-08-26T00:56:16Z"
+}

@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-26T00:56:14Z",
+  "created_by": "hermes-optional-catalog-import-20260825",
+  "description": "Optional Hermes skill one-three-one-rule recreated for Engel AI Main.",
+  "name": "Engel One Three One Rule",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-hermes-one-three-one-rule",
+  "skill_md_sha256": "0fb5750201f7c9767846fea2923e6cf301ca93bfb0ff1d742c75c2f6ab8c5aa7",
+  "source": "engel-ai-main-server",
+  "updated_at_utc": "2026-08-26T00:56:14Z"
+}

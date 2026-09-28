@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-26T00:45:19Z",
+  "created_by": "hermes-root-catalog-import-20260825",
+  "description": "Hermes skill macos-computer-use saved for Engel AI Main.",
+  "name": "Engel Hermes macos-computer-use",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-hermes-macos-computer-use",
+  "skill_md_sha256": "2c632eb59451427ddeb2bc5ea8e277a402259943e41912d0332f3b7ffb5d7a25",
+  "source": "engel-ai-main-server",
+  "updated_at_utc": "2026-08-26T00:45:19Z"
+}

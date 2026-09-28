@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-26T00:56:14Z",
+  "created_by": "hermes-optional-catalog-import-20260825",
+  "description": "Plan, set up, and monitor a multi-agent video production pipeline backed by Engel Kanban. Use when the user wants to make ANY video — narrative film, product/marketing, music video, explainer, ASCII/terminal art, abstract/generative loop, comic, 3D, real-time/installation — and the work warrants decomposition into specialized profiles (writer, designer, animator, renderer, voice, editor, etc.) coo",
+  "name": "Engel Kanban Video Orchestrator",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-hermes-kanban-video-orchestrator",
+  "skill_md_sha256": "9f3d4f6965c756c5ff799b5c1f6118d1239d6d05bd836c572bcef3fe82d98755",
+  "source": "engel-ai-main-server",
+  "updated_at_utc": "2026-08-26T00:56:14Z"
+}

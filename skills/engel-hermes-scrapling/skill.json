@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-26T00:56:16Z",
+  "created_by": "hermes-optional-catalog-import-20260825",
+  "description": "Web scraping with Scrapling - HTTP fetching, stealth browser automation, Cloudflare bypass, and spider crawling via CLI and Python.",
+  "name": "Engel Scrapling",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-hermes-scrapling",
+  "skill_md_sha256": "1b214ba9317bc79886b65679c2bb4ba69ea6978efca8c0d1cab157726ad0fe35",
+  "source": "engel-ai-main-server",
+  "updated_at_utc": "2026-08-26T00:56:16Z"
+}

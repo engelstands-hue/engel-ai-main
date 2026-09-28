@@ -1,0 +1,11 @@
+schema=engel_training_cycle_runtime_contract_v1
+termination_grace_seconds=300
+whole_cycle.slm=28800
+whole_cycle.llm=46800
+whole_cycle.slm_llm=57600
+slm.dataset=1200
+slm.train=2400
+slm.verify=900
+llm.dataset=2400
+llm.preflight=300
+llm.train_and_evaluate=21600

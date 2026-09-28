@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-26T00:56:15Z",
+  "created_by": "hermes-optional-catalog-import-20260825",
+  "description": "Simple Preference Optimization for LLM alignment. Reference-free alternative to DPO with better performance (+6.4 points on AlpacaEval 2.0). No reference model needed, more efficient than DPO. Use for preference alignment when want simpler, faster training than DPO/PPO.",
+  "name": "Engel Simpo Training",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-hermes-simpo",
+  "skill_md_sha256": "61f90d91ae926fbf95116d862cb41e775c7eb3bb309351b3ae5f48c188abedfd",
+  "source": "engel-ai-main-server",
+  "updated_at_utc": "2026-08-26T00:56:15Z"
+}

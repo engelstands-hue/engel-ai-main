@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-26T00:56:16Z",
+  "created_by": "hermes-optional-catalog-import-20260825",
+  "description": "Optional Hermes skill oss-forensics recreated for Engel AI Main.",
+  "name": "Engel Oss Forensics",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-hermes-oss-forensics",
+  "skill_md_sha256": "f7d69ccda1e68f3425a33da130e5d65dd8ad6af483eca159e8677ea95619aff6",
+  "source": "engel-ai-main-server",
+  "updated_at_utc": "2026-08-26T00:56:16Z"
+}

@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-26T00:56:14Z",
+  "created_by": "hermes-optional-catalog-import-20260825",
+  "description": "Generate real meme images by picking a template and overlaying text with Pillow. Produces actual .png meme files.",
+  "name": "Engel Meme Generation",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-hermes-meme-generation",
+  "skill_md_sha256": "8e4eab85eeb35256bb25f2d45c42167d534797580bd287f8706fd9e42a543d30",
+  "source": "engel-ai-main-server",
+  "updated_at_utc": "2026-08-26T00:56:14Z"
+}

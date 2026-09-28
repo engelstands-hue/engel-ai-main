@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-26T00:45:20Z",
+  "created_by": "hermes-root-catalog-import-20260825",
+  "description": "Pitfalls, examples, and edge cases for Engel Kanban workers. The lifecycle itself is auto-injected into every worker's system prompt as KANBAN_GUIDANCE (from agent/prompt_builder.py); this skill is what you load when you want deeper detail on specific scenarios.",
+  "name": "Engel Hermes kanban-worker",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-hermes-kanban-worker",
+  "skill_md_sha256": "839c0ce1a7a534d0569aaed9af4e713864e2a8ec5b7edf7456271039698fd73f",
+  "source": "engel-ai-main-server",
+  "updated_at_utc": "2026-08-26T00:45:20Z"
+}

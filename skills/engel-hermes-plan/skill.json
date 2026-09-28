@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-26T00:45:20Z",
+  "created_by": "hermes-root-catalog-import-20260825",
+  "description": "Plan mode: write markdown plan to .engel/plans/, no exec.",
+  "name": "Engel Hermes plan",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-hermes-plan",
+  "skill_md_sha256": "4b46dd02b543835b768fbacf6540b5e5ea15ad290399b32a8dbbeedff3f5872e",
+  "source": "engel-ai-main-server",
+  "updated_at_utc": "2026-08-26T00:45:20Z"
+}

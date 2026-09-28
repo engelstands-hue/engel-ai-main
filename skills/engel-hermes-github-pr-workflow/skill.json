@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-26T00:45:20Z",
+  "created_by": "hermes-root-catalog-import-20260825",
+  "description": "GitHub PR lifecycle: branch, commit, open, CI, merge.",
+  "name": "Engel Hermes github-pr-workflow",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-hermes-github-pr-workflow",
+  "skill_md_sha256": "f7ac64c0c346f66c9b748c7d60bd5b78f3eb715b9032728f472535d9e18270c2",
+  "source": "engel-ai-main-server",
+  "updated_at_utc": "2026-08-26T00:45:20Z"
+}

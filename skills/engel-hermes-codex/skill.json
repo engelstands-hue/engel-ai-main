@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-26T00:45:19Z",
+  "created_by": "hermes-root-catalog-import-20260825",
+  "description": "Delegate coding to OpenAI Codex CLI (features, PRs).",
+  "name": "Engel Hermes codex",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-hermes-codex",
+  "skill_md_sha256": "0d2c07a53b7718fcd985e46493201f5c3da9536f6e719b361f89b05fa14a5340",
+  "source": "engel-ai-main-server",
+  "updated_at_utc": "2026-08-26T00:45:19Z"
+}

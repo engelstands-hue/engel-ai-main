@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-25T21:48:52Z",
+  "created_by": "storage-pull-next-stage",
+  "description": "1,000-persona drill room, GospelComposer, JSONL export for Bible-companion LoRA. Not Engel AI Main chat identity.",
+  "name": "Engel Training Agents Factory",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-training-agents-factory",
+  "skill_md_sha256": "fb735391e54c15acb59367257fde60645d52f0a3f96934f8c6691b33a178031a",
+  "source": "engel-ai-main-server",
+  "updated_at_utc": "2026-08-25T21:48:52Z"
+}

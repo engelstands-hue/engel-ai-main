@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-26T00:56:14Z",
+  "created_by": "hermes-optional-catalog-import-20260825",
+  "description": "Run 150+ AI apps via inference.sh CLI (infsh) — image generation, video creation, LLMs, search, 3D, social automation. Uses the terminal tool. Triggers: inference.sh, infsh, ai apps, flux, veo, image generation, video generation, seedream, seedance, tavily",
+  "name": "Engel Inference Sh Cli",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-hermes-cli",
+  "skill_md_sha256": "fe81f569b617173189d369ae6ac9b659d0380295e8aa8bfff6345df5e88cc8e3",
+  "source": "engel-ai-main-server",
+  "updated_at_utc": "2026-08-26T00:56:14Z"
+}

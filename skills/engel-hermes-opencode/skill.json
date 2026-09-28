@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-26T00:45:19Z",
+  "created_by": "hermes-root-catalog-import-20260825",
+  "description": "Delegate coding to OpenCode CLI (features, PR review).",
+  "name": "Engel Hermes opencode",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-hermes-opencode",
+  "skill_md_sha256": "d45c3dd63d1bb10bf87a8f1f0172228ec401684b684095128ed4f3822313c9d6",
+  "source": "engel-ai-main-server",
+  "updated_at_utc": "2026-08-26T00:45:19Z"
+}

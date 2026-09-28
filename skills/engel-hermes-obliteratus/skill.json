@@ -1,0 +1,11 @@
+{
+  "created_at_utc": "2026-08-26T00:45:20Z",
+  "created_by": "hermes-root-catalog-import-20260825",
+  "description": "OBLITERATUS: abliterate LLM refusals (diff-in-means).",
+  "name": "Engel Hermes obliteratus",
+  "schema": "engel_saved_skill_manifest_v1",
+  "skillKey": "engel-hermes-obliteratus",
+  "skill_md_sha256": "f3cb17df29a1676afa2c5dd2a80f5c10bd6cdb3605244d94ba4a32d94966817a",
+  "source": "engel-ai-main-server",
+  "updated_at_utc": "2026-08-26T00:45:20Z"
+}
