@@ -208,7 +208,7 @@ def _open_draft(title: str, branch: str) -> str:
         _run([git, "branch", "-D", branch], SNAPSHOT_ROOT)
         return "Draft pull request was not opened. The commit failed."
     gh = str(_gh())
-    helper = f"!{gh} auth git-credential"
+    helper = "!/d/b.WorkSpace/engel-git-credential.sh"
     push = _run(
         [
             git,
