@@ -295,6 +295,8 @@ ENGEL_NATIVE_CRON_STATUS_ROUTE_ID = "engel.cron.status"
 ENGEL_NATIVE_MEMORY_STATUS_ROUTE_ID = "engel.memory.status"
 ENGEL_NATIVE_SKILLS_LIST_ROUTE_ID = "engel.skills.list"
 ENGEL_SAVED_SKILLS_LIST_ROUTE_ID = "engel.skills.saved_list"
+ENGEL_FEATURE_MAP_ROUTE_ID = "engel.feature_map.show"
+ENGEL_FEATURE_MAP_DRAFT_PR_ROUTE_ID = "engel.feature_map.draft_pr"
 ENGEL_NATIVE_SESSIONS_LIST_ROUTE_ID = "engel.sessions.list"
 ENGEL_NATIVE_SESSIONS_STATS_ROUTE_ID = "engel.sessions.stats"
 ENGEL_NATIVE_PLUGINS_LIST_ROUTE_ID = "engel.plugins.list"
@@ -4185,6 +4187,33 @@ UPDATE_ROUTES: tuple[EngelAIUpdateRoute, ...] = (
             "show saved skills",
             "saved skills",
         ),
+    ),
+    EngelAIUpdateRoute(
+        route_id=ENGEL_FEATURE_MAP_ROUTE_ID,
+        label="Engel feature map (user-facing map of Engel AI Main and its parts)",
+        target_module="engel_feature_map",
+        target_function="render_feature_map",
+        aliases=(
+            "feature map",
+            "engel feature map",
+            "pstack feature map",
+            "show feature map",
+        ),
+    ),
+    EngelAIUpdateRoute(
+        route_id=ENGEL_FEATURE_MAP_DRAFT_PR_ROUTE_ID,
+        label="Open a draft pull request on the public Engel source",
+        target_module="engel_feature_map",
+        target_function="render_open_draft_pr",
+        aliases=(
+            "open draft pr",
+            "open draft pull request",
+            "create draft pr",
+            "create draft pull request",
+        ),
+        read_only=False,
+        status_only=False,
+        no_provider_model_network=False,
     ),
     EngelAIUpdateRoute(
         route_id=ENGEL_NATIVE_SESSIONS_LIST_ROUTE_ID,
@@ -8364,6 +8393,14 @@ def render_update_route(route_id: str, payload: str = "") -> str:
             import engel_saved_skills_list
 
             return engel_saved_skills_list.render_saved_skills_list()
+        if route_id == ENGEL_FEATURE_MAP_ROUTE_ID:
+            import engel_feature_map
+
+            return engel_feature_map.render_feature_map(payload)
+        if route_id == ENGEL_FEATURE_MAP_DRAFT_PR_ROUTE_ID:
+            import engel_feature_map
+
+            return engel_feature_map.render_open_draft_pr(payload)
         if route_id == ENGEL_NATIVE_SESSIONS_LIST_ROUTE_ID:
             import engel_engel_agent_runner
 

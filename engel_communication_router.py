@@ -15,6 +15,8 @@ from engel_ai_update_routes import (
     ENGEL_ORCHESTRA_RUN_ROUTE_ID,
     ENGEL_SCRIPT_RUN_ROUTE_ID,
     ENGEL_SCRIPT_VALIDATE_ROUTE_ID,
+    ENGEL_FEATURE_MAP_DRAFT_PR_ROUTE_ID,
+    ENGEL_FEATURE_MAP_ROUTE_ID,
     ENGEL_SPEECH_SPC_COMPILE_ROUTE_ID,
     describe_update_route,
     is_update_route,
@@ -101,6 +103,14 @@ _ENGEL_SCRIPT_PREFIXES = (
     ("compile speech ", ENGEL_SPEECH_SPC_COMPILE_ROUTE_ID),
     ("speech spc compile ", ENGEL_SPEECH_SPC_COMPILE_ROUTE_ID),
     ("spc compile ", ENGEL_SPEECH_SPC_COMPILE_ROUTE_ID),
+    ("open draft pr ", ENGEL_FEATURE_MAP_DRAFT_PR_ROUTE_ID),
+    ("open draft pull request ", ENGEL_FEATURE_MAP_DRAFT_PR_ROUTE_ID),
+    ("create draft pr ", ENGEL_FEATURE_MAP_DRAFT_PR_ROUTE_ID),
+    ("create draft pull request ", ENGEL_FEATURE_MAP_DRAFT_PR_ROUTE_ID),
+    ("feature map ", ENGEL_FEATURE_MAP_ROUTE_ID),
+    ("engel feature map ", ENGEL_FEATURE_MAP_ROUTE_ID),
+    ("pstack feature map ", ENGEL_FEATURE_MAP_ROUTE_ID),
+    ("show feature map ", ENGEL_FEATURE_MAP_ROUTE_ID),
 )
 
 
@@ -530,6 +540,8 @@ def _known_command_route_target(normalized_text: str) -> str:
     if any(normalized_text.startswith(prefix) for prefix in KNOWN_COMMAND_PREFIXES):
         # Don't intercept if a registered update route alias matches — let it resolve.
         if resolve_update_route(normalized_text):
+            return ""
+        if _engel_script_invocation_route(normalized_text):
             return ""
         return "known_command"
     return ""

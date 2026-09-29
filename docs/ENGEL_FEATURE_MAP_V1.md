@@ -613,6 +613,304 @@ Opens a draft pull request on the public source repository.
 - This does not copy the change into the live server.
 - Poteto and Comment Sicko do not use this phrase.
 
+### Cosmic Swarm console
+
+The operator console for the rest of Engel AI Main: daily Chat, Status, and Settings, plus the Advanced desks.
+
+#### How a user gets there
+
+- Launch the Engel AI Main operator console.
+- Use the daily row: Chat, Status, Settings.
+- Open Advanced for Notes, Tasks, Models, Training, Devices, System, Proof, Agents, Goals, Memory, and Build.
+- No keyboard shortcut.
+
+#### How the control adapter drives it
+
+- A browser adapter cannot drive this window. Status: blocked.
+- A person opens one daily tab or one Advanced desk and reads that page.
+- Reset by returning to Chat.
+
+#### Stable selectors
+
+- Tabs Chat, Status, Settings
+- Advanced desks Notes, Tasks, Models, Training, Devices, System, Proof, Agents, Goals, Memory, Build
+
+#### States to exercise
+
+- Chat landing, Status open, Settings open, one Advanced desk, error
+
+#### Preconditions and setup
+
+- Auth: the person at this computer
+- Data: local Engel records for the desk being opened
+- Permissions: read. Josh before a change
+- Flags: none
+- Services: the operator console
+
+#### Evidence and cross-check
+
+- Screenshot: the open tab name
+- Video: open Status, then return to Chat
+- Cross-check: the tab name matches the desk
+
+#### Gotchas
+
+- The four-panel desktop chat is a different window.
+- Settings must not show a saved key.
+
+### Control Room
+
+The window that shows whether the one system, the Meeting Room, Discord, and the phones are up.
+
+#### How a user gets there
+
+- Launch the Engel Control Room.
+- No keyboard shortcut.
+
+#### How the control adapter drives it
+
+- Browser control cannot drive this window. Status: blocked.
+- A person reads the status rows.
+- Reset by closing the window. Do not start a service from this map.
+
+#### Stable selectors
+
+- Window title Control Room
+- Status rows for chat, Meeting Room, Discord, and the phones
+
+#### States to exercise
+
+- Rows visible, one row unavailable, error
+
+#### Preconditions and setup
+
+- Auth: the person at this computer
+- Data: live status probes
+- Permissions: read
+- Flags: none
+- Services: Control Room window
+
+#### Evidence and cross-check
+
+- Screenshot: the status rows
+- Video: open the window
+- Cross-check: a phone row names Alpha, Beta, or Gamma, not a serial
+
+#### Gotchas
+
+- Control Room is a face. It is not a second Engel body.
+- Do not put a house network address in a public note.
+
+### Wiki One
+
+The living map of Engel AI Main.
+
+#### How a user gets there
+
+- In Engel AI Main chat, say `wiki one`.
+- No keyboard shortcut.
+
+#### How the control adapter drives it
+
+- A person uses the chat phrase.
+- The reply shows the body map.
+- Reset by asking `wiki one` again.
+
+#### Stable selectors
+
+- Phrase `wiki one`
+
+#### States to exercise
+
+- Map shown, journal shown, error
+
+#### Preconditions and setup
+
+- Auth: read
+- Data: the Wiki One file
+- Permissions: read. A duty change is a separate job
+- Flags: none
+- Services: local Engel
+
+#### Evidence and cross-check
+
+- Screenshot: the wiki reply
+- Video: say `wiki one`
+- Cross-check: the reply names organs, not a secret
+
+#### Gotchas
+
+- Wiki One is not the Notes desk.
+- Updating the wiki is not the same phrase as reading it.
+
+### REPS
+
+The improvement loop: Record, Evaluate, Propose, Sign-off.
+
+#### How a user gets there
+
+- Read the REPS note for the job Engel just finished.
+- No keyboard shortcut.
+
+#### How the control adapter drives it
+
+- Browser control does not apply.
+- A person reads the record, the score, the proposal, and who must sign.
+- Reset by leaving the note unchanged.
+
+#### Stable selectors
+
+- Labels Record, Evaluate, Propose, Sign-off
+
+#### States to exercise
+
+- A record present, a proposal waiting, sign-off still with Josh
+
+#### Preconditions and setup
+
+- Auth: Josh for sign-off
+- Data: the job note
+- Permissions: read
+- Flags: none
+- Services: local Engel records
+
+#### Evidence and cross-check
+
+- Screenshot: the four labels
+- Video: open one note
+- Cross-check: sign-off is still Josh's
+
+#### Gotchas
+
+- A REPS note does not apply a change by itself.
+- This is not a provider call.
+
+### Graph and Loop Studio
+
+The engineering graph window beside Engel.
+
+#### How a user gets there
+
+- In Engel AI Main chat, say `open graph studio`.
+- No keyboard shortcut.
+
+#### How the control adapter drives it
+
+- Browser control does not apply.
+- A person opens the studio and reads the graph list.
+- Reset by closing the studio. Do not create a graph from this map.
+
+#### Stable selectors
+
+- Phrase `open graph studio`
+- Phrase `graph studio list`
+
+#### States to exercise
+
+- Studio closed, studio open, list empty, list with one graph
+
+#### Preconditions and setup
+
+- Auth: the person at this computer
+- Data: saved graphs, if any
+- Permissions: read to list. Josh before a new graph
+- Flags: none
+- Services: Graph and Loop Studio
+
+#### Evidence and cross-check
+
+- Screenshot: the studio window or the list reply
+- Video: say `open graph studio`
+- Cross-check: the studio is an Engel part, not a second body
+
+#### Gotchas
+
+- `new engel graph` creates a graph. This map only opens and lists.
+
+### Sub-Engel
+
+The paired nest a guest reaches by addressing Sub-Engel.
+
+#### How a user gets there
+
+- In Discord, address Sub-Engel in a room where guests may speak.
+- No keyboard shortcut.
+
+#### How the control adapter drives it
+
+- Posting is blocked. A person reads the Sub-Engel reply.
+- Reset is not required.
+
+#### Stable selectors
+
+- Name Sub-Engel
+
+#### States to exercise
+
+- Silent unless addressed, a reply when addressed, roll call
+
+#### Preconditions and setup
+
+- Auth: a person in the Discord server
+- Data: the message that addresses Sub-Engel
+- Permissions: read
+- Flags: none
+- Services: the Sub-Engel mouth
+
+#### Evidence and cross-check
+
+- Screenshot: a reply that starts only after Sub-Engel was addressed
+- Video: not required while posting is blocked
+- Cross-check: Engel AI Main does not answer as Sub-Engel
+
+#### Gotchas
+
+- This computer is not Sub-Engel.
+- Do not put a machine name or a network address in a public note.
+
+### Verifiers
+
+The local proof Engel runs before a job is called done.
+
+#### How a user gets there
+
+- Ask for the verifier that matches the files just changed.
+- No keyboard shortcut.
+
+#### How the control adapter drives it
+
+- Browser control does not apply.
+- A person runs the named verifier and reads pass or fail.
+- Reset by leaving the source unchanged after a failure.
+
+#### Stable selectors
+
+- Verifier name printed at the end of the run
+- Phrase `feature map` still returns the section index after this map changes
+
+#### States to exercise
+
+- Pass, fail, a missing verifier file
+
+#### Preconditions and setup
+
+- Auth: the person at this computer
+- Data: the files under test
+- Permissions: read and run a local verifier
+- Flags: none
+- Services: the local Python Engel owns
+
+#### Evidence and cross-check
+
+- Screenshot: the pass line
+- Video: run one verifier
+- Cross-check: a fail lists the check name
+
+#### Gotchas
+
+- A screenshot is not a pass.
+- The full sweep is longer than one feature-map check.
+
 ## Completeness checklist
 
 - Every user-facing part above has a section.

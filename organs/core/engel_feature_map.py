@@ -13,7 +13,7 @@ import subprocess
 from datetime import datetime, timezone
 from pathlib import Path
 
-_ROOT = __import__("engel_project_paths").resolve_engel_app_root(__file__)
+_ROOT = Path(__file__).resolve().parents[2]
 FEATURE_MAP_PATH = _ROOT / "docs" / "ENGEL_FEATURE_MAP_V1.md"
 SNAPSHOT_ROOT = Path(r"D:\b.WorkSpace\engel-app-github-snapshot")
 GITHUB_REPO = "engelstands-hue/engel-ai-main"
@@ -157,6 +157,20 @@ def _gh() -> Path:
     return candidate if candidate.is_file() else Path("gh")
 
 
+def _credential_helper() -> str:
+    """Write a space-free helper so git can ask gh for credentials."""
+    script = Path(r"D:\b.WorkSpace\engel-git-credential.sh")
+    gh_path = str(_gh()).replace("\\", "/")
+    if len(gh_path) >= 2 and gh_path[1] == ":":
+        gh_path = "/" + gh_path[0].lower() + gh_path[2:]
+    script.write_text(
+        "#!/bin/sh\n" + f'exec "{gh_path}" auth git-credential "$@"\n',
+        encoding="utf-8",
+        newline="\n",
+    )
+    return "!/d/b.WorkSpace/engel-git-credential.sh"
+
+
 def _run(args: list[str], cwd: Path, *, env: dict[str, str] | None = None) -> subprocess.CompletedProcess[str]:
     merged = os.environ.copy()
     if env:
@@ -208,7 +222,7 @@ def _open_draft(title: str, branch: str) -> str:
         _run([git, "branch", "-D", branch], SNAPSHOT_ROOT)
         return "Draft pull request was not opened. The commit failed."
     gh = str(_gh())
-    helper = "!/d/b.WorkSpace/engel-git-credential.sh"
+    helper = _credential_helper()
     push = _run(
         [
             git,
@@ -253,6 +267,28 @@ def _open_draft(title: str, branch: str) -> str:
     )
     _run([git, "checkout", "main"], SNAPSHOT_ROOT)
     if created.returncode != 0:
+        existing = _run(
+            [
+                gh,
+                "pr",
+                "list",
+                "--repo",
+                GITHUB_REPO,
+                "--head",
+                branch,
+                "--state",
+                "open",
+                "--json",
+                "url",
+            ],
+            SNAPSHOT_ROOT,
+            env={"PATH": git_dir + os.pathsep + os.environ.get("PATH", "")},
+        )
+        if existing.returncode == 0 and "https://github.com/" in existing.stdout:
+            start = existing.stdout.find("https://github.com/")
+            url = existing.stdout[start:].split('"')[0].strip()
+            if url.startswith("https://github.com/"):
+                return f"Draft pull request already open: {url}"
         return f"Branch {branch} was pushed. The draft pull request command failed."
     url = created.stdout.strip().splitlines()[-1] if created.stdout.strip() else ""
     if not url.startswith("https://github.com/"):

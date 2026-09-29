@@ -39,7 +39,33 @@ def main() -> int:
     text = FEATURE_MAP_PATH.read_text(encoding="utf-8") if FEATURE_MAP_PATH.is_file() else ""
     require(FEATURE_MAP_PATH.is_file(), "feature map file exists")
     sections = feature_sections(text)
-    require(len(sections) >= 14, "feature map covers Engel and the surrounding parts")
+    required_titles = (
+        "Engel AI Main desktop chat",
+        "Engel AI Main one-system chat",
+        "Agent Meeting Room",
+        "Discord house",
+        "Discord desk rooms",
+        "Android workers",
+        "Public website",
+        "Public source",
+        "Slack channel",
+        "Public X account",
+        "Saved skills and Pstack",
+        "Architect founder gate",
+        "Feature map",
+        "Draft pull request",
+        "Cosmic Swarm console",
+        "Control Room",
+        "Wiki One",
+        "REPS",
+        "Graph and Loop Studio",
+        "Sub-Engel",
+        "Verifiers",
+    )
+    titles = {title for title, _body in sections}
+    require(len(sections) == len(required_titles), "feature map section count is exact")
+    for title in required_titles:
+        require(title in titles, "feature map includes " + title)
     for title, body in sections:
         for heading in REQUIRED:
             require(f"#### {heading}" in body, f"{title} has {heading}")
