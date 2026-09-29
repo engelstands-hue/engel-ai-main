@@ -226,6 +226,7 @@ def _open_draft(title: str, branch: str) -> str:
     if push.returncode != 0:
         _run([git, "checkout", "main"], SNAPSHOT_ROOT)
         return "Draft pull request was not opened. The branch push failed."
+    git_dir = str(_git().parent)
     created = _run(
         [
             gh,
@@ -248,6 +249,7 @@ def _open_draft(title: str, branch: str) -> str:
             ),
         ],
         SNAPSHOT_ROOT,
+        env={"PATH": git_dir + os.pathsep + os.environ.get("PATH", "")},
     )
     _run([git, "checkout", "main"], SNAPSHOT_ROOT)
     if created.returncode != 0:
