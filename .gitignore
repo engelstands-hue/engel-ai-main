@@ -4,6 +4,7 @@ __pycache__/
 *$py.class
 
 # Local secrets (Discord bot token etc.) — NEVER commit
+.cursor/benny/slack.local.yaml
 .env
 .env.local
 .env.*.local

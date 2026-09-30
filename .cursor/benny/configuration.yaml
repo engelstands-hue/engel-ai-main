@@ -1,14 +1,13 @@
 # User-owned Benny configuration. No secrets.
 # The feature map lives outside the Pstack pack.
+# Slack workspace, channel name, and channel id stay in the gitignored local file.
 
 schema: engel_benny_configuration_v1
 authority: Josh > Guardian > Engel/runtime
 automation: dispatch-only
 
 source:
-  slack_workspace: private workspace
-  slack_channel_name: private-channel
-  slack_channel_id: REDACTED
+  slack_target: private-machine-only
 
 repository:
   url: https://github.com/engelstands-hue/engel-ai-main
