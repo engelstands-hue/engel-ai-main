@@ -216,7 +216,7 @@ def _group_for_route(route_id: str) -> str:
     if route_id.startswith("engel.route_explorer"):
         return "Route Explorer"
     # Engel saved-skill registry (skills/ + memory/skills), not hermes-native
-    if route_id == "engel.skills.saved_list":
+    if route_id == "engel.skills.saved_list" or route_id.startswith("engel.feature_map"):
         return "Core Status"
     # Native runtime / gateway / system
     if route_id in (

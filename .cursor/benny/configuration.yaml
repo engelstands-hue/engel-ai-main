@@ -1,0 +1,28 @@
+# User-owned Benny configuration. No secrets.
+# The feature map lives outside the Pstack pack.
+
+schema: engel_benny_configuration_v1
+authority: Josh > Guardian > Engel/runtime
+automation: dispatch-only
+
+source:
+  slack_workspace: private workspace
+  slack_channel_name: private-channel
+  slack_channel_id: REDACTED
+
+repository:
+  url: https://github.com/engelstands-hue/engel-ai-main
+  default_branch: main
+
+control:
+  feature_map_path: docs/ENGEL_FEATURE_MAP_V1.md
+  skill: engel-feature-map
+
+pull_request:
+  draft: true
+  url_format: https://github.com/engelstands-hue/engel-ai-main/pull/{number}
+  branch_prefix: collab/
+
+tracker:
+  type: none
+  note: Triage does not create tracker issues until Josh names a tracker.
