@@ -772,7 +772,7 @@ void main() {
         error: '',
         visibleParticipantCount: 4,
       );
-      expect(meetingRoomReadinessLabel(ready), '4 workers connected');
+      expect(meetingRoomReadinessLabel(ready), 'Meeting Room reachable');
       expect(
         meetingRoomReadinessDetail(ready),
         contains('go to 4 connected workers'),
@@ -795,7 +795,7 @@ void main() {
         error: '',
         visibleParticipantCount: 0,
       );
-      expect(meetingRoomReadinessLabel(noWorkers), 'No workers connected');
+      expect(meetingRoomReadinessLabel(noWorkers), 'Meeting Room reachable');
       expect(meetingRoomReadinessDetail(noWorkers), contains('Keep the draft'));
     },
   );
@@ -3955,6 +3955,11 @@ void main() {
     await tester.tap(find.byKey(const Key('settings-devices')));
     await tester.pump();
 
+    expect(find.text('Devices & Workers'), findsOneWidget);
+    await tester.tap(find.byKey(const Key('section-menu-device_visibility')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Swarm 3D').last);
+    await tester.pumpAndSettle();
     expect(find.text('Engel Device Swarm 3D'), findsOneWidget);
     expect(find.text('Add Device'), findsOneWidget);
     expect(find.text('Find & Add Devices'), findsOneWidget);
@@ -4783,16 +4788,8 @@ void main() {
       expect(find.textContaining('strict local-only run'), findsNothing);
       expect(find.byKey(const Key('training-recovery-state')), findsOneWidget);
       expect(tester.takeException(), isNull);
-      final retry = find.byKey(const Key('training-recovery-try-again'));
-      expect(find.text('Review and try again'), findsOneWidget);
-      await tester.ensureVisible(retry);
-      await tester.tap(retry);
-      await tester.pumpAndSettle();
-
-      expect(find.text('Start one-hour training?'), findsOneWidget);
-      expect(starter.calls, isEmpty);
-      await tester.tap(find.text('Cancel'));
-      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('training-recovery-try-again')), findsNothing);
+      expect(find.text('Review and try again'), findsNothing);
       expect(starter.calls, isEmpty);
     },
   );
@@ -6247,17 +6244,8 @@ void main() {
     expect(find.text('Last training failed'), findsOneWidget);
     expect(find.byKey(const Key('training-recovery-state')), findsOneWidget);
     expect(find.byKey(const Key('training-recovery-open-log')), findsOneWidget);
-    final tryAgain = find.byKey(const Key('training-recovery-try-again'));
-    expect(tryAgain, findsOneWidget);
-
-    await tester.ensureVisible(tryAgain);
-    await tester.tap(tryAgain);
-    await tester.pumpAndSettle();
-
-    expect(find.text('Start one-hour training?'), findsOneWidget);
-    expect(starter.calls, hasLength(1));
-    await tester.tap(find.text('Cancel'));
-    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('training-recovery-try-again')), findsNothing);
+    expect(find.text('Review and try again'), findsNothing);
     expect(starter.calls, hasLength(1));
   });
 
@@ -6391,55 +6379,14 @@ void main() {
     refresh!();
     await pumpUntil(
       tester,
-      () => find
-          .byKey(const Key('training-recovery-resume'))
-          .evaluate()
-          .isNotEmpty,
-      reason: 'The safe continuation action did not appear.',
+      () => find.textContaining('28 of 50 complete').evaluate().isNotEmpty,
+      reason: 'The failed training count did not appear.',
     );
 
     expect(find.textContaining('28 of 50 complete'), findsOneWidget);
-    expect(find.text('Resume 17 prompts'), findsOneWidget);
-    expect(
-      find.textContaining('prompt 34, the first unused prompt'),
-      findsWidgets,
-    );
-    final resume = find.byKey(const Key('training-recovery-resume'));
-    await tester.ensureVisible(resume);
-    await tester.tap(resume);
-    await tester.pumpAndSettle();
-
-    expect(find.text('Resume 5-hour training?'), findsOneWidget);
-    expect(find.textContaining('Resume point: prompt 34'), findsOneWidget);
-    expect(find.textContaining('Prompts remaining: 17'), findsOneWidget);
-    expect(
-      find.textContaining(
-        'keep this PC awake and unlocked for up to 102 minutes',
-      ),
-      findsOneWidget,
-    );
-    expect(
-      find.textContaining('prior receipts and pack stay preserved'),
-      findsOneWidget,
-    );
-    await tester.tap(find.byKey(const Key('confirm-hour-training')));
-    await tester.pumpAndSettle();
-
-    expect(starter.calls, hasLength(1));
-    final call = starter.calls.single;
-    expect(call.arguments[call.arguments.indexOf('-Hours') + 1], '5');
-    expect(
-      call.arguments[call.arguments.indexOf('-TrainingLevel') + 1],
-      'expert',
-    );
-    expect(
-      call.arguments[call.arguments.indexOf('-TrainingsPerHour') + 1],
-      '10',
-    );
-    expect(call.arguments[call.arguments.indexOf('-StartIndex') + 1], '34');
-    expect(call.arguments[call.arguments.indexOf('-TemplateCycle') + 1], '1');
-    starter.exitCode.complete(0);
-    await pumpAction(tester);
+    expect(find.byKey(const Key('training-recovery-resume')), findsNothing);
+    expect(find.text('Resume 17 prompts'), findsNothing);
+    expect(starter.calls, isEmpty);
   });
 
   testWidgets('Fully reserved failed plan requires new material', (
@@ -10175,7 +10122,8 @@ void main() {
       expect(find.byKey(const Key('dispatch-draft-router')), findsOneWidget);
       expect(find.byKey(const Key('dispatch-draft-input')), findsOneWidget);
       expect(find.text('Dispatch Draft Classification'), findsOneWidget);
-      expect(find.textContaining('SUB_ENGEL_WORK_ORDERS'), findsOneWidget);
+      expect(find.textContaining('Orders waiting:'), findsWidgets);
+      expect(find.textContaining('SUB_ENGEL_WORK_ORDERS'), findsNothing);
       expect(find.textContaining('Draft status: empty'), findsOneWidget);
       expect(
         find.byKey(const Key('write-sub-engel-work-order')),
@@ -10615,35 +10563,13 @@ void main() {
     expect(find.text('Returned Sub-Engel Work'), findsWidgets);
     expect(find.text('Standalone Sub-Engel Zip'), findsOneWidget);
     expect(find.text('Standalone Sub-Engel Download'), findsOneWidget);
-    expect(find.textContaining('Packaged CLI self-test'), findsOneWidget);
-    expect(find.textContaining('receipt 3C1C4BFB'), findsOneWidget);
-    expect(find.textContaining('Packaged lifecycle demo'), findsOneWidget);
-    expect(find.textContaining('receipt E12457BF'), findsWidgets);
-    expect(
-      find.textContaining(
-        '4CB483378B202C11DE2C2EA2E9BB0DA249B6E04701D12CD2F6D88ADAEA31A16A',
-      ),
-      findsOneWidget,
-    );
-    expect(find.textContaining('Engel AI Sub-Engel'), findsWidgets);
-    expect(find.textContaining('Qwen2.5-0.5B-Instruct'), findsWidgets);
-    expect(
-      find.textContaining('Standalone zip proof: 8A5D791E'),
-      findsOneWidget,
-    );
+    expect(find.textContaining('not proven live'), findsNothing);
+    expect(find.textContaining('Standalone zip proof'), findsNothing);
     expect(find.text('Main-Side W Drive Action'), findsOneWidget);
-    expect(find.textContaining('Bus append state:'), findsOneWidget);
-    expect(find.textContaining('Shared room live doc lines:'), findsOneWidget);
-    expect(find.textContaining('Main work orders:'), findsOneWidget);
-    expect(find.textContaining('Returned Sub-Engel files:'), findsOneWidget);
-    await tester.drag(
-      find.textContaining('Returned Sub-Engel files:'),
-      const Offset(0, -140),
-    );
-    await tester.pump();
-    expect(find.textContaining('Latest Main work order:'), findsOneWidget);
-    expect(find.textContaining('Latest returned work:'), findsOneWidget);
-    expect(find.textContaining('SUB_ENGEL_SENT_WORK'), findsWidgets);
+    expect(find.textContaining('Shared room:'), findsWidgets);
+    expect(find.textContaining('Orders waiting:'), findsWidgets);
+    expect(find.textContaining('SUB_ENGEL_SENT_WORK'), findsNothing);
+    expect(find.textContaining('Bus append state:'), findsNothing);
   });
 
   testWidgets('retired control matrix resolves to Command Center', (

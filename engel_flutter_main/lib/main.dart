@@ -3735,11 +3735,7 @@ String meetingRoomReadinessLabel(MeetingRoomServerInfo info) {
   if (!info.ok && status == 'not checked') return 'Checking Meeting Room';
   if (!info.ok && status == 'starting') return 'Connecting Meeting Room';
   if (!info.ok) return 'Meeting Room needs connection';
-  final visible = info.visibleParticipantCount;
-  if (visible == 0) return 'No workers connected';
-  if (visible == 1) return '1 worker connected';
-  if (visible != null) return '$visible workers connected';
-  return 'Meeting Room available';
+  return 'Meeting Room reachable';
 }
 
 String meetingRoomReadinessDetail(MeetingRoomServerInfo info) {
@@ -8313,13 +8309,20 @@ class _EngelMainShellState extends _EngelTrainingSection {
       _status = 'scanning artifacts';
     });
     final roots = const [
-      ['receipt', '$appRoot\\memory', '.md'],
+      ['receipt', '$appRoot\\memory', '.md', 'prefix'],
+      ['receipt', '$appRoot\\reports\\codex_bridge', '.md', 'markdown'],
       [
         'screenshot',
         '$appRoot\\reports\\gui_reverse_engineering_20260606',
         '.png',
+        'image',
       ],
-      ['report', '$appRoot\\reports\\gui_reverse_engineering_20260606', '.txt'],
+      [
+        'report',
+        '$appRoot\\reports\\gui_reverse_engineering_20260606',
+        '.txt',
+        'text',
+      ],
     ];
     final rows = <ArtifactInfo>[];
     final receiptNames = <String>{};
@@ -8363,7 +8366,8 @@ class _EngelMainShellState extends _EngelTrainingSection {
               routeCoverageUnreferencedCommands = null;
             }
           }
-          if (!name.startsWith('ENGEL')) continue;
+          final countAllMarkdown = root.length > 3 && root[3] == 'markdown';
+          if (!countAllMarkdown && !name.startsWith('ENGEL')) continue;
           engelReceiptTotal++;
         } else if (root[0] == 'screenshot') {
           guiScreenshotTotal++;
@@ -12855,14 +12859,14 @@ $receipt | ConvertTo-Json -Depth 4
       final file = File(path);
       var body = await file.exists()
           ? await file.readAsString()
-          : 'Wiki One file missing:\n$path';
+          : 'Wiki One file is missing.';
       if (_wikiBrainView == 'organs') {
         body = _formatWikiOrgans(body);
       }
       if (!mounted) return;
       setState(() {
         _wikiBrainText = body;
-        _wikiBrainStatus = 'loaded $path';
+        _wikiBrainStatus = 'Wiki One loaded';
       });
     } catch (error) {
       if (!mounted) return;
@@ -18040,8 +18044,16 @@ $result | ConvertTo-Json -Compress -Depth 5
       // full day while every port was actually up. Re-scan on open.
       unawaited(_refreshEngelBridgeStatus(quiet: true));
     }
-    if (resolvedId == 'tasks' || resolvedId == 'meeting') {
+    if (resolvedId == 'tasks' ||
+        resolvedId == 'meeting' ||
+        resolvedId == 'status_console') {
       unawaited(_refreshMeetingRoomServer());
+    }
+    if (resolvedId == 'status_console' ||
+        resolvedId == 'settings' ||
+        resolvedId == 'main' ||
+        resolvedId == 'device_visibility') {
+      unawaited(_scanDeviceVisibility());
     }
     if (resolvedId == 'intent_bridge') {
       unawaited(_refreshLiftedIntentReceipt());
@@ -20005,10 +20017,28 @@ $result | ConvertTo-Json -Compress -Depth 5
                             _goalMeterHeading('Open'),
                             ...openEntries.map(meterTile),
                           ],
-                          if (stoppedEntries.isNotEmpty) ...[
-                            _goalMeterHeading('Could not finish'),
-                            ...stoppedEntries.map(meterTile),
-                          ],
+                          if (stoppedEntries.isNotEmpty)
+                            Theme(
+                              data: Theme.of(context).copyWith(
+                                dividerColor: Colors.transparent,
+                              ),
+                              child: ExpansionTile(
+                                key: const Key('goals-stopped-cards'),
+                                initiallyExpanded: false,
+                                tilePadding: EdgeInsets.zero,
+                                iconColor: const Color(0xffb8c6dd),
+                                collapsedIconColor: const Color(0xff8b98a5),
+                                title: Text(
+                                  'Could not finish (${stoppedEntries.length})',
+                                  style: const TextStyle(
+                                    color: Color(0xffb8c6dd),
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                                children: stoppedEntries.map(meterTile).toList(),
+                              ),
+                            ),
                           if (finishedEntries.isNotEmpty) ...[
                             _goalMeterHeading('Finished'),
                             ...finishedEntries.map(meterTile),
@@ -22142,9 +22172,7 @@ $result | ConvertTo-Json -Compress -Depth 5
         : EngelLiquidGlass.bad;
     final phoneSummary = _deviceReadySummary();
     final meetingOk = _meetingRoomServer.ok;
-    final meetingLabel = meetingOk
-        ? 'Meeting Room reachable'
-        : 'Meeting Room offline';
+    final meetingLabel = meetingRoomReadinessLabel(_meetingRoomServer);
 
     return _PageFrame(
       child: Center(
@@ -32454,7 +32482,15 @@ $result | ConvertTo-Json -Compress -Depth 5
                     ],
                   ),
                   const SizedBox(height: 9),
-                  Expanded(child: _deviceSwarmViewport(devices)),
+                  Expanded(
+                    child: _deviceSwarmViewport(
+                      devices
+                          .where(
+                            (node) => node.classification != 'lan_candidate',
+                          )
+                          .toList(growable: false),
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -32813,12 +32849,23 @@ $result | ConvertTo-Json -Compress -Depth 5
               ],
             ),
             const SizedBox(height: 12),
-            _swarmDiscoverySection(
-              title: 'Unassigned LAN devices',
-              icon: Icons.wifi_tethering,
-              empty:
-                  'No unassigned LAN candidates were present in the authoritative audit.',
-              nodes: candidateNodes,
+            ExpansionTile(
+              key: const Key('swarm-unassigned-lan'),
+              initiallyExpanded: false,
+              tilePadding: EdgeInsets.zero,
+              title: const Text('Unassigned LAN devices'),
+              subtitle: Text(
+                candidateNodes.isEmpty
+                    ? 'Scan network to list gear that is not an Engel worker.'
+                    : '${candidateNodes.length} found. These are not Engel workers.',
+                style: const TextStyle(color: Color(0xff9fb1c3), fontSize: 12),
+              ),
+              children: [
+                for (final node in candidateNodes.take(24)) ...[
+                  _swarmCandidateTile(node),
+                  const SizedBox(height: 7),
+                ],
+              ],
             ),
             const SizedBox(height: 10),
             _swarmDiscoverySection(
@@ -32905,13 +32952,10 @@ $result | ConvertTo-Json -Compress -Depth 5
   String _swarmIdentityLine(SwarmDeviceNode node) {
     final parts = <String>[
       if (node.hostName.isNotEmpty) node.hostName,
-      node.ip,
       node.classification == 'unclassified' ? node.role : node.classification,
-      if (node.macAddress.isNotEmpty) 'MAC ${node.macAddress}',
       if (node.interfaceName.isNotEmpty) node.interfaceName,
-      if (node.openPorts.isNotEmpty) 'ports ${node.openPorts}',
     ];
-    return parts.join(' / ');
+    return parts.where((part) => part.trim().isNotEmpty).join(' / ');
   }
 
   Widget _swarmCandidateTile(SwarmDeviceNode node) {
@@ -32955,9 +32999,7 @@ $result | ConvertTo-Json -Compress -Depth 5
               ),
               const SizedBox(height: 5),
               Text(
-                identityLine.isEmpty
-                    ? '${node.ip} / ${node.role}'
-                    : identityLine,
+                identityLine.isEmpty ? node.role : identityLine,
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
                 style: const TextStyle(color: Color(0xffaab8c6), fontSize: 12),
@@ -35147,7 +35189,9 @@ $result | ConvertTo-Json -Compress -Depth 5
                         Expanded(
                           child: screenshots.isEmpty
                               ? const Center(
-                                  child: Text('No screenshots found.'),
+                                  child: Text(
+                                    'No screenshot was saved for this check.',
+                                  ),
                                 )
                               : GridView.builder(
                                   gridDelegate:
@@ -37739,12 +37783,11 @@ $result | ConvertTo-Json -Compress -Depth 5
                 SizedBox(
                   height: 246,
                   child: _catalogPanel('Dispatch Runtime State', [
-                    'Android workers: use Device Visibility for LAN health and phone identity.',
-                    'Shared room: $appRoot\\run\\sub_engel_transport keeps cross-device receipts visible.',
-                    'Sub-Engel work orders: $appRoot\\run\\sub_engel_transport\\SUB_ENGEL_WORK_ORDERS',
-                    'Sub-Engel returned work: $appRoot\\run\\sub_engel_transport\\SUB_ENGEL_SENT_WORK',
+                    'Android workers: use Devices for phone readiness.',
+                    'Shared room: ${(_subEngelSharedRoomQueue.workOrdersExist || _subEngelSharedRoomQueue.sentWorkExist) ? 'loaded' : 'not loaded'}',
+                    'Orders waiting: ${_subEngelSharedRoomQueue.workOrderCount}',
+                    'Returned files: ${_subEngelSharedRoomQueue.sentWorkCount}',
                     'Remote result intake stays untrusted until verified.',
-                    'Last command: ${_lastCommand.isEmpty ? 'none' : _lastCommand}',
                   ], icon: Icons.device_hub),
                 ),
                 const SizedBox(height: 12),
@@ -41015,7 +41058,9 @@ $result | ConvertTo-Json -Compress -Depth 5
                               _ControlAction(
                                 icon: Icons.outbox,
                                 title: 'Returned Sub-Engel Work',
-                                subtitle: sentWork.status,
+                                subtitle: sentWork.exists
+                                    ? '${sentWork.fileCount} returned files'
+                                    : 'Returned work is not loaded',
                                 onPressed: _scanSubEngelSharedRoomQueues,
                               ),
                               _ControlAction(
@@ -41098,21 +41143,10 @@ $result | ConvertTo-Json -Compress -Depth 5
                   SizedBox(
                     height: 205,
                     child: _catalogPanel('Main-Side W Drive Action', [
-                      'Action path: ${action.path}',
-                      'Bus append state: ${action.appendState}',
-                      'Shared room live doc lines: ${action.liveDocLineCount}',
-                      'Modified: ${action.modified ?? 'not loaded'}',
-                      action.nextStep.isEmpty
-                          ? 'Next step: load H drive action file.'
-                          : 'Next step: ${action.nextStep}',
-                      action.appendWarning.isEmpty
-                          ? 'Append guard: no warning loaded yet.'
-                          : 'Append guard: ${action.appendWarning}',
-                      action.busProof.isEmpty
-                          ? 'Live bus proof: no W callback result loaded yet.'
-                          : 'Live bus proof: ${action.busProof}',
-                      'Policy audit: ${audit.status}',
-                      'Guest allowed: ${audit.guestAllowed ? 'YES' : 'NO'} / denied: ${audit.guestDenied ? 'YES' : 'NO'} / exit: ${audit.exitCode ?? 'not run'}',
+                      'Shared room: ${(sharedQueue.workOrdersExist || sharedQueue.sentWorkExist) ? 'loaded' : 'not loaded'}',
+                      'Orders waiting: ${sharedQueue.workOrderCount}',
+                      'Returned files: ${sharedQueue.sentWorkCount}',
+                      'Live notes: ${action.liveDocLineCount}',
                     ], icon: Icons.policy),
                   ),
                 ],
@@ -41130,21 +41164,9 @@ $result | ConvertTo-Json -Compress -Depth 5
                   height: 238,
                   child: _catalogPanel(
                     'Standalone Sub-Engel Download',
-                    [
-                      'Standalone zip proof: 8A5D791E / result $subEngelPackagedLifecycleResultSha256',
-                      'Packaged CLI self-test receipt ${subEngelPackagedCliSelfTestReceiptSha256.substring(0, 8)}: recorded reference; not proven live',
-                      'Packaged lifecycle demo receipt ${subEngelPackagedLifecycleReceiptSha256.substring(0, 8)}: recorded reference; not proven live',
-                      'Shared-room lanes: Main Work Orders, Incoming, Local Done, Shared Sent Work',
-                      'Zip: $appRoot\\dist\\EngelAI-SubEngel-Standalone-20260607.zip',
-                      'Zip SHA256: $subEngelStandaloneZipSha256',
-                      'Packaged CLI receipt SHA256: not proven live',
-                      'Packaged CLI receipt: not proven live',
-                      'Packaged lifecycle receipt: not proven live',
-                      'Packaged lifecycle receipt SHA256: not proven live',
-                      'Branding: Engel AI Sub-Engel / standalone Windows node GUI',
-                      'GUI proof: reports\\gui_reverse_engineering_20260606\\engel_sub_engel_standalone_gui_final_zip_live.png',
-                      'Included LLM: Qwen2.5-0.5B-Instruct Q5_K_M GGUF / 522186592 bytes',
-                      'Model SHA256: $subEngelStandaloneModelSha256',
+                    const [
+                      'Package hashes stay off this page until a live install is proven.',
+                      'Use Devices for phone and Sub-Engel readiness.',
                     ],
                     icon: Icons.download_for_offline,
                   ),
@@ -41153,40 +41175,26 @@ $result | ConvertTo-Json -Compress -Depth 5
                 SizedBox(
                   height: 220,
                   child: _catalogPanel('Live Shared Work Queue', [
-                    'Status: ${sharedQueue.status}',
-                    'Main work orders: ${sharedQueue.workOrderCount}',
-                    'Returned Sub-Engel files: ${sharedQueue.sentWorkCount}',
-                    'Latest Main work order: ${sharedQueue.latestWorkOrder.isEmpty ? 'none yet' : sharedQueue.latestWorkOrder}',
-                    'Latest returned work: ${sharedQueue.latestSentWork.isEmpty ? 'none yet' : sharedQueue.latestSentWork}',
-                    'Work orders folder: ${sharedQueue.workOrdersPath}',
-                    'Sent work folder: ${sharedQueue.sentWorkPath}',
-                    'Latest Main work order bytes: ${sharedQueue.latestWorkOrderBytes}',
-                    'Latest returned work bytes: ${sharedQueue.latestSentWorkBytes}',
-                    'Purpose: Main sees what Sub-Engels are looking for and what they sent back.',
+                    'Shared room: ${(sharedQueue.workOrdersExist || sharedQueue.sentWorkExist) ? 'loaded' : 'not loaded'}',
+                    'Orders waiting: ${sharedQueue.workOrderCount}',
+                    'Returned files: ${sharedQueue.sentWorkCount}',
                   ], icon: Icons.move_to_inbox),
                 ),
                 const SizedBox(height: 12),
                 SizedBox(
                   height: 150,
                   child: _catalogPanel('Returned Sub-Engel Work', [
-                    'Folder: ${sentWork.path}',
-                    'Status: ${sentWork.status}',
-                    'Latest file: ${sentWork.latestFile.isEmpty ? 'none yet' : sentWork.latestFile}',
-                    'Latest bytes: ${sentWork.latestBytes}',
-                    'Latest modified: ${sentWork.latestModified ?? 'not loaded'}',
-                    'Purpose: Main Engel AI can see done work sent by standalone Sub-Engels.',
+                    'Returned files: ${sharedQueue.sentWorkCount}',
+                    'Returned work: ${sentWork.exists ? 'loaded' : 'not loaded'}',
                   ], icon: Icons.outbox),
                 ),
                 const SizedBox(height: 12),
                 SizedBox(
                   height: 150,
-                  child: _catalogPanel('Sub-Engel Link Targets', const [
-                    r'W target: \\LAPTOP-0KUVK82E\EngelWorkspace',
-                    'Drive action room: $appRoot\\run\\sub_engel_transport',
-                    'Sent work: $appRoot\\run\\sub_engel_transport\\SUB_ENGEL_SENT_WORK',
-                    r'Phone workers: Android alpha/beta LAN lanes',
-                    r'Windows Sub-Engels: bootstrap and auto-pair watcher lanes',
-                    'Engel shows the network-logon blocker and proof routes; it does not silently edit Windows security policy.',
+                  child: _catalogPanel('Sub-Engel Link Targets', [
+                    'Shared room: ${(sharedQueue.workOrdersExist || sharedQueue.sentWorkExist) ? 'loaded' : 'not loaded'}',
+                    'Orders waiting: ${sharedQueue.workOrderCount}',
+                    'Phones and Sub-Engel readiness stay on Devices.',
                   ], icon: Icons.phonelink),
                 ),
                 const SizedBox(height: 12),
@@ -42976,17 +42984,12 @@ $result | ConvertTo-Json -Compress -Depth 5
   }
 
   String _friendlyDeviceWorkerSummary(VisibleDeviceWorker worker) {
-    final location = worker.address.trim().isEmpty
-        ? ''
-        : worker.address == '127.0.0.1'
-        ? ' - through Main bridge'
-        : ' - at ${worker.address}';
     final observation =
         worker.id == 'sub-engel-node' &&
             worker.status.readiness == EngelDeviceReadiness.offline
         ? 'Checked just now'
         : worker.status.lastSeenLabel;
-    return '${worker.name} - ${worker.status.label}$location - $observation';
+    return '${worker.name} - ${worker.status.label} - $observation';
   }
 }
 
@@ -44072,6 +44075,7 @@ class _SwarmScenePainter extends CustomPainter {
 
     // Draw nodes with premium layered graphics
     final sorted = [...nodes]..sort((a, b) => a.depth.compareTo(b.depth));
+    final labelRects = <Rect>[];
     for (final node in sorted) {
       final device = node.device;
       final selected = device.id == selectedId;
@@ -44200,9 +44204,9 @@ class _SwarmScenePainter extends CustomPainter {
         );
       }
 
-      // Premium label pill
-      final label = device.name.length > 20
-          ? '${device.name.substring(0, 18)}…'
+      // Short labels, and skip a tag that would sit on top of another tag.
+      final label = device.name.length > 14
+          ? '${device.name.substring(0, 12)}…'
           : device.name;
       final textPainter = TextPainter(
         text: TextSpan(
@@ -44220,7 +44224,7 @@ class _SwarmScenePainter extends CustomPainter {
         ),
         maxLines: 1,
         textDirection: TextDirection.ltr,
-      )..layout(maxWidth: 190);
+      )..layout(maxWidth: 120);
       final labelOffset =
           node.position + Offset(-textPainter.width / 2, node.radius + 9);
       final labelRect = Rect.fromLTWH(
@@ -44229,6 +44233,11 @@ class _SwarmScenePainter extends CustomPainter {
         textPainter.width + 16,
         textPainter.height + 8,
       );
+      if (!selected &&
+          labelRects.any((rect) => rect.overlaps(labelRect.inflate(4)))) {
+        continue;
+      }
+      labelRects.add(labelRect);
       canvas.drawRRect(
         RRect.fromRectAndRadius(labelRect, const Radius.circular(6)),
         Paint()..color = const Color(0xcc050a14),
@@ -47462,7 +47471,7 @@ class _RagVisualLabState extends State<_RagVisualLab>
     );
   }
 
-  Widget _header() {
+  Widget _header({bool showModes = true}) {
     final indexed = int.tryParse('${_status?['indexed_items'] ?? 0}') ?? 0;
     final model = (_status?['local_model_id'] ?? 'local model unavailable')
         .toString();
@@ -47479,17 +47488,19 @@ class _RagVisualLabState extends State<_RagVisualLab>
             letterSpacing: 4,
           ),
         ),
-        const SizedBox(height: 9),
-        const Text(
-          'TEN RETRIEVAL STRATEGIES.  FIVE VERIFIED MOVES.',
-          textAlign: TextAlign.center,
-          style: TextStyle(
-            color: Color(0xff8a8a94),
-            fontSize: 11,
-            fontFamily: 'Consolas',
-            letterSpacing: 2,
+        if (showModes) ...[
+          const SizedBox(height: 9),
+          const Text(
+            'TEN RETRIEVAL STRATEGIES.  FIVE VERIFIED MOVES.',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: Color(0xff8a8a94),
+              fontSize: 11,
+              fontFamily: 'Consolas',
+              letterSpacing: 2,
+            ),
           ),
-        ),
+        ],
         const SizedBox(height: 18),
         Wrap(
           alignment: WrapAlignment.center,
@@ -47532,24 +47543,26 @@ class _RagVisualLabState extends State<_RagVisualLab>
             ),
           ),
         ],
-        const SizedBox(height: 16),
-        Wrap(
-          alignment: WrapAlignment.center,
-          spacing: 8,
-          runSpacing: 8,
-          children: [
-            _modeButton(
-              view: _RagView.strategies,
-              label: '10 Strategies',
-              icon: Icons.hub_outlined,
-            ),
-            _modeButton(
-              view: _RagView.pipeline,
-              label: '5 Moves',
-              icon: Icons.route_outlined,
-            ),
-          ],
-        ),
+        if (showModes) ...[
+          const SizedBox(height: 16),
+          Wrap(
+            alignment: WrapAlignment.center,
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              _modeButton(
+                view: _RagView.strategies,
+                label: '10 Strategies',
+                icon: Icons.hub_outlined,
+              ),
+              _modeButton(
+                view: _RagView.pipeline,
+                label: '5 Moves',
+                icon: Icons.route_outlined,
+              ),
+            ],
+          ),
+        ],
       ],
     );
   }
@@ -48070,7 +48083,46 @@ class _RagVisualLabState extends State<_RagVisualLab>
   }
 
   @override
+  Widget _unavailablePanel() {
+    final checking = _statusLoading && _status == null;
+    return Container(
+      key: const Key('rag-unavailable'),
+      padding: const EdgeInsets.all(22),
+      decoration: BoxDecoration(
+        color: const Color(0xff101116),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: const Color(0xff333746)),
+      ),
+      child: Text(
+        checking
+            ? 'Checking CT246 proof and the local model.'
+            : 'RAG Lab is unavailable until CT246 proof and the local model are ready. The strategy board stays closed.',
+        textAlign: TextAlign.center,
+        style: const TextStyle(
+          color: Color(0xffd5d7df),
+          fontSize: 16,
+          height: 1.4,
+        ),
+      ),
+    );
+  }
+
   Widget build(BuildContext context) {
+    if (!_productionReady) {
+      return SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(18, 24, 18, 30),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              _header(showModes: false),
+              const SizedBox(height: 24),
+              _unavailablePanel(),
+            ],
+          ),
+        ),
+      );
+    }
     return SingleChildScrollView(
       child: Padding(
         padding: const EdgeInsets.fromLTRB(18, 24, 18, 30),

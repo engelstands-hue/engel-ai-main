@@ -3910,18 +3910,6 @@ abstract class _EngelTrainingSection extends State<EngelMainShell> {
             icon: const Icon(Icons.article_outlined, size: 17),
             label: const Text('Open run log'),
           ),
-        if (_trainingResumeRemainingPrompts > 0)
-          FilledButton.icon(
-            key: const Key('training-recovery-resume'),
-            onPressed: _running || _trainingControlsLocked
-                ? null
-                : () => unawaited(_resumeFailedTraining()),
-            icon: const Icon(Icons.play_arrow_rounded, size: 18),
-            label: Text(
-              'Resume $_trainingResumeRemainingPrompts '
-              '${_trainingResumeRemainingPrompts == 1 ? 'prompt' : 'prompts'}',
-            ),
-          ),
         if (_trainingResumeRequiresNewMaterial)
           FilledButton.icon(
             key: const Key('training-recovery-prepare-new'),
@@ -3930,19 +3918,6 @@ abstract class _EngelTrainingSection extends State<EngelMainShell> {
                 : () => unawaited(_syncTrainingAssets()),
             icon: const Icon(Icons.sync, size: 17),
             label: const Text('Prepare new material'),
-          )
-        else
-          FilledButton.icon(
-            key: const Key('training-recovery-try-again'),
-            onPressed: _running || _trainingControlsLocked
-                ? null
-                : () => unawaited(_confirmHourPromptTraining()),
-            icon: const Icon(Icons.replay_outlined, size: 17),
-            label: Text(
-              _trainingResumeRemainingPrompts > 0
-                  ? 'Review full plan'
-                  : 'Review and try again',
-            ),
           ),
       ],
     );

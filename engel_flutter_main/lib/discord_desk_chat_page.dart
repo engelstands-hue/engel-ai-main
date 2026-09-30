@@ -104,6 +104,83 @@ class EngelRoomLine {
   final String text;
 }
 
+const _discordTemplateMarkers = <String>[
+  'it is not on disk',
+  'no plan or spec file is there',
+  'no receipt file is there',
+  'no receipt names files',
+  'the checker is missing',
+  'it is not on this server',
+  'no run was started',
+  'could not read it',
+  'all are active',
+  'no service check was run',
+  'nothing is queued',
+  'no separate job is open',
+  'no product job is open',
+  'no welcome job is open',
+  'no triage ticket is open',
+  'no health check is running',
+  'no check is running',
+  'no trainer is running',
+  'no lesson is waiting',
+  'no code draft is open',
+  'no house job is open',
+  'collab if this helps the house',
+  'collab if this is your lane',
+  'i read my sandbox',
+  'my sandbox focus this cycle',
+  'phone sandbox:',
+  'i do not have anything new to add',
+  'holding this turn',
+  'waiting on that result',
+  "i'm looking that up",
+  'i am looking that up',
+  'grok vision did not return',
+  'i have the picture',
+  'local notes:',
+  'nothing is queued on this mouth',
+  'the room is quiet on my side',
+];
+
+/// True when a Discord line is an empty-status script, not a finished result.
+bool discordChatLineIsTemplate(String text) {
+  final low = text.toLowerCase().replaceAll(RegExp(r'\s+'), ' ').trim();
+  if (low.isEmpty) return true;
+  if (low.contains('not active:')) return false;
+  if (low.contains('proof ran ') &&
+      (low.contains('pass') ||
+          low.contains('fail') ||
+          low.contains('timed out'))) {
+    return false;
+  }
+  if (low.contains('architect read ') &&
+      !low.contains('not on disk') &&
+      !low.contains('no plan or spec')) {
+    return false;
+  }
+  if (low.contains('memory recorded the latest receipt')) return false;
+  if (low.contains('builder read ') && !low.contains('no receipt names files')) {
+    return false;
+  }
+  if (low.contains('training read the live index') ||
+      (low.contains('curriculum') && low.contains('ready'))) {
+    return false;
+  }
+  return _discordTemplateMarkers.any(low.contains);
+}
+
+String discordMouthPresence(String mouthName, List<EngelRoomLine> lines) {
+  final needle = mouthName.toLowerCase().trim();
+  if (needle.isEmpty || lines.isEmpty) return 'Quiet';
+  final start = lines.length > 8 ? lines.length - 8 : 0;
+  for (var index = lines.length - 1; index >= start; index--) {
+    final author = lines[index].author.toLowerCase();
+    if (author.contains(needle)) return 'Online';
+  }
+  return 'Quiet';
+}
+
 class EngelDiscordChatPage extends StatefulWidget {
   const EngelDiscordChatPage({super.key, this.live = true});
 
@@ -172,7 +249,7 @@ class _EngelDiscordChatPageState extends State<EngelDiscordChatPage> {
           continue;
         }
         final text = '${row['text'] ?? ''}'.trim();
-        if (text.isEmpty) {
+        if (text.isEmpty || discordChatLineIsTemplate(text)) {
           continue;
         }
         next.add(
@@ -235,7 +312,10 @@ class _EngelDiscordChatPageState extends State<EngelDiscordChatPage> {
               separatorBuilder: (_, _) => const SizedBox(width: 12),
               itemBuilder: (context, index) {
                 final mouth = engelDiscordMouths[index];
-                return _MouthChip(mouth: mouth);
+                return _MouthChip(
+                  mouth: mouth,
+                  presence: discordMouthPresence(mouth.name, _lines),
+                );
               },
             ),
           ),
@@ -304,9 +384,10 @@ class _EngelDiscordChatPageState extends State<EngelDiscordChatPage> {
 }
 
 class _MouthChip extends StatelessWidget {
-  const _MouthChip({required this.mouth});
+  const _MouthChip({required this.mouth, required this.presence});
 
   final EngelDiscordMouth mouth;
+  final String presence;
 
   @override
   Widget build(BuildContext context) {
@@ -327,7 +408,7 @@ class _MouthChip extends StatelessWidget {
           ),
           const SizedBox(height: 6),
           Text(
-            mouth.presence,
+            presence,
             key: Key('discord-presence-${mouth.name}'),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
@@ -418,6 +499,11 @@ class _DeskManagerPopoutState extends State<_DeskManagerPopout> {
         '${File(Platform.resolvedExecutable).parent.path}${Platform.pathSeparator}desk_manager_settings.json',
       );
 
+  bool get _settingsAllowed {
+    final name = Platform.resolvedExecutable.toLowerCase();
+    return !name.contains('flutter_tester') && !name.endsWith('dart.exe');
+  }
+
   @override
   void initState() {
     super.initState();
@@ -425,6 +511,7 @@ class _DeskManagerPopoutState extends State<_DeskManagerPopout> {
   }
 
   void _load() {
+    if (!_settingsAllowed) return;
     try {
       final file = _settingsFile;
       if (!file.existsSync()) return;
@@ -449,6 +536,7 @@ class _DeskManagerPopoutState extends State<_DeskManagerPopout> {
 
   void _save() {
     _keepWeights();
+    if (!_settingsAllowed) return;
     try {
       _settingsFile.writeAsStringSync(
         jsonEncode({
