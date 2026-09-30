@@ -357,11 +357,11 @@ The public source snapshot.
 
 ### Slack channel
 
-The private workspace channel for work notes.
+Work notes stay in a private Slack channel. The workspace name, channel name, and channel id are not in this map.
 
 #### How a user gets there
 
-- Open Slack workspace private workspace, channel `#private-channel`.
+- Open the private Slack channel from the local Benny config.
 - No keyboard shortcut.
 
 #### How the control adapter drives it
@@ -372,8 +372,8 @@ The private workspace channel for work notes.
 
 #### Stable selectors
 
-- Workspace private workspace
-- Channel `private-channel`
+- Local Slack target, not published
+- Public config value `slack_target: private-machine-only`
 
 #### States to exercise
 
@@ -382,20 +382,20 @@ The private workspace channel for work notes.
 #### Preconditions and setup
 
 - Auth: a signed-in member
-- Data: none
+- Data: the private local Slack target
 - Permissions: read
 - Flags: none
 - Services: Slack
 
 #### Evidence and cross-check
 
-- Screenshot: the channel header `private-channel`
+- Screenshot: not published
 - Video: not required while posting is blocked
-- Cross-check: the channel name matches the header
+- Cross-check: the public map has no workspace name, channel name, or channel id
 
 #### Gotchas
 
-- `#new-channel` is the wrong channel.
+- Do not publish the workspace name, channel name, or channel id.
 - Benny does not post here unless a later dispatch says to post.
 
 ### Public X account
