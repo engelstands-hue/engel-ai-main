@@ -24,6 +24,18 @@ describe("public platform routes", () => {
     expect(screen.getByRole("link", { name: /Explore Engel AI Main/i })).toHaveAttribute("href", "/engel-ai-main");
   });
 
+  it("links the Built here row to the public sibling sites", () => {
+    renderPath("/");
+
+    const templates = screen.getByRole("link", { name: "Dev templates for Obsidian and Notion" });
+    expect(templates).toHaveAttribute("href", "https://forge.engelailabs.com/?utm_source=engelailabs&utm_medium=homepage");
+    expect(templates).toHaveAttribute("rel", "noopener noreferrer");
+
+    const tees = screen.getByRole("link", { name: "VIBE // DROP — vibe-coding tees" });
+    expect(tees).toHaveAttribute("href", "https://wearthecrash.printful.me/?utm_source=engelailabs&utm_medium=homepage");
+    expect(tees).toHaveAttribute("rel", "noopener noreferrer");
+  });
+
   it("maps the complete current Engel AI Main surface without publishing live telemetry", () => {
     renderPath("/engel-ai-main");
 
