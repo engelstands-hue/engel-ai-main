@@ -1087,7 +1087,7 @@
       "cluster": "memory",
       "home": "windows",
       "universe": "live",
-      "does": "Local thread compaction receipts (summary + hashes). No provider compaction endpoint.",
+      "does": "Local thread compaction receipts plus one overwritten conversation digest. Status logs stay out of chat context. No new process while swap is in use. No provider compaction endpoint.",
       "talks_to": [
         "chat_runtime",
         "meeting_room",
@@ -1098,8 +1098,8 @@
         "engel_context_compaction.py",
         "memory/ENGEL_CONTEXT_COMPACTION_CONTRACT_V1.md"
       ],
-      "hits": "Compaction receipts under reports/compaction and runtime/compaction.",
-      "does_not_hit": "Does not call providers or promote summaries into trusted memory.",
+      "hits": "Compaction receipts under reports/compaction and one maintained digest under runtime/compaction.",
+      "does_not_hit": "Does not call providers, promote summaries into trusted memory, or start a runner while swap is in use.",
       "life": "alive"
     },
     {

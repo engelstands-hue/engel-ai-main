@@ -8281,6 +8281,16 @@ def repair_real_chat_reply(prompt: str, reply: str, context: str) -> tuple[str, 
             or discord_reply_looks_like_prompt_leak(cleaned)
         ):
             return spoken_local_model_miss_reply(), True
+        try:
+            from engel_context_compaction import (
+                looks_like_status_log,
+                replace_status_log_with_work,
+            )
+
+            if looks_like_status_log(cleaned):
+                return replace_status_log_with_work(prompt, cleaned), True
+        except Exception:
+            pass
         return cleaned, False
     training_memory_complaint = (
         "too much money" in low_prompt
