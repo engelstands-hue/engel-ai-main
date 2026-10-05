@@ -2278,9 +2278,27 @@ def _recent_chat_turn_at_offset(offset: int, context_scope: str = "") -> str:
 
 def _recent_chat_context_uncached(max_chars: int = 2200, max_records: int = 6, context_scope: str = "") -> str:
     records = _recent_chat_records_uncached(context_scope)
+    try:
+        from engel_context_compaction import looks_like_status_log, read_host_memory
+
+        host = read_host_memory()
+        if host.get("swap_in_use") is True:
+            max_chars = min(max_chars, 700)
+            max_records = min(max_records, 2)
+        kept: list[dict[str, Any]] = []
+        for item in records:
+            reply = str(item.get("assistant_reply") or item.get("assistant_output_text") or "")
+            if looks_like_status_log(reply):
+                continue
+            kept.append(item)
+        records = kept
+    except Exception:
+        pass
     lines: list[str] = []
     for item in records[-max_records:]:
-        lines.append(_format_recent_chat_record(item))
+        formatted = _format_recent_chat_record(item)
+        if formatted:
+            lines.append(formatted)
     context = "\n".join(lines).strip()
     if len(context) <= max_chars:
         return context
@@ -12247,35 +12265,18 @@ def _meeting_room_skipped(reason: str) -> dict[str, Any]:
     }
 
 
-def _clip_visible_room_text(value: Any, limit: int = 900) -> str:
-    text = str(value or "").strip()
-    if len(text) <= limit:
-        return text
-    return text[: max(0, limit - 3)].rstrip() + "..."
-
-
 def _meeting_room_visible_reply(prompt: str, current_reply: str, meeting_room: dict[str, Any]) -> str:
     if meeting_room.get("ok") is not True or meeting_room.get("meeting_room_server_used") is not True:
         return current_reply
-    order = meeting_room.get("order") if isinstance(meeting_room.get("order"), dict) else {}
-    completion = meeting_room.get("completion") if isinstance(meeting_room.get("completion"), dict) else {}
-    order_id = str(order.get("order_id") or completion.get("order_id") or "").strip()
-    station_results = completion.get("station_results")
-    if not isinstance(station_results, list):
-        station_results = []
-    station_text = ", ".join(str(item).strip() for item in station_results if str(item or "").strip())
-    summary = str(completion.get("summary") or order.get("summary") or "").strip()
+    try:
+        from engel_context_compaction import visible_meeting_room_work
 
-    parts = ["Sent that through the Agent Meeting Room on CT246."]
-    if order_id:
-        parts.append(f"Order {order_id} is recorded.")
-    if station_text:
-        parts.append("Room result: " + _clip_visible_room_text(station_text, 500))
-    elif summary:
-        parts.append(_clip_visible_room_text(summary))
-    else:
-        parts.append("The room accepted the work order and saved the receipt.")
-    return " ".join(parts)
+        spoken = visible_meeting_room_work(meeting_room, prompt)
+    except Exception:
+        spoken = ""
+    if spoken:
+        return spoken
+    return current_reply
 
 
 def _append_meeting_room_memory(
@@ -12376,6 +12377,7 @@ def _append_final_chat_memory(
         }
         _stamp_chat_memory_hygiene(memory_record, receipt)
         _append_jsonl(PERSISTENT_CHAT_MEMORY_PATH, memory_record)
+        _maintain_chat_conversation_digest()
         return True, ""
     except Exception as exc:
         return False, str(exc)
@@ -12439,6 +12441,70 @@ def _stamp_chat_memory_hygiene(
     record["echo"] = echo
     record["context_eligible"] = not (training or echo)
     return record
+
+
+def _maintain_chat_conversation_digest() -> None:
+    """Overwrite one compressed conversation file. Raw jsonl stays the corpus."""
+    try:
+        from engel_context_compaction import maintain_conversation
+    except Exception:
+        return
+    try:
+        records = _recent_chat_records_uncached()
+    except Exception:
+        return
+    messages: list[dict[str, str]] = []
+    for item in records[-12:]:
+        prompt = str(item.get("prompt") or "").strip()
+        reply = str(item.get("assistant_reply") or item.get("assistant_output_text") or "").strip()
+        if prompt:
+            messages.append({"role": "user", "content": prompt})
+        if reply:
+            messages.append({"role": "assistant", "content": reply})
+    if not messages:
+        return
+    try:
+        maintain_conversation(messages, thread_id="engel-main-chat", write=True)
+    except Exception:
+        return
+
+
+def _active_training_lock_path() -> Path:
+    return ROOT / "runtime" / "training_runs" / "ACTIVE_RUN.json"
+
+
+def _live_training_lock() -> dict[str, Any] | None:
+    path = _active_training_lock_path()
+    if not path.is_file():
+        return None
+    try:
+        row = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return None
+    if not isinstance(row, dict):
+        return None
+    try:
+        pid = int(row.get("pid") or 0)
+    except (TypeError, ValueError):
+        return None
+    if pid <= 0:
+        return None
+    try:
+        os.kill(pid, 0)
+    except OSError:
+        return None
+    return row
+
+
+def _write_training_lock(runner_result: dict[str, Any]) -> None:
+    path = _active_training_lock_path()
+    path.parent.mkdir(parents=True, exist_ok=True)
+    payload = {
+        "pid": runner_result.get("pid"),
+        "log_path": runner_result.get("log_path"),
+        "started_at_utc": _iso_now(),
+    }
+    path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
 
 
 def _ensure_final_chat_memory(
@@ -13753,29 +13819,60 @@ def _training_request_turn(prompt: str, started: float) -> tuple[dict[str, Any],
     approved = _prompt_starts_local_training(prompt) or _TRAINING_APPROVAL_PHRASE in str(prompt or "")
     runner_result: dict[str, Any] = {"started": False, "reason": "training package requested without run/start instruction"}
     if approved:
-        runner_result = _start_training_runner(prompt, stamp)
+        try:
+            from engel_context_compaction import read_host_memory
+
+            host_memory = read_host_memory()
+        except Exception:
+            host_memory = {"swap_in_use": False}
+        live = _live_training_lock()
+        if host_memory.get("swap_in_use") is True:
+            runner_result = {
+                "started": False,
+                "reason": "swap",
+                "swap_blocked": True,
+                "swap_used_kb": host_memory.get("swap_used_kb"),
+            }
+        elif live is not None:
+            runner_result = {
+                "started": False,
+                "reason": "already_running",
+                "pid": live.get("pid"),
+                "log_path": live.get("log_path"),
+                "duplicate_blocked": True,
+            }
+        else:
+            runner_result = _start_training_runner(prompt, stamp)
+            if runner_result.get("started") is True:
+                _write_training_lock(runner_result)
 
     package = package_result.get("package") if isinstance(package_result.get("package"), dict) else {}
-    zip_path = str(package.get("zip_path") or package.get("package_zip") or "")
     row_count = package.get("dataset_rows") or package.get("rows") or package.get("row_count")
-    if runner_result.get("started") is True:
-        reply = (
-            "Local Engel training job started under Engel AI Main control. "
-            f"Package refreshed{f' with {row_count} rows' if row_count else ''}. "
-            f"Runner PID: {runner_result.get('pid')}. Log: {runner_result.get('log_path')}. "
-            "RunPod was not used. I will not mark the model upgraded until Engel writes and verifies the local training receipts."
+    blocked_reason = ""
+    if approved and runner_result.get("started") is not True:
+        blocked_reason = str(runner_result.get("reason") or "package_failed")
+    elif not approved and package_result.get("ok") is True:
+        blocked_reason = "package_only"
+    elif package_result.get("ok") is not True:
+        blocked_reason = "package_failed"
+    try:
+        from engel_context_compaction import training_spoken_reply
+
+        reply = training_spoken_reply(
+            started=runner_result.get("started") is True,
+            blocked_reason=blocked_reason,
+            row_count=row_count,
+            swap_in_use=runner_result.get("swap_blocked") is True,
         )
-    elif package_result.get("ok") is True:
+    except Exception:
         reply = (
-            "Training package is ready under Engel AI Main control. "
-            f"Package: {zip_path or 'runtime/engel_lora_training_package'}. "
-            "I did not start the local training runner because this request only asked for the package. "
-            "Say run/start training when you want Engel to begin a local training-control run."
+            "Training was requested. I did not put a runner pid or log path into chat."
         )
-    else:
+    if package_result.get("ok") is not True and runner_result.get("started") is not True:
         reply = (
-            "Training was requested, but Engel could not build the training package yet. "
-            f"Error: {_clip(package_result.get('error') or package_result.get('stderr_tail') or 'unknown', 360)}"
+            "Training was requested, but the package is not ready yet. "
+            "I did not start a runner and I did not put a pid into chat. "
+            f"Error: {_clip(package_result.get('error') or package_result.get('stderr_tail') or 'unknown', 240)}"
         )
 
     receipt = {

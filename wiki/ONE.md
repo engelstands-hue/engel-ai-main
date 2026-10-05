@@ -79,7 +79,7 @@ D:\b.WorkSpace\Engel App\runtime\python310\python.exe tools\stamp_wiki_one_journ
 | humanization_slm | Humanization SLM | alive | ct246 | Rewrites chat-LLM drafts into first-person spoken replies. Communication lane, not live 7B. Form-graded prompt-training turns keep Confirmed/Proof, Result/Check, or Sourced facts and are not rewritten. | chat_llm, chat_runtime, ct246_body, training_desk |
 | governor | Governor | alive | windows | Decision plane and lane routing: operator work vs chat, Discord jobs, reasoning lanes. Below Josh and Guardian. | guardian, chat_runtime, chat_llm, system_desk |
 | routines | Routines | alive | windows | Stage-only standing work (Grok Bot Routines parity). Due is polled on ask; stages Meeting Room drafts. No background worker, no auto Send Job. | meeting_room, grok_bot_surface, reps, wiki_one, verifiers |
-| context_compaction | Context compaction | alive | windows | Local thread compaction receipts (summary + hashes). No provider compaction endpoint. | chat_runtime, meeting_room, wiki_one, verifiers |
+| context_compaction | Context compaction | alive | windows | Local thread compaction plus one overwritten conversation digest. Status logs stay out of chat context. No new process while swap is in use. No provider compaction endpoint. | chat_runtime, meeting_room, wiki_one, verifiers |
 | mcp_allowlist | MCP allowlist | alive | windows | Claude-free read-only MCP desk. Local/xAI-open patterns only. Live bind needs Josh Bucket 3. | guardian, skills, wiki_one, verifiers |
 | grok_bot_surface | Grok Bot surface | alive | windows | Named teammates + shared computer + file-only presence lifecycle. Not a cloud VM. | meeting_room, routines, android_limbs, sub_engel, reps, wiki_one |
 
@@ -134,7 +134,7 @@ D:\b.WorkSpace\Engel App\runtime\python310\python.exe tools\stamp_wiki_one_journ
 | Humanization SLM | How Chat sounds. Form-graded training turns keep their labels. | Fail-open: a miss does not block Chat. Does not rewrite engineering/math/construction training forms. |
 | Governor | Which lane a prompt takes. | Does not outrank Josh or Guardian. |
 | Routines | Routine defs, due poll, staged Meeting Room drafts, receipts. | Does not auto-execute, start timers, Send Job, or mutate Android queues. |
-| Context compaction | Compaction receipts under reports/compaction and runtime/compaction. | Does not call providers or promote summaries into trusted memory. |
+| Context compaction | Compaction receipts under reports/compaction and one maintained digest under runtime/compaction. | Does not call providers, promote summaries into trusted memory, or start a runner while swap is in use. |
 | MCP allowlist | Allowlist registry and status routes. | Does not open MCP sockets or include Claude/Anthropic products. |
 | Grok Bot surface | Bot roster, presence probe, computer map, handoff staging. | Does not create cloud VMs, provider sessions, or background workers. |
 
@@ -217,7 +217,7 @@ D:\b.WorkSpace\Engel App\runtime\python310\python.exe tools\stamp_wiki_one_journ
 
 ### memory
 
-- **Context compaction** (`context_compaction`) — ALIVE — Local thread compaction receipts (summary + hashes). No provider compaction endpoint.
+- **Context compaction** (`context_compaction`) — ALIVE — Local thread compaction receipts plus a maintained conversation digest. Status logs are not chat context. No new process while swap is in use. No provider compaction endpoint.
 
 ### guardian
 
