@@ -189,3 +189,15 @@ Design rules:
 - Research/proposal systems may suggest, not execute, unless explicitly approved.
 - Authority order is fixed: Josh first, Guardian second, Engel/runtime below both for activation, mutation, permission, registry, and runtime action gates.
 - Engel should feel unified to the user, even when many local colonies are contributing beneath the surface.
+
+
+## Cursor Cloud specific instructions
+
+Linux Cloud Agents do not have the Windows `runtime/python310` interpreter. Setup installs Node.js 22.22.2 ahead of the older `/exec-daemon/node` (the public site's jsdom requires Node `^22.22.2`) and registers a user-site import hook so `python3` can import Engel organ modules. That hook does not apply `engel_temp_policy`, which rewrites `HOME`.
+
+- Router check: `python3 engel_ai.py self-test` and `python3 engel_ai.py ask "what is engel status"`
+- Public site: `public/engelailabs-site`
+- Site checks: `npm test`, `npm run typecheck`, `npm run build`
+- Dev server: `npm run dev -- --host 0.0.0.0 --port 5173` (boot start listens on port 5173)
+- The Qt desktop (`engel_desktop_v2.py`) is the Windows GUI and is not the Linux Cloud Agent entrypoint.
+- `scripts/codex_verify.ps1` is the Windows verifier sweep.
