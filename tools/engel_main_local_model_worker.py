@@ -420,28 +420,36 @@ _UI_PROVIDER_CHOICES = {"local", "codex", "openai", "anthropic", "xai", "gemini"
 
 
 def _ui_forced_provider(payload: dict[str, Any]) -> str:
-    if not payload.get("force_provider"):
-        return ""
-    choice = _clean_text(
-        str(payload.get("provider") or payload.get("selected_provider") or "")
-    ).strip().casefold()
-    return choice if choice in _UI_PROVIDER_CHOICES else ""
+    """The face cannot pin a provider. The automatic router selects the lane."""
+    del payload
+    return ""
 
 
 def _stamp_catalog_selection(request_payload: dict[str, Any], payload: dict[str, Any]) -> None:
-    """Forward Flutter chat/creation picker ids so CT246 can honor them."""
+    """Chat is auto-best. A picker id is recorded and does not pin the turn."""
     metadata = request_payload.setdefault("metadata", {})
     if not isinstance(metadata, dict):
         metadata = {}
         request_payload["metadata"] = metadata
-    for key in (
-        "selected_model_id",
-        "selected_creation_model_id",
-        "selected_model_name",
-        "engel_task_kind",
-        "thinking_enabled",
-        "reasoning_effort",
-    ):
+    router_lane = payload.get("automatic_router_lane") is True
+    requested = str(payload.get("selected_model_id") or "").strip()
+    if requested:
+        metadata["requested_model_id"] = requested
+    if requested in {"jev-latest", "jev"}:
+        metadata["jev_router"] = True
+        request_payload["jev_router"] = True
+    if router_lane:
+        request_payload["automatic_router_lane"] = True
+        metadata["automatic_router_lane"] = True
+        if requested:
+            request_payload["selected_model_id"] = requested
+            metadata["selected_model_id"] = requested
+    else:
+        request_payload["selected_model_id"] = "auto-best"
+        metadata["selected_model_id"] = "auto-best"
+        metadata["automatic_model_route"] = True
+        request_payload.pop("force_provider", None)
+    for key in ("thinking_enabled", "reasoning_effort", "engel_task_kind"):
         value = payload.get(key)
         if value in (None, ""):
             continue
@@ -2634,9 +2642,9 @@ def _nvidia_api_model_for_catalog(catalog: dict[str, Any] | None) -> str:
     if not selected:
         return ""
     try:
-        from engel_model_cohesion import resolve_turn
+        from engel_model_cohesion import lookup_catalog
 
-        sel = resolve_turn({"selected_model_id": selected}, "")
+        sel = lookup_catalog(selected)
     except Exception:
         return ""
     if str(sel.get("provider") or "") != "nvidia":
@@ -2897,12 +2905,13 @@ def _main_server_fast_chat(
         request_payload["chat_only"] = True
     _merge_inbox_metadata(request_payload, inbox_metadata)
     _stamp_catalog_selection(request_payload, catalog or {})
-    if not ui_provider:
+    router_lane = bool((catalog or {}).get("automatic_router_lane") is True)
+    if not ui_provider and router_lane:
         nvidia_model = _nvidia_api_model_for_catalog(catalog)
         if nvidia_model:
             ui_provider = "nvidia"
             ui_model = nvidia_model
-    if ui_provider:
+    if ui_provider and router_lane:
         # Chat-box provider picker: an intentional dropdown choice is the
         # explicit force contract CT246 honors (force_provider key).
         request_payload["provider"] = ui_provider
@@ -3128,7 +3137,8 @@ def _stream_server_chat(
     }
     _merge_inbox_metadata(request_payload, inbox_metadata)
     _stamp_catalog_selection(request_payload, catalog or {})
-    if ui_provider:
+    router_lane = bool((catalog or {}).get("automatic_router_lane") is True)
+    if ui_provider and router_lane:
         request_payload["provider"] = ui_provider
         request_payload["selected_provider"] = ui_provider
         request_payload["force_provider"] = True
@@ -3721,14 +3731,22 @@ def _handle(payload: dict[str, Any]) -> dict[str, Any]:
                 "winerror",
             )
         )
-        selected_model_id = str(payload.get("selected_model_id") or "auto-best")
+        selected_model_id = "auto-best"
         if not connection_miss:
-            for fallback_id in _fallback_catalog_ids(selected_model_id):
+            fallback_ids = _fallback_catalog_ids(selected_model_id)
+            try:
+                from engel_jev_decision import order_fallback_with_jev
+
+                fallback_ids = order_fallback_with_jev(prompt, fallback_ids)
+            except Exception:
+                pass
+            for fallback_id in fallback_ids:
                 if fallback_id == selected_model_id:
                     continue
                 retry_catalog = dict(payload)
                 retry_catalog["selected_model_id"] = fallback_id
                 retry_catalog["selected_model_name"] = fallback_id
+                retry_catalog["automatic_router_lane"] = True
                 retry_receipt = _main_server_fast_chat(
                     prompt=prompt,
                     timeout=min(timeout, 45),

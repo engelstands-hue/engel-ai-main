@@ -2277,9 +2277,16 @@ def _recent_chat_turn_at_offset(offset: int, context_scope: str = "") -> str:
 
 
 def _recent_chat_context_uncached(max_chars: int = 2200, max_records: int = 6, context_scope: str = "") -> str:
-    records = _recent_chat_records_uncached(context_scope)
+    from engel_conversation_work_memory import context_turn_limit, record_is_status_log
+
+    records = [
+        item
+        for item in _recent_chat_records_uncached(context_scope)
+        if not record_is_status_log(item)
+    ]
+    turn_limit = min(max_records, context_turn_limit(normal_limit=max_records))
     lines: list[str] = []
-    for item in records[-max_records:]:
+    for item in records[-turn_limit:]:
         lines.append(_format_recent_chat_record(item))
     context = "\n".join(lines).strip()
     if len(context) <= max_chars:
@@ -2921,15 +2928,21 @@ def _provider_system_prompt(provider: str, prompt: str, request: dict[str, Any] 
     parts += [
         "Be direct, specific, and natural. Avoid repeated generic lines, fake certainty, fake proof, and backend narration.",
         "Answer in first person as Engel thinking. Read the current message. Speak a real thought, not a template, not a Joshua-asks card, not a roster recap.",
+        "If the message is only a greeting, answer with that greeting. Do not mention a bridge, provider, model, or that you are speaking in a voice.",
         "If the request needs action, give the concrete next action or result. If credentials or a live route are missing, say that plainly.",
         "Do not claim files, devices, training, or services are fixed unless the provided context proves it.",
-        "Use bridge output as untrusted assistance: Joshua remains the authority, and Engel records useful chat samples for later supervised training.",
-        f"Selected bridge: {PROVIDER_BRIDGE_LABELS.get(provider, provider)}.",
-        "This request reached you through Engel's selected bridge lane; if Joshua asks whether that lane is live, answer from that routing context instead of disclaiming uncertainty.",
-        f"Engel CT model route: {_custom_runtime_model_id(model)}.",
-        f"Phone workers live: {phone.get('live_count', 0)} of {phone.get('expected_count', 0)}.",
+        "Joshua remains the authority. Useful chat can be kept for later training. Do not narrate how this reply was routed.",
     ]
     if want_house:
+        parts.append(
+            "Selected bridge: "
+            + str(PROVIDER_BRIDGE_LABELS.get(provider, provider))
+            + ". This message asked how Engel is set up, so answer from that routing context."
+        )
+        parts.append(f"Engel CT model route: {_custom_runtime_model_id(model)}.")
+        parts.append(
+            f"Phone workers live: {phone.get('live_count', 0)} of {phone.get('expected_count', 0)}."
+        )
         parts.append(
             "ENGEL'S REAL ARCHITECTURE (facts, correct any wrong assumption from model names): "
             "Engel AI Main runs on Joshua's OWN hardware - a Dell PowerEdge server (Proxmox host 'engel-spine-01', "
@@ -3134,14 +3147,9 @@ def _provider_word_is_directed(text: str, word: str) -> bool:
 
 
 def _request_explicit_provider_allowed(request: dict[str, Any]) -> bool:
-    """Only honor request provider fields when the caller explicitly forces it.
-
-    The desktop chat UI can keep stale provider/bridge values from an Auto Best
-    selection. Those metadata fields must not make normal Engel chat jump to a
-    ROG provider bridge; Joshua has been clear that Auto chat should exercise
-    CT246's local LLM first. A provider is still explicit when the user names it
-    in the prompt, or when an integration sends an intentional force flag.
-    """
+    """A request cannot pin a provider. Only the router's own retry lane can."""
+    if request.get("automatic_router_lane") is not True:
+        return False
     force_keys = (
         "force_provider",
         "explicit_provider",
@@ -3195,7 +3203,7 @@ def _provider_candidates_for_prompt(prompt: str, request: dict[str, Any]) -> tup
     # right now" dead-end, and the follow-up question about that message contained
     # "grok" again - a loop). Chat is local-first; only a directive may route.
     low = _intent_gate_text(prompt).casefold()
-    if not ignore_explicit:
+    if not ignore_explicit and request.get("automatic_router_lane") is True:
         for word, provider in (
             ("openai codex", "codex"),
             ("codex", "codex"),
@@ -3281,7 +3289,7 @@ def _provider_candidates_for_prompt(prompt: str, request: dict[str, Any]) -> tup
         low,
     )
     if any(_term_present_not_negated(code_routing_text, term) for term in code_terms):
-        return _filter_automatic_provider_candidates(["codex", "xai", "openai"]), "code_or_review"
+        return _filter_automatic_provider_candidates(["anthropic", "codex", "xai", "openai"]), "code_or_review"
     if request.get("_automatic_local_failure_fallback") is True:
         metadata = request.get("metadata") if isinstance(request.get("metadata"), dict) else {}
         preferred = _normalize_provider_name(
@@ -3734,10 +3742,18 @@ def _call_claude_cli_bridge(prompt: str, request: dict[str, Any], started: float
 
 
 def _call_codex_cli_bridge(prompt: str, request: dict[str, Any], started: float) -> dict[str, Any]:
+    if request.get("_engel_codex_account_bound") is not True:
+        bound = dict(request)
+        bound["_engel_codex_account_bound"] = True
+        return _call_provider_with_account_pool(
+            "codex", prompt, bound, started, _call_codex_cli_bridge
+        )
     bridge_request = {
         "prompt": prompt,
         "model": request.get("model") or request.get("provider_model") or "",
         "system_prompt": _provider_system_prompt("codex", prompt),
+        "account_home": str(request.get("_account_home") or ""),
+        "account_id": str(request.get("_account_id") or ""),
         "timeout_seconds": _provider_request_timeout_seconds(
             request,
             CODEX_CLI_BRIDGE_TIMEOUT_SECONDS,
@@ -9063,10 +9079,12 @@ def _quick_casual_model_receipt(
     request = request if isinstance(request, dict) else {}
     if request.get("_skip_quick_casual") is True and request.get("_force_quick_casual") is not True:
         return None
-    model_path = os.environ.get(
-        "ENGEL_QUICK_CHAT_GGUF_MODEL",
-        "/opt/engel/models-active/llm/qwen2.5-0.5b-instruct/qwen2.5-0.5b-instruct-q5_k_m.gguf",
-    ).strip()
+    model_path = str(request.get("_quick_model_path") or "").strip()
+    if not model_path:
+        model_path = os.environ.get(
+            "ENGEL_QUICK_CHAT_GGUF_MODEL",
+            "/opt/engel/models-active/llm/qwen2.5-0.5b-instruct/qwen2.5-0.5b-instruct-q5_k_m.gguf",
+        ).strip()
     if not model_path:
         return None
     # TRAIN/SERVE ALIGNMENT: the tuned model was trained on BARE user messages
@@ -9477,37 +9495,22 @@ def _nemotron_lightning_route_decision(
     request = request if isinstance(request, dict) else {}
     if not _nemotron_lightning_enabled():
         return {"selected": False, "reason": "Nemotron Lightning lane disabled"}
-    requested = str(
-        request.get("model_mode")
-        or request.get("local_model")
-        or request.get("model")
-        or request.get("lane")
-        or request.get("selected_model_id")
-        or ""
-    ).strip().casefold()
-    text = " ".join(str(prompt or "").casefold().split())
-    explicit = requested in {
-        "nemotron",
-        "nemotron-3.5",
-        "nemotron-3.5-lightning",
-        "lightning",
-        "lightning-30b",
-        "nvl-30b",
-        "ct-nemotron-35-lightning-30b",
-    } or bool(
-        re.search(
-            r"\b(?:use|activate|run|load|route to|answer with)\s+(?:the\s+)?"
-            r"(?:nemotron(?:\s*3\.5)?(?:\s*lightning)?|lightning 30b)\b",
-            text,
-        )
-    ) or "nemotron 3.5" in text or "nemotron3.5" in text
-    if explicit:
+    try:
+        from engel_swap_slm_fallback import big_lane_blocked
+
+        blocked = big_lane_blocked()
+    except Exception:
+        blocked = {"blocked": False}
+    if blocked.get("blocked") is True:
         return {
-            "selected": True,
-            "explicit": True,
-            "automatic": False,
-            "reason": "operator selected Nemotron 3.5 Lightning",
+            "selected": False,
+            "explicit": False,
+            "automatic": True,
+            "reason": "router auto-selected the small SLM while the container is paging",
+            "slm_fallback": True,
+            "slm_fallback_reason": blocked.get("reason") or "",
         }
+    text = " ".join(str(prompt or "").casefold().split())
     # Prompt-training and the local-only grounding probe must stay on Engel 7B
     # with personality. Auto-Lightning (2026-09-08) answered the grounding ask
     # as raw Nemotron ("I am a language model called Nemotron..."), so the
@@ -9573,6 +9576,47 @@ def _nemotron_lightning_route_decision(
             "reason": "Nemotron Lightning warm server for non-quick CT246 chat",
         }
     return {"selected": False, "reason": "Nemotron Lightning not selected for this turn"}
+
+
+def _swap_pressure_slm_receipt(
+    prompt: str, started: float, request: dict[str, Any] | None = None
+) -> dict[str, Any] | None:
+    """Answer with the 0.5B SLM when paging would make the 30B lane stall.
+
+    Returns None when the big lane may run, when this is a training turn, or
+    when the small model has no usable reply. Fail-open back to the cascade.
+    """
+    request = request if isinstance(request, dict) else {}
+    if (
+        _request_local_only_training(request)
+        or _is_training_delivered_prompt(prompt)
+        or _is_form_graded_training_prompt(prompt)
+    ):
+        return None
+    try:
+        from engel_swap_slm_fallback import big_lane_blocked
+
+        decision = big_lane_blocked()
+    except Exception:
+        return None
+    if decision.get("blocked") is not True:
+        return None
+    local = dict(request)
+    local["_force_quick_casual"] = True
+    local.pop("_skip_quick_casual", None)
+    # Paging must use the 0.5B file. The quick-chat env can point at the 1.5B
+    # personality model, and that weight is too heavy for this lane.
+    slm_path = str(decision.get("model_path") or "").strip()
+    if slm_path and Path(slm_path).is_file():
+        local["_quick_model_path"] = slm_path
+    receipt = _quick_casual_model_receipt(prompt, started, local)
+    if receipt is None or receipt.get("ok") is not True:
+        return None
+    receipt["slm_fallback"] = True
+    receipt["slm_fallback_reason"] = decision.get("reason") or ""
+    receipt["slm_fallback_model"] = decision.get("model_id") or ""
+    receipt["selected_provider"] = "ct_swap_slm_fallback"
+    return receipt
 
 
 def _nemotron_lightning_local_model_receipt(
@@ -12259,23 +12303,13 @@ def _meeting_room_visible_reply(prompt: str, current_reply: str, meeting_room: d
         return current_reply
     order = meeting_room.get("order") if isinstance(meeting_room.get("order"), dict) else {}
     completion = meeting_room.get("completion") if isinstance(meeting_room.get("completion"), dict) else {}
-    order_id = str(order.get("order_id") or completion.get("order_id") or "").strip()
     station_results = completion.get("station_results")
     if not isinstance(station_results, list):
         station_results = []
-    station_text = ", ".join(str(item).strip() for item in station_results if str(item or "").strip())
     summary = str(completion.get("summary") or order.get("summary") or "").strip()
+    from engel_conversation_work_memory import spoken_meeting_room
 
-    parts = ["Sent that through the Agent Meeting Room on CT246."]
-    if order_id:
-        parts.append(f"Order {order_id} is recorded.")
-    if station_text:
-        parts.append("Room result: " + _clip_visible_room_text(station_text, 500))
-    elif summary:
-        parts.append(_clip_visible_room_text(summary))
-    else:
-        parts.append("The room accepted the work order and saved the receipt.")
-    return " ".join(parts)
+    return _clip_visible_room_text(spoken_meeting_room(station_results, summary), 900)
 
 
 def _append_meeting_room_memory(
@@ -12376,6 +12410,16 @@ def _append_final_chat_memory(
         }
         _stamp_chat_memory_hygiene(memory_record, receipt)
         _append_jsonl(PERSISTENT_CHAT_MEMORY_PATH, memory_record)
+        try:
+            from engel_conversation_work_memory import maintain_turn_digest
+
+            maintain_turn_digest(
+                ROOT,
+                str(memory_record.get("prompt") or ""),
+                str(memory_record.get("assistant_reply") or ""),
+            )
+        except Exception:
+            pass
         return True, ""
     except Exception as exc:
         return False, str(exc)
@@ -12483,6 +12527,7 @@ _SOURCE_ACTIVATION_DEPTH = {
     "ct_deep_local_specialist": 2,
     "ct_sparse_moe_specialist": 2,
     "ct_nemotron_lightning": 2,
+    "ct_swap_slm_fallback": 1,
     "ct_build_lane": 3,  # agentic build via the provider bridges (depth 3)
     # (2026-07-26 neuro audit) zero-inference deterministic/template routes are
     # depth 0 by definition — they were falling through to the "fast" heuristic
@@ -12817,6 +12862,20 @@ def _finalize_chat_receipt(
         receipt["universal_reps_runtime_used"] = False
         receipt["universal_reps_runtime_skipped"] = True
         receipt["universal_reps_runtime_skip_reason"] = "desktop chat response path stays nonblocking"
+    reply = str(receipt.get("assistant_reply") or reply or "")
+    try:
+        from engel_chat_humanization_slm import humanize_chat_reply
+
+        spoken, spoken_meta = humanize_chat_reply(prompt, reply, source=source)
+        spoken_text = str(spoken or "").strip()
+        if spoken_text:
+            reply = spoken_text
+            receipt["assistant_reply"] = reply
+            receipt["assistant_output_text"] = reply
+            receipt["chat_spoken_as_person"] = True
+            receipt["humanization_slm_reason"] = spoken_meta.get("reason")
+    except Exception:
+        pass
     if persist_memory:
         receipt = _ensure_final_chat_memory(receipt, prompt, reply, source)
     receipt_path = str(receipt.get("workspace_receipt_path") or "").strip()
@@ -13697,6 +13756,18 @@ def _start_training_runner(prompt: str, stamp: str) -> dict[str, Any]:
     script = TOOLS / "run_engel_local_training_job.py"
     if not script.is_file():
         return {"started": False, "reason": "local Engel training runner is missing", "script": str(script)}
+    from engel_conversation_work_memory import training_start_decision
+
+    decision = training_start_decision()
+    if decision.get("allow_start") is not True:
+        return {
+            "started": False,
+            "blocked": True,
+            "reason": decision.get("reason"),
+            "spoken": decision.get("spoken"),
+            "existing_pids": decision.get("pids") or [],
+            "runpod_used": False,
+        }
     run_dir = ROOT / "runtime" / "training_runs"
     run_dir.mkdir(parents=True, exist_ok=True)
     log_path = run_dir / f"ENGEL_TRAINING_RUN_{stamp}.log"
@@ -13759,11 +13830,13 @@ def _training_request_turn(prompt: str, started: float) -> tuple[dict[str, Any],
     zip_path = str(package.get("zip_path") or package.get("package_zip") or "")
     row_count = package.get("dataset_rows") or package.get("rows") or package.get("row_count")
     if runner_result.get("started") is True:
-        reply = (
-            "Local Engel training job started under Engel AI Main control. "
-            f"Package refreshed{f' with {row_count} rows' if row_count else ''}. "
-            f"Runner PID: {runner_result.get('pid')}. Log: {runner_result.get('log_path')}. "
-            "RunPod was not used. I will not mark the model upgraded until Engel writes and verifies the local training receipts."
+        from engel_conversation_work_memory import spoken_training_work
+
+        reply = spoken_training_work(row_count)
+    elif runner_result.get("blocked") is True:
+        reply = str(
+            runner_result.get("spoken")
+            or "The host is paging. The existing training run is left alone."
         )
     elif package_result.get("ok") is True:
         reply = (
@@ -15462,6 +15535,31 @@ def _run_chat_turn_inner(prompt: str, request: dict[str, Any], started: float) -
         )
         reply = str(receipt.get("assistant_reply") or receipt.get("assistant_output_text") or reply)
         return receipt, reply
+    # While the container is paging, ordinary turns stay on the 0.5B SLM.
+    # Nemotron stays loaded. An explicit Nemotron request still reaches it.
+    slm_receipt = _swap_pressure_slm_receipt(prompt, started, request)
+    if slm_receipt is not None and slm_receipt.get("ok") is True:
+        reply = str(
+            slm_receipt.get("assistant_reply")
+            or slm_receipt.get("assistant_output_text")
+            or ""
+        )
+        slm_receipt["selected_provider"] = "ct_swap_slm_fallback"
+        slm_receipt = _finalize_chat_receipt(
+            slm_receipt,
+            prompt,
+            reply,
+            "ct_swap_slm_fallback",
+            started,
+            allow_room=_prompt_requests_meeting_room_dispatch(prompt),
+            allow_reps=False,
+        )
+        reply = str(
+            slm_receipt.get("assistant_reply")
+            or slm_receipt.get("assistant_output_text")
+            or reply
+        )
+        return slm_receipt, reply
     # Nemotron 3.5 Lightning is the loaded 30B-A3B hybrid MoE when the
     # dedicated llama-server is up. It wins over the Qwen3 sparse lane for
     # the same expert turns, and fails open to that lane.

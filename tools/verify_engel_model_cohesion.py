@@ -50,31 +50,39 @@ def main() -> int:
     )
     opus = cohesion.resolve_turn({"selected_model_id": "opus-4-8"}, "hello")
     check(
-        "opus_routes_to_anthropic",
-        opus.get("provider") == "anthropic" and opus.get("force_provider") is True,
+        "picker_pin_stays_auto",
+        opus.get("catalog_id") == "auto-best" and opus.get("force_provider") is False and opus.get("automatic") is True,
         str(opus),
     )
+    check(
+        "catalog_still_knows_opus",
+        cohesion.lookup_catalog("opus-4-8").get("provider") == "anthropic",
+        str(cohesion.lookup_catalog("opus-4-8")),
+    )
     gemini = cohesion.resolve_turn({"selected_model_id": "gemini-3-pro"}, "hello")
-    check("gemini_routes_to_gemini", gemini.get("provider") == "gemini", str(gemini))
-    nvidia = cohesion.resolve_turn({"selected_model_id": "nvidia-nemotron-3-super-120b"}, "hello")
+    check("gemini_pin_stays_auto", gemini.get("catalog_id") == "auto-best", str(gemini))
+    nvidia = cohesion.lookup_catalog("nvidia-nemotron-3-super-120b")
     check(
         "nvidia_super_keeps_large_model",
         nvidia.get("provider") == "nvidia"
-        and nvidia.get("api_model") == "nvidia/nemotron-3-super-120b-a12b"
-        and nvidia.get("force_provider") is True,
+        and nvidia.get("api_model") == "nvidia/nemotron-3-super-120b-a12b",
         str(nvidia),
     )
     check("auto_best_has_vision_and_code", "vision" in auto.get("modalities", ()) and "code" in auto.get("modalities", ()), str(auto.get("modalities")))
 
     grok = cohesion.resolve_turn({"selected_model_id": "grok-4.6"}, "hello")
-    check("grok_forces_xai", grok.get("provider") == "xai" and grok.get("force_provider") is True, str(grok))
-    check("grok_has_vision", "vision" in grok.get("modalities", ()), str(grok.get("modalities")))
+    check("grok_pin_stays_auto", grok.get("catalog_id") == "auto-best" and grok.get("force_provider") is False, str(grok))
+    check("auto_best_has_vision", "vision" in auto.get("modalities", ()), str(auto.get("modalities")))
 
     seven = cohesion.resolve_turn({"selected_model_id": "ct-qwen25-7b-instruct"}, "hello")
-    check("ct_7b_is_local_lane", seven.get("local_lane") == "7b", str(seven))
-    req = {"selected_model_id": "ct-qwen25-7b-instruct"}
+    check("ct_7b_pin_stays_auto", seven.get("catalog_id") == "auto-best", str(seven))
+    req = {"selected_model_id": "ct-qwen25-7b-instruct", "provider": "xai", "force_provider": True, "model": "grok-4.6"}
     cohesion.apply_to_request(req, "hello")
-    check("ct_7b_skips_specialists", req.get("_skip_specialist_auto") is True and req.get("_skip_quick_casual") is True, str(req))
+    check(
+        "apply_strips_picker_pin",
+        req.get("selected_model_id") == "auto-best" and "force_provider" not in req and req.get("provider") != "xai",
+        str(req),
+    )
 
     vision_7b = cohesion.resolve_turn(
         {
@@ -90,7 +98,7 @@ def main() -> int:
     )
 
     gpt = cohesion.resolve_turn({"selected_model_id": "openai-api-gpt-5-5"}, "hello")
-    check("gpt55_forces_openai", gpt.get("provider") == "openai" and gpt.get("force_provider") is True, str(gpt))
+    check("gpt55_pin_stays_auto", gpt.get("catalog_id") == "auto-best" and gpt.get("force_provider") is False, str(gpt))
 
     creation = cohesion.resolve_turn(
         {
@@ -100,7 +108,7 @@ def main() -> int:
         },
         "draw a logo",
     )
-    check("creation_uses_creation_picker", creation.get("catalog_id") == "grok-4.6", str(creation))
+    check("creation_picker_stays_auto", creation.get("catalog_id") == "auto-best" and creation.get("force_provider") is False, str(creation))
 
     chat_not_creation = cohesion.resolve_turn(
         {
@@ -124,8 +132,8 @@ def main() -> int:
     check("worker_forwards_catalog_ids", "def _stamp_catalog_selection(" in worker_src, "worker")
     flutter = (ROOT / "engel_flutter_main" / "lib" / "main.dart").read_text(encoding="utf-8")
     check(
-        "flutter_sends_selected_model_id",
-        "selectedModelId: _activeModelId" in flutter and "selected_model_id" in flutter,
+        "flutter_chat_payload_is_auto",
+        "'selected_model_id': 'auto-best'" in flutter and "'force_provider': true" not in flutter,
         "flutter",
     )
     check(
