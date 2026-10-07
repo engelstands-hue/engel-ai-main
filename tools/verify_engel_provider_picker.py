@@ -41,12 +41,12 @@ def main() -> int:
     # 1. dropdown force contract normalization
     check("force_required",
           worker._ui_forced_provider({"provider": "anthropic"}) == "")
-    check("valid_choice_honored",
+    check("valid_choice_not_pinned",
           worker._ui_forced_provider(
-              {"provider": "Anthropic", "force_provider": True}) == "anthropic")
-    check("selected_provider_fallback",
+              {"provider": "Anthropic", "force_provider": True}) == "")
+    check("selected_provider_not_pinned",
           worker._ui_forced_provider(
-              {"selected_provider": "gemini", "force_provider": True}) == "gemini")
+              {"selected_provider": "gemini", "force_provider": True}) == "")
     check("invalid_choice_dropped",
           worker._ui_forced_provider(
               {"provider": "not-a-provider", "force_provider": True}) == "")
@@ -72,10 +72,10 @@ def main() -> int:
             "hello there", 30, 64, 0.1, conversation_id="verify",
             ui_provider="anthropic")
         body = captured.get("body") or {}
-        check("fast_lane_forces_provider",
-              body.get("provider") == "anthropic"
-              and body.get("selected_provider") == "anthropic"
-              and body.get("force_provider") is True)
+        check("fast_lane_ignores_provider_pin",
+              body.get("provider") == "local"
+              and body.get("force_provider") is not True
+              and body.get("selected_model_id") == "auto-best")
         captured.clear()
         worker._main_server_fast_chat(
             "hello there", 30, 64, 0.1, conversation_id="verify")
@@ -124,8 +124,9 @@ def main() -> int:
     # one-shot override.  Assert that captured-local handoff (rather than a
     # direct field read later in the async method) so a mid-turn dropdown change
     # cannot mutate an in-flight request.
-    check("dart_payload_force_contract",
-          "'force_provider': true" in dart
+    check("dart_payload_is_auto",
+          "'selected_model_id': 'auto-best'" in dart
+          and "'force_provider': true" not in dart
           and "final providerChoice = _effectiveChatProvider;" in dart
           and "provider: providerChoice," in dart)
     check("dart_auto_default", "var _chatProviderChoice = 'auto';" in dart)

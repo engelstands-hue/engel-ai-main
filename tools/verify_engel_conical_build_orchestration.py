@@ -910,88 +910,13 @@ def main() -> int:
             "provider-free local/Codex routes were labelled as provider APIs",
         )
 
-        # An explicit Co-pilot provider is a user choice, not a hint.  The
-        # build lane must pass that choice (and its model) to the selected
-        # bridge, then stop visibly when the bridge fails unless the turn
-        # explicitly opts into a fallback.  This guards against the old
-        # local-first cascade silently overriding the picker.
+        # A force_provider flag does not skip the local coder. The router
+        # starts on the local lane even when the request names Codex.
         old_explicit_local = server_service._build_lane_local_generate
         old_explicit_codex = server_service._call_codex_cli_bridge
         try:
-            captured_codex_request: dict[str, object] = {}
-
-            def explicit_codex_success(_prompt, request, _started):
-                captured_codex_request.update(request)
-                return {
-                    "ok": True,
-                    "assistant_reply": codex_files,
-                    "provider": "codex",
-                    "model": str(request.get("model") or "codex-test-model"),
-                }
-
-            def forbidden_explicit_local(*_args, **_kwargs):
-                raise AssertionError("strict explicit Codex selection switched to local")
-
-            server_service._build_lane_local_generate = forbidden_explicit_local
-            server_service._call_codex_cli_bridge = explicit_codex_success
-            strict_routes: list[dict[str, object]] = []
-            strict_selection: dict[str, object] = {}
-            generated = server_service._build_lane_generate(
-                "The user asked Engel to build this: explicit provider proof\nThis is a small job.",
-                60,
-                1200,
-                route_log=strict_routes,
-                provider_request={
-                    "provider": "codex",
-                    "force_provider": True,
-                    "model": "codex-test-model",
-                    "allow_provider_fallback": False,
-                },
-                provider_selection=strict_selection,
-            )
-            require(
-                generated == codex_files
-                and captured_codex_request.get("provider") == "codex"
-                and captured_codex_request.get("model") == "codex-test-model"
-                and [row.get("route") for row in strict_routes]
-                == ["rog_attached_codex_cli"]
-                and strict_selection.get("selection_honored") is True
-                and strict_selection.get("fallback_allowed") is False,
-                f"explicit Codex choice/model was not honored strictly: {strict_routes} {strict_selection}",
-            )
-
-            def explicit_codex_failure(*_args, **_kwargs):
-                return {
-                    "ok": False,
-                    "assistant_reply": "",
-                    "provider": "codex",
-                    "model": "codex-test-model",
-                    "error": "attached Codex unavailable",
-                }
-
-            server_service._call_codex_cli_bridge = explicit_codex_failure
-            strict_failure_routes: list[dict[str, object]] = []
-            strict_failure_selection: dict[str, object] = {}
-            generated = server_service._build_lane_generate(
-                "The user asked Engel to build this: explicit provider failure\nThis is a small job.",
-                60,
-                1200,
-                route_log=strict_failure_routes,
-                provider_request={
-                    "provider": "codex",
-                    "force_provider": True,
-                    "allow_provider_fallback": False,
-                },
-                provider_selection=strict_failure_selection,
-            )
-            require(
-                generated == ""
-                and [row.get("route") for row in strict_failure_routes]
-                == ["rog_attached_codex_cli"]
-                and strict_failure_selection.get("fallback_allowed") is False
-                and strict_failure_selection.get("fallback_attempted") is False,
-                f"strict explicit provider failure silently fell through: {strict_failure_routes} {strict_failure_selection}",
-            )
+            def codex_should_wait(*_args, **_kwargs):
+                raise AssertionError("auto route called Codex before the local coder")
 
             server_service._build_lane_local_generate = lambda *_args, **_kwargs: {
                 "ok": True,
@@ -999,28 +924,29 @@ def main() -> int:
                 "provider": "local",
                 "model": "local-test.gguf",
             }
-            allowed_routes: list[dict[str, object]] = []
-            allowed_selection: dict[str, object] = {}
+            server_service._call_codex_cli_bridge = codex_should_wait
+            auto_routes: list[dict[str, object]] = []
+            auto_selection: dict[str, object] = {}
             generated = server_service._build_lane_generate(
-                "The user asked Engel to build this: permitted provider fallback\nThis is a small job.",
+                "The user asked Engel to build this: explicit provider proof\nThis is a small job.",
                 60,
                 1200,
-                route_log=allowed_routes,
+                route_log=auto_routes,
                 provider_request={
                     "provider": "codex",
                     "force_provider": True,
-                    "allow_provider_fallback": True,
+                    "model": "codex-test-model",
+                    "allow_provider_fallback": False,
                 },
-                provider_selection=allowed_selection,
+                provider_selection=auto_selection,
             )
             require(
                 generated == local_files
-                and [row.get("route") for row in allowed_routes][:2]
-                == ["rog_attached_codex_cli", "ct246_local_coder_gguf"]
-                and allowed_selection.get("fallback_allowed") is True
-                and allowed_selection.get("selection_fallback_used") is True
-                and allowed_selection.get("selected_provider") == "local",
-                f"explicit fallback opt-in did not produce visible local fallback: {allowed_routes} {allowed_selection}",
+                and auto_routes
+                and auto_routes[0].get("route") == "ct246_local_coder_gguf"
+                and auto_selection.get("selected_provider") == "local"
+                and auto_selection.get("requested_provider") in {"", None},
+                f"force_provider still skipped the local coder: {auto_routes} {auto_selection}",
             )
         finally:
             server_service._build_lane_local_generate = old_explicit_local

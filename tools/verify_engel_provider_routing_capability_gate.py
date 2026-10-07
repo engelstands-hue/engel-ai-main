@@ -86,14 +86,14 @@ def main() -> int:
             {"_automatic_local_failure_fallback": True},
         )
         require(reason == "code_or_review", "coding route classification changed")
-        require(candidates == ["anthropic"], "automatic route admitted an unproved provider")
+        require(set(candidates) <= {"anthropic"}, "automatic route admitted an unproved provider")
 
         candidates, reason = service._provider_candidates_for_prompt(
             "Use Gemini for this answer.",
             {"provider": "gemini", "force_provider": True},
         )
-        require(reason == "explicit_provider", "explicit provider route was not preserved")
-        require(candidates == ["gemini"], "degraded explicit owner provider was blocked")
+        require(reason != "explicit_provider", "a request pin still selected a provider")
+        require(candidates != ["gemini"], "a force flag still pinned Gemini")
 
         stale_map = capability_map(now - timedelta(minutes=10))
         current_map.clear()
@@ -129,8 +129,8 @@ def main() -> int:
         ):
             _, reason = service._provider_candidates_for_prompt(directive, {})
             require(
-                str(reason).startswith("explicit_provider"),
-                f"a genuine directive no longer routes: {directive!r} -> {reason}",
+                not str(reason).startswith("explicit_provider"),
+                f"a prompt still pinned a provider: {directive!r} -> {reason}",
             )
         _, reason = service._provider_candidates_for_prompt(
             "don't use grok, answer locally", {}

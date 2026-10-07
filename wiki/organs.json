@@ -779,7 +779,7 @@
       "home": "windows",
       "universe": "live",
       "life": "alive",
-      "does": "Cosmic Swarm Models tab: local LLM status, model picker, runtime path. Default model home remains CT246. A downloaded weight does not lock other models out. The picker map sends Claude names to Anthropic, Gemini names to Gemini, GPT names to OpenAI, Grok names to xAI, and NVIDIA names to integrate.api.nvidia.com. NVIDIA NIM is used when it is the better match for game, video, or app work, and as the large-model fallback that keeps the full turn. Cold archives live on /mnt/engel-hdd-vault.",
+      "does": "Cosmic Swarm Models tab: local LLM status, model picker, runtime path. Default model home remains CT246. A downloaded weight does not lock other models out. The picker is display-only. Engel auto-selects the model and provider; a picker id or force flag does not pin the turn. NVIDIA NIM is used when it is the better match for game, video, or app work, and as the large-model fallback that keeps the full turn. Cold archives live on /mnt/engel-hdd-vault.",
       "talks_to": [
         "cosmic_swarm",
         "chat_llm",
@@ -791,7 +791,7 @@
         "tools/engel_model_cohesion.py",
         "tools/verify_engel_model_cohesion.py"
       ],
-      "hits": "Which model Chat shows as selected. Game/video/app work can use every linked local model plus NVIDIA NIM. Picker ids resolve to a real lane instead of collapsing to Auto Best.",
+      "hits": "Which model Chat shows as selected. Game/video/app work can use every linked local model plus NVIDIA NIM. The picker shows a name. The turn stays on auto-best.",
       "does_not_hit": "Does not make ROG the model home. Does not live-fetch NVIDIA skill bodies. A downloaded weight does not lock others out."
     },
     {
@@ -996,7 +996,7 @@
       "home": "ct246",
       "universe": "live",
       "life": "alive",
-      "does": "CT246 live chat brain: Qwen2.5-7B GGUF + LoRA on /opt/engel, reached at 127.0.0.1:24680 through the persistent link. Cosmic Swarm Chat Auto stays local-capable. Form-graded prompt-training drafts are served for grading; live chat still uses the incomplete-input quality block. Discord mouths are local-first on CT246 chat (Josh 2026-09-10); per-mouth NVIDIA NIM is preferred fallback after local failure. Discover endpoints Super 120B and Ultra 550B are the large-model fallback and receive the full turn; Lightning 30B, Nano Omni, and Nano stay linked. Kimi/DeepSeek stay optional. A look-at-this-computer-memory ask is a live RAM probe, not a long 7B turn.",
+      "does": "CT246 live chat brain: Qwen2.5-7B GGUF + LoRA on /opt/engel, reached at 127.0.0.1:24680 through the persistent link. Cosmic Swarm Chat Auto stays local-capable. Form-graded prompt-training drafts are served for grading; live chat still uses the incomplete-input quality block. Discord mouths are local-first on CT246 chat (Josh 2026-09-10); per-mouth NVIDIA NIM is preferred fallback after local failure. Discover endpoints Super 120B and Ultra 550B are the large-model fallback and receive the full turn; Lightning 30B, Nano Omni, and Nano stay linked. Kimi/DeepSeek stay optional. A look-at-this-computer-memory ask is a live RAM probe, not a long 7B turn. When the container is already paging, the router automatically uses the local qwen2.5-0.5b SLM instead of Nemotron Lightning. Every model and provider is auto-selected. A picker id or force flag does not pin the turn. Prompt-training stays on the 7B lane.",
       "talks_to": [
         "ct246_body",
         "persistent_link",

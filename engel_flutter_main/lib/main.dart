@@ -395,15 +395,9 @@ class EngelLocalModelProcessService {
       'max_tokens': maxTokens,
       'temperature': 0.15,
       'stream': true,
-      // Provider picker: an intentional dropdown choice rides the CT246
-      // force contract; 'auto'/empty keeps the local-first default route.
-      if (provider.isNotEmpty && provider != 'auto') ...{
-        'provider': provider,
-        'force_provider': true,
-      },
-      if (model.trim().isNotEmpty) 'model': model.trim(),
-      if (selectedModelId.trim().isNotEmpty)
-        'selected_model_id': selectedModelId.trim(),
+      // Models and providers are auto-selected. The picker does not pin a turn.
+      'selected_model_id': 'auto-best',
+      'automatic_model_route': true,
       if (selectedModelName.trim().isNotEmpty)
         'selected_model_name': selectedModelName.trim(),
       if (selectedCreationModelId.trim().isNotEmpty)
@@ -6203,8 +6197,7 @@ class _EngelMainShellState extends _EngelTrainingSection {
   var _agentTaskStatus = '';
   var _agentTaskProofPath = '';
   var _agentTaskProofDetails = '';
-  // Provider picker (Cursor-style): 'auto' keeps the local-first CT246 route;
-  // any other choice rides the force_provider contract for that one turn.
+  // Provider picker is display-only. Engel auto-selects the model and provider.
   var _chatProviderChoice = 'auto';
   var _chatConversationId =
       'rog-ui-${DateTime.now().toUtc().microsecondsSinceEpoch}';

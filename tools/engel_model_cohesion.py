@@ -142,6 +142,43 @@ MODELS: dict[str, dict[str, Any]] = {
         "modalities": ("chat", "code", "reasoning"),
         "live": True,
     },
+    "nvidia-nemotron-3-nano-omni-30b": {
+        "name": "NVIDIA Nemotron 3 Nano Omni 30B",
+        "provider": "nvidia",
+        "force_provider": True,
+        "local_lane": "",
+        "api_model": "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning",
+        "modalities": ("chat", "reasoning"),
+        "live": True,
+    },
+    "nvidia-nemotron-3-nano-30b": {
+        "name": "NVIDIA Nemotron 3 Nano 30B",
+        "provider": "nvidia",
+        "force_provider": True,
+        "local_lane": "",
+        "api_model": "nvidia/nemotron-3-nano-30b-a3b",
+        "modalities": ("chat",),
+        "live": True,
+    },
+    "nvidia-nemotron-35-lightning-nim": {
+        "name": "NVIDIA Nemotron 3.5 Lightning 30B",
+        "provider": "nvidia",
+        "force_provider": True,
+        "local_lane": "",
+        "api_model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+        "modalities": ("chat", "reasoning"),
+        "live": True,
+    },
+    "jev-latest": {
+        "name": "Jev",
+        "provider": "jev",
+        "force_provider": False,
+        "local_lane": "",
+        "api_model": "jev-latest",
+        "modalities": ("decision",),
+        "live": True,
+        "github": "https://github.com/typesafe-ai/typesafe-sdk-python",
+    },
 }
 
 ALIASES = {
@@ -187,6 +224,10 @@ ALIASES = {
     "nemotron-3-super-120b-a12b": "nvidia-nemotron-3-super-120b",
     "nvidia/nemotron-3-ultra-550b-a55b": "nvidia-nemotron-3-ultra-550b",
     "nemotron-3-ultra-550b-a55b": "nvidia-nemotron-3-ultra-550b",
+    "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning": "nvidia-nemotron-3-nano-omni-30b",
+    "nvidia/nemotron-3-nano-30b-a3b": "nvidia-nemotron-3-nano-30b",
+    "nvidia/nemotron-3.5-lightning-30b-a3b": "nvidia-nemotron-35-lightning-nim",
+    "jev": "jev-latest",
 }
 
 
@@ -294,9 +335,25 @@ def _needs_vision(request: dict[str, Any]) -> bool:
     return False
 
 
-def resolve_turn(request: dict[str, Any] | None, prompt: str = "") -> dict[str, Any]:
-    """Resolve the picker selection for this turn."""
-    request = request if isinstance(request, dict) else {}
+def lookup_catalog(raw_id: str) -> dict[str, Any]:
+    """Describe one catalog row. This does not select it for a turn."""
+    raw = str(raw_id or "").strip()
+    catalog_id = canonical_id(raw) or ("auto-best" if not raw else "")
+    spec = dict(MODELS.get(catalog_id) or {})
+    if catalog_id not in MODELS:
+        family = _family_spec(raw)
+        if family is not None:
+            catalog_id, spec = family
+            spec = dict(spec)
+        else:
+            spec = dict(MODELS["auto-best"])
+            catalog_id = "auto-best"
+    spec["catalog_id"] = catalog_id
+    return spec
+
+
+def _resolve_requested_catalog(request: dict[str, Any], prompt: str) -> dict[str, Any]:
+    """The automatic router's own next lane after a miss. Not a user pin."""
     meta = _metadata(request)
     creation = _looks_like_creation(request, prompt)
     raw_id = ""
@@ -310,20 +367,12 @@ def resolve_turn(request: dict[str, Any] | None, prompt: str = "") -> dict[str, 
         raw_id = str(
             request.get("selected_model_id")
             or meta.get("selected_model_id")
-            or meta.get("standing_chat_model_id")
             or request.get("model")
             or request.get("provider_model")
             or ""
         ).strip()
-    catalog_id = canonical_id(raw_id) or ("auto-best" if not raw_id else "")
-    spec = dict(MODELS.get(catalog_id) or {})
-    if catalog_id not in MODELS:
-        family = _family_spec(raw_id)
-        if family is not None:
-            catalog_id, spec = family
-        else:
-            spec = dict(MODELS["auto-best"])
-            catalog_id = "auto-best"
+    spec = lookup_catalog(raw_id)
+    catalog_id = str(spec.pop("catalog_id"))
     modalities = tuple(spec.get("modalities") or ("chat",))
     vision = _needs_vision(request)
     vision_fallback = ""
@@ -335,6 +384,8 @@ def resolve_turn(request: dict[str, Any] | None, prompt: str = "") -> dict[str, 
         "name": spec.get("name") or catalog_id,
         "provider": spec.get("provider") or "auto",
         "force_provider": bool(spec.get("force_provider")),
+        "automatic": True,
+        "automatic_router_lane": True,
         "local_lane": str(spec.get("local_lane") or ""),
         "api_model": str(spec.get("api_model") or ""),
         "modalities": modalities,
@@ -344,12 +395,85 @@ def resolve_turn(request: dict[str, Any] | None, prompt: str = "") -> dict[str, 
         "vision_fallback": vision_fallback,
         "browser": spec.get("browser") is True,
         "fallback_ids": fallback_ids_for(catalog_id),
+        "requested_catalog_id": raw_id,
+    }
+
+
+def resolve_turn(request: dict[str, Any] | None, prompt: str = "") -> dict[str, Any]:
+    """Every turn is Auto Best unless the router itself is retrying the next lane."""
+    request = request if isinstance(request, dict) else {}
+    if request.get("automatic_router_lane") is True:
+        return _resolve_requested_catalog(request, prompt)
+    meta = _metadata(request)
+    raw_id = str(
+        request.get("selected_model_id")
+        or meta.get("selected_model_id")
+        or meta.get("standing_chat_model_id")
+        or request.get("selected_creation_model_id")
+        or request.get("model")
+        or ""
+    ).strip()
+    spec = dict(MODELS["auto-best"])
+    vision = _needs_vision(request)
+    return {
+        "schema": "engel_model_cohesion_v1",
+        "catalog_id": "auto-best",
+        "name": spec.get("name") or "Auto Best",
+        "provider": "auto",
+        "force_provider": False,
+        "automatic": True,
+        "local_lane": "",
+        "api_model": "",
+        "modalities": tuple(spec.get("modalities") or ("chat",)),
+        "live": True,
+        "vision": vision,
+        "creation": _looks_like_creation(request, prompt),
+        "vision_fallback": "grok-4.6" if vision else "",
+        "browser": False,
+        "fallback_ids": list(_FALLBACK_ORDER),
+        "requested_catalog_id": canonical_id(raw_id) or raw_id,
     }
 
 
 def apply_to_request(request: dict[str, Any], prompt: str = "") -> dict[str, Any]:
-    """Stamp cohesion flags onto the live chat request. Mutates request."""
+    """Stamp the automatic route. A picker id or force flag does not pin the turn."""
+    if request.get("automatic_router_lane") is not True:
+        meta = request.get("metadata") if isinstance(request.get("metadata"), dict) else {}
+        requested = str(
+            request.get("selected_model_id")
+            or meta.get("selected_model_id")
+            or meta.get("standing_chat_model_id")
+            or ""
+        ).strip()
+        for key in (
+            "force_provider",
+            "explicit_provider",
+            "provider_explicit",
+            "force_bridge",
+            "explicit_bridge",
+        ):
+            request.pop(key, None)
+        request["selected_model_id"] = "auto-best"
+        request["automatic_provider_after_local_failure_only"] = True
+        if isinstance(request.get("metadata"), dict):
+            if requested:
+                request["metadata"]["requested_model_id"] = requested
+            request["metadata"]["selected_model_id"] = "auto-best"
+            request["metadata"]["automatic_model_route"] = True
+            request["metadata"].pop("standing_chat_model_id", None)
+        provider = str(request.get("provider") or "").strip().casefold()
+        if provider and provider not in {"auto", "local"}:
+            request.pop("provider", None)
+            request.pop("selected_provider", None)
+        model = str(request.get("model") or "").strip().casefold()
+        if model and model not in {"auto", "auto-best"}:
+            request.pop("model", None)
+            request.pop("provider_model", None)
+        if requested:
+            request["_requested_model_id"] = requested
     sel = resolve_turn(request, prompt)
+    if request.get("_requested_model_id") and sel.get("catalog_id") == "auto-best":
+        sel["requested_catalog_id"] = request.get("_requested_model_id")
     request["_engel_cohesion"] = sel
     lane = str(sel.get("local_lane") or "")
     if sel.get("force_provider") and sel.get("provider") not in {"", "auto", "local"}:
