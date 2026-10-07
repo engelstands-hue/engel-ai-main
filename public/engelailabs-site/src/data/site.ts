@@ -274,6 +274,17 @@ export const products = [
   },
 ] as const;
 
+export const builtHere = [
+  {
+    label: "Dev templates for Obsidian and Notion",
+    url: "https://forge.engelailabs.com/?utm_source=engelailabs&utm_medium=homepage",
+  },
+  {
+    label: "VIBE // DROP — vibe-coding tees",
+    url: "https://wearthecrash.printful.me/?utm_source=engelailabs&utm_medium=homepage",
+  },
+] as const;
+
 export const genesisTimeline = [
   { era: "Genesis 01", title: "First Engel interface", copy: "The first visible place for a person and Engel to work together.", featured: false },
   { era: "Genesis 02", title: "First local AI experiments", copy: "Early exploration of useful intelligence running close to the user.", featured: false },

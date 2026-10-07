@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { ConnectionField } from "../components/ConnectionField";
 import { SectionHeading } from "../components/SectionHeading";
-import { engelMain, focusAreas, products } from "../data/site";
+import { builtHere, engelMain, focusAreas, products } from "../data/site";
 
 export function HomePage() {
   return (
@@ -101,6 +101,24 @@ export function HomePage() {
           ))}
         </div>
         <Link className="text-link" to="/apps">See all applications <span>→</span></Link>
+      </section>
+
+      <section className="section container">
+        <SectionHeading
+          eyebrow="Built here"
+          title="Other work from this lab."
+        />
+        <div className="product-preview-grid">
+          {builtHere.map((item) => (
+            <article key={item.url}>
+              <h3>
+                <a className="text-link" href={item.url} rel="noopener noreferrer">
+                  {item.label} <span aria-hidden="true">→</span>
+                </a>
+              </h3>
+            </article>
+          ))}
+        </div>
       </section>
 
       <section className="section container closing-callout">
