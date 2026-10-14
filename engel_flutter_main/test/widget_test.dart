@@ -3979,7 +3979,7 @@ void main() {
     expect(find.text('MAC'), findsOneWidget);
     expect(find.text('Evidence'), findsOneWidget);
     expect(find.text('Add selected'), findsOneWidget);
-    expect(find.text('Unassigned LAN devices'), findsOneWidget);
+    expect(find.text('LAN and WiFi devices'), findsOneWidget);
     expect(find.text('Identify'), findsOneWidget);
     expect(find.text('Device Roster'), findsNothing);
     expect(find.text('Swarm Health'), findsNothing);

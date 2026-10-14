@@ -1,6 +1,8 @@
 # Engel AI Main feature map
 
-This is the user-facing map Benny reads before driving a surface. It covers Engel AI Main and the parts around it. Internals stay out of this file. A missing section means the run stops.
+This is the user-facing map every provider lane reads before driving a surface. It covers Engel AI Main and the parts around it. Internals stay out of this file. A missing section means the run stops.
+
+Provider setup pages, social sites, and other web pages open in the Engel browser inside the Engel AI Main window. An outside browser is not used for those pages.
 
 Authority stays Josh, then Guardian, then Engel. This map does not start a loop, post to Slack, or merge a branch.
 
@@ -141,7 +143,7 @@ The shared Engel AI Labs chats led by Engel AI Main.
 
 #### How a user gets there
 
-- Open Discord, Engel AI Labs, then #general or Bot Talk.
+- Open Discord in the Engel browser inside Engel AI Main, then Engel AI Labs, #general or Bot Talk.
 - No keyboard shortcut.
 
 #### How the control adapter drives it
@@ -178,6 +180,9 @@ The shared Engel AI Labs chats led by Engel AI Main.
 
 - Desk rooms are a different surface.
 - Empty status scripts are not work and stay off the channel.
+- Every Discord bot is a conical part of Engel AI Main.
+- Engel is Engel AI Main's own phone inside the Engel window. The mouths explain that phone. They do not send it to Alpha, Beta, or Gamma.
+- Alpha, Beta, and Gamma are resources for the bot workers. Research, Product, Architect, and Training use Alpha. Support, Ops, and Builder use Beta. Community, Sales, Memory, and Proof use Gamma.
 
 ### Discord desk rooms
 
@@ -185,7 +190,7 @@ Each desk speaks in its own room.
 
 #### How a user gets there
 
-- Open Discord, Engel AI Labs, then the desk category for research, product, community, support, sales, or ops.
+- Open Discord in the Engel browser inside Engel AI Main, then the desk category for research, product, community, support, sales, or ops.
 - Architect, Memory, Builder, Proof, and Training are mouths that report to Engel AI Main.
 - No keyboard shortcut.
 
@@ -274,8 +279,8 @@ The public page for Engel AI Labs.
 
 #### How a user gets there
 
-- Open https://engelailabs.com
-- Open https://engelailabs.com/engel-ai-main for the product page
+- Open https://engelailabs.com in the Engel browser inside Engel AI Main
+- Open https://engelailabs.com/engel-ai-main for the product page in that same browser
 - No keyboard shortcut
 
 #### How the control adapter drives it
@@ -361,7 +366,7 @@ Work notes stay in a private Slack channel. The workspace name, channel name, an
 
 #### How a user gets there
 
-- Open the private Slack channel from the local Benny config.
+- Open the private Slack channel in the Engel browser inside Engel AI Main. The local Benny config holds the target.
 - No keyboard shortcut.
 
 #### How the control adapter drives it
@@ -404,7 +409,7 @@ The public Engel AI Main account.
 
 #### How a user gets there
 
-- Open https://x.com/engelaimain
+- Open https://x.com/engelaimain in the Engel browser inside Engel AI Main
 - No keyboard shortcut
 
 #### How the control adapter drives it
@@ -622,6 +627,7 @@ The operator console for the rest of Engel AI Main: daily Chat, Status, and Sett
 - Launch the Engel AI Main operator console.
 - Use the daily row: Chat, Status, Settings.
 - Open Advanced for Notes, Tasks, Models, Training, Devices, System, Proof, Agents, Goals, Memory, and Build.
+- On Devices, open Swarm 3D. Every audited LAN and WiFi device is a node on the map. Tap a node to read what it is and where it is. Set place records the room. Open server chat and Open meeting room use the tunnels already on this PC. View phone opens that worker. Scan network stays a button you press.
 - No keyboard shortcut.
 
 #### How the control adapter drives it
@@ -634,6 +640,10 @@ The operator console for the rest of Engel AI Main: daily Chat, Status, and Sett
 
 - Tabs Chat, Status, Settings
 - Advanced desks Notes, Tasks, Models, Training, Devices, System, Proof, Agents, Goals, Memory, Build
+- Button View phone on the selected Swarm 3D device
+- Button Open server chat
+- Button Open meeting room
+- Button Set place
 
 #### States to exercise
 
@@ -656,6 +666,7 @@ The operator console for the rest of Engel AI Main: daily Chat, Status, and Sett
 #### Gotchas
 
 - The four-panel desktop chat is a different window.
+- Swarm 3D does not scan the network by itself. Scan network is the button that looks.
 - Settings must not show a saved key.
 
 ### Control Room
@@ -911,6 +922,133 @@ The local proof Engel runs before a job is called done.
 - A screenshot is not a pass.
 - The full sweep is longer than one feature-map check.
 
+### Engel browser
+
+The browser inside the Engel AI Main window. Provider setup pages, social sites, and other web pages open here.
+
+#### How a user gets there
+
+- Open Engel AI Main, then the Browser icon on the side ribbon.
+- Open a provider or social from Connections, chat, or a setup button. The page opens in this browser.
+- No keyboard shortcut. F12 opens developer tools while this browser is focused.
+- The page rests when the Engel window is not in front, so the graphics chip can idle.
+
+#### How the control adapter drives it
+
+- Use the address field, tabs, and the Browser options menu.
+- Engel is Engel AI Main's own phone. Its home and apps run in this window. A separate phone program is not started.
+- Alpha, Beta, and Gamma draw that phone's own screen inside this same window, including its home, apps, and store.
+- Back, Home, and Recent apps use the phone's own buttons. Home shows that phone's home screen. Touch and the wheel act on the picture inside Engel.
+- Browser options holds History, Settings, Developer tools, screenshot, hard reload, copy URL, the bookmark bar, and clear history, cookies, and cache.
+- Reset by closing tabs until one blank tab remains.
+
+#### Stable selectors
+
+- Ribbon icon Browser
+- Address field
+- Button Browser options
+- Tab close mark
+
+#### States to exercise
+
+- Blank tab, one open page, a second tab, History, Settings, developer tools, Engel phone home, a real app on that phone
+
+#### Preconditions and setup
+
+- Auth: the person at this computer, plus the site sign-in when a provider or social asks for one
+- Data: pages the person chooses to open
+- Permissions: Josh for any sign-in or post
+- Flags: none
+- Services: Engel AI Main window
+
+#### Evidence and cross-check
+
+- Screenshot: the page inside the Engel window, not a separate browser
+- Video: open one provider or social page from Engel AI Main
+- Cross-check: `feature map Engel browser` returns this section
+
+#### Gotchas
+
+- This is the browser every provider and social uses.
+- A Qt window, a phone, and a local file folder are different surfaces.
+- Posting from a social page stays blocked unless Josh asks in that turn.
+
+### Engel phone
+
+Engel's own phone inside the Engel AI Main window. Every part below runs in that window. A separate phone program is not started.
+
+#### How a user gets there
+
+- Open Engel AI Main, then Browser on the side ribbon, then the phone icon.
+- In chat, say `open the phone` or `how do I use the phone`.
+- Name one part, for example `open the calculator on the phone` or `how do I use messages on the phone`.
+- No keyboard shortcut.
+
+#### How the control adapter drives it
+
+- Home shows the clock and every app, including Play Store. The dock is Browser, Phone, Messages, and Notes.
+- Browser: type a web address and press Enter. Back returns to the earlier page, then home.
+- Play Store: opens the real Google Play Store on the signed-in phone, in this same window.
+- Phone: type a number and press call. The call goes out through the signed-in phone. History opens the call log. Back ends the call.
+- Messages: New message, then a number and the message. The message goes out through the signed-in phone.
+- Contacts: New contact saves a name and a number. Tap a contact to open Phone with that number.
+- Notes: New note writes a title and the note. Back saves it.
+- Files: shows only files kept on this phone. New file saves text there.
+- Clock: the time, a stopwatch with Start, Stop, Lap, and Reset, and a timer with +1 min, -1 min, and Start.
+- Calculator: digits, plus, minus, times, divide, Equals, C, and backspace.
+- Settings: the phone is Engel, model Engel AI Main. The line chooses Alpha, Beta, or Gamma for calls, messages, and the Play Store. Clear removes the call log or the messages.
+- Back leaves the current page. Home returns to the phone home. Recent apps lists what is open.
+- Phones switches among Engel, Alpha, Beta, and Gamma without closing the window. Alpha, Beta, and Gamma draw the live screen of that phone.
+- All phones starts with the phone plus. Each click adds one phone you choose. See smaller, See phones, and See larger change how big those phones are. Each phone has All and Phones. A tap on Alpha, Beta, or Gamma lands on that phone. If a phone says to tap Allow, that tap is on the phone itself. A page stays in this window.
+- Reset by pressing Home.
+
+#### Stable selectors
+
+- Ribbon icon Browser
+- Button Engel phone
+- Button Phones
+- Button All phones
+- Button phone plus
+- Button See phones
+- Button Back
+- Button Home
+- Button Recent apps
+- App Browser
+- App Play Store
+- App Phone
+- App Messages
+- App Contacts
+- App Notes
+- App Files
+- App Clock
+- App Calculator
+- App Settings
+
+#### States to exercise
+
+- Phone home, one open app, Recent apps, Back to home, Phones list while a phone is open, Alpha or Beta or Gamma live screen, Play Store on the signed-in phone
+
+#### Preconditions and setup
+
+- Auth: the person at this computer
+- Data: notes, messages, contacts, call log, and files kept on this phone
+- Permissions: Josh for any sign-in on a page opened in the phone browser
+- Flags: none
+- Services: Engel AI Main window
+
+#### Evidence and cross-check
+
+- Screenshot: the phone home inside the Engel window
+- Video: open one app from chat, for example the calculator
+- Cross-check: `feature map Engel phone` returns this section
+
+#### Gotchas
+
+- Engel's phone is not a separate program.
+- Alpha, Beta, and Gamma are the phones next to you. Their screens are the live phones, not Engel's own apps.
+- A call and a message go out through the signed-in phone. A note and a file stay on this phone.
+- Play Store installs apps on the signed-in phone.
+
 ## Completeness checklist
 
 - Every user-facing part above has a section.
@@ -920,4 +1058,5 @@ The local proof Engel runs before a job is called done.
 - Auth, data, permissions, flags, and services are named.
 - Screenshot, video, and cross-check are named.
 - Wrong surfaces are listed.
+- Web pages for providers and socials open in the Engel browser inside the Engel window.
 - Browser driving is marked blocked where the surface is not a web page.
