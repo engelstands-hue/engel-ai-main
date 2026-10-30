@@ -1,0 +1,1 @@
+{"schema":"engel_mcp_server_stage_v1","name":"huggingface","enabled_by_default":true,"transport":"streamable-http","url":"https://huggingface.co/mcp","auth_header":"Authorization","auth_env":"HF_TOKEN","auth_scheme":"Bearer","env_file":"/opt/engel/run/secrets/huggingface.env","source":"https://huggingface.co/settings/mcp (official HF MCP server)","note":"Key by env name only."}
