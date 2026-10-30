@@ -380,6 +380,10 @@ ROG_CODEX_CLI_BRIDGE_URL = os.environ.get(
     "ENGEL_ROG_CODEX_CLI_BRIDGE_URL",
     "http://127.0.0.1:24889",
 ).rstrip("/")
+ROG_OPENROUTER_BRIDGE_URL = os.environ.get(
+    "ENGEL_ROG_OPENROUTER_BRIDGE_URL",
+    "http://127.0.0.1:24891",
+).rstrip("/")
 PROVIDER_BRIDGE_TIMEOUT_SECONDS = float(os.environ.get("ENGEL_PROVIDER_BRIDGE_TIMEOUT_SECONDS", "18") or "18")
 GROK_CLI_BRIDGE_TIMEOUT_SECONDS = float(os.environ.get("ENGEL_GROK_CLI_BRIDGE_TIMEOUT_SECONDS", "90") or "90")
 CLAUDE_CLI_BRIDGE_TIMEOUT_SECONDS = float(os.environ.get("ENGEL_CLAUDE_CLI_BRIDGE_TIMEOUT_SECONDS", "30") or "30")
@@ -405,6 +409,7 @@ PROVIDER_BRIDGE_SECRET_NAMES: dict[str, list[str]] = {
     ],
     "codex": [],
     "nvidia": ["ENGEL_NVIDIA_API_KEY", "NVIDIA_API_KEY", "NGC_API_KEY", "NIM_API_KEY"],
+    "openrouter": ["ENGEL_OPENROUTER_API_KEY", "OPENROUTER_API_KEY"],
 }
 PROVIDER_BRIDGE_LABELS = {
     "openai": "ChatGPT/OpenAI",
@@ -413,6 +418,7 @@ PROVIDER_BRIDGE_LABELS = {
     "gemini": "Gemini/Google",
     "codex": "Codex/OpenAI",
     "nvidia": "NVIDIA NIM",
+    "openrouter": "OpenRouter",
 }
 PROVIDER_MODEL_ENV_NAMES = {
     "openai": ["ENGEL_OPENAI_CHAT_MODEL", "ENGEL_CHATGPT_MODEL", "OPENAI_MODEL"],
@@ -974,6 +980,13 @@ def _vision_lane_local_reply(prompt: str, request: dict[str, Any], grok_error: s
                 vision_note = _describe_stored_chat_image(stored, name)
                 if vision_note:
                     notes.append(vision_note)
+    readings = [
+        note
+        for note in notes
+        if "average color" not in note and "image file saved" not in note
+    ]
+    if readings:
+        return "What's on the image:\n" + "\n".join(readings)
     note_text = "; ".join(notes) if notes else "a still image was stored, but I could not read the pixels through Grok"
     err = " ".join(str(grok_error or "").split())
     tunnel_down = any(
@@ -995,6 +1008,67 @@ def _vision_lane_local_reply(prompt: str, request: dict[str, Any], grok_error: s
         + ". Error: "
         + err[:240]
     )
+
+
+def _complete_vision_lane_turn(
+    prompt: str, request: dict[str, Any], started: float
+) -> tuple[dict[str, Any], str] | None:
+    """Look at a still before any text model can answer the words alone.
+
+    Under memory pressure the 0.5B swap-guard used to answer "what is on this
+    image" in about two seconds. That model cannot see pixels.
+    """
+    if not _request_needs_vision_lane(request):
+        return None
+    grok_turn = _call_grok_cli_bridge(prompt, request, started)
+    grok_reply = str(grok_turn.get("assistant_reply") or "").strip()
+    if grok_turn.get("ok") is True and grok_reply:
+        grok_receipt = dict(grok_turn)
+        grok_receipt["assistant_output_text"] = grok_reply
+        grok_receipt["selected_provider"] = "rog_grok_cli"
+        grok_receipt["discord_owner_vision"] = bool(_is_discord_owner_turn(request))
+        grok_receipt["main_ui_vision"] = bool(_is_main_ui_turn(request))
+        lane_name = (
+            "ct_discord_owner_vision" if _is_discord_owner_turn(request) else (
+                "ct_discord_vision" if str(request.get("source") or "").casefold().startswith("discord")
+                else "ct_main_ui_vision"
+            )
+        )
+        grok_receipt = _finalize_chat_receipt(
+            grok_receipt,
+            prompt,
+            grok_reply,
+            lane_name,
+            started,
+            allow_room=_prompt_requests_meeting_room_dispatch(prompt),
+            allow_reps=False,
+        )
+        grok_reply = str(
+            grok_receipt.get("assistant_reply") or grok_receipt.get("assistant_output_text") or grok_reply
+        )
+        return grok_receipt, grok_reply
+    fail_note = str(grok_turn.get("error") or "Grok work lane did not return a reply")
+    vision_reply = _vision_lane_local_reply(prompt, request, fail_note)
+    vision_receipt = {
+        "ok": True,
+        "assistant_reply": vision_reply,
+        "assistant_output_text": vision_reply,
+        "selected_provider": "ct_vision_notes_fallback",
+        "runtime_provider": "local-image-notes",
+        "discord_owner_vision": bool(_is_discord_owner_turn(request)),
+        "main_ui_vision": bool(_is_main_ui_turn(request)),
+        "grok_vision_error": fail_note[:400],
+    }
+    vision_receipt = _finalize_chat_receipt(
+        vision_receipt,
+        prompt,
+        vision_reply,
+        "ct_vision_notes_fallback",
+        started,
+        allow_room=False,
+        allow_reps=False,
+    )
+    return vision_receipt, str(vision_receipt.get("assistant_reply") or vision_reply)
 
 
 def _prepare_chat_attachments(raw: Any) -> dict[str, Any]:
@@ -1280,7 +1354,8 @@ def _apply_chat_humanizer(prompt: str, receipt: dict[str, Any], source: str) -> 
     try:
         from engel_chat_humanization_slm import humanize_chat_reply
 
-        spoken, slm_meta = humanize_chat_reply(prompt, final, source=source)
+        spoken_source = source + "|frontier_mouth" if receipt.get("mouth_is_frontier") is True else source
+        spoken, slm_meta = humanize_chat_reply(prompt, final, source=spoken_source)
         meta["humanization_slm"] = slm_meta
         if spoken.strip() and (slm_meta.get("used") is True or slm_meta.get("reply_changed")):
             if spoken.strip() != final:
@@ -1589,13 +1664,15 @@ PROVIDER_SPECIFIC_ENABLED_ENV_NAMES = {
     "gemini": ("ENGEL_GEMINI_BRIDGE_ENABLED", "ENGEL_GEMINI_API_BRIDGE_ENABLED"),
     "codex": ("ENGEL_CODEX_BRIDGE_ENABLED", "ENGEL_CODEX_CLI_BRIDGE_ENABLED"),
     "nvidia": ("ENGEL_NVIDIA_BRIDGE_ENABLED", "ENGEL_NIM_BRIDGE_ENABLED"),
+    "openrouter": ("ENGEL_OPENROUTER_BRIDGE_ENABLED",),
 }
 
 PROVIDER_ROUTE_DEFAULT_ENABLED = {
     "openai": True,
     "anthropic": False,
     "xai": True,
-    "gemini": False,
+    "gemini": True,
+    "openrouter": True,
     "codex": True,
     "nvidia": True,
 }
@@ -1703,7 +1780,7 @@ def _provider_bridge_status() -> dict[str, Any]:
         gemini_api_status = gemini_future.result()
         codex_cli_status = codex_future.result()
     providers: dict[str, Any] = {}
-    for provider in ("openai", "anthropic", "xai", "gemini", "codex", "nvidia"):
+    for provider in ("openai", "anthropic", "xai", "gemini", "codex", "nvidia", "openrouter"):
         source = _provider_secret_source(provider)
         provider_enabled = bool(enabled and _provider_bridge_enabled_for_routing(provider))
         local_route_ok = bool(
@@ -1725,6 +1802,8 @@ def _provider_bridge_status() -> dict[str, Any]:
         connected = bool(provider_enabled and (direct_api_ready or local_route_ok))
         providers[provider] = {
             "label": PROVIDER_BRIDGE_LABELS[provider],
+            "conical_to": "engel_ai_main",
+            "conical_part": True,
             "enabled": provider_enabled,
             "configured": provider_enabled,
             "connected": connected,
@@ -1753,6 +1832,7 @@ def _provider_bridge_status() -> dict[str, Any]:
     return {
         "schema": "engel_provider_bridge_status_v1",
         "ok": True,
+        "conical_to": "engel_ai_main",
         "enabled": enabled,
         "env_file": str(PROVIDER_BRIDGE_ENV_FILE),
         "env_file_present": PROVIDER_BRIDGE_ENV_FILE.is_file(),
@@ -1828,8 +1908,21 @@ def _provider_model_candidates(provider: str, request: dict[str, Any] | None = N
     request = request or {}
     candidates: list[str] = []
     if include_request:
+        requested_model = str(request.get("model") or request.get("provider_model") or "").strip()
+        if provider_key == "xai" and requested_model:
+            requested_model = _canonical_grok_build_model(requested_model)
+        if (
+            requested_model
+            and requested_model not in {"auto", "auto-best"}
+            and not _provider_fallback_allowed(request)
+            and (provider_key != "nvidia" or "/" in requested_model)
+        ):
+            return [requested_model]
         metadata = request.get("metadata") if isinstance(request.get("metadata"), dict) else {}
         if provider_key == "nvidia":
+            only = str(request.get("_mouth_model_only") or "").strip()
+            if only.startswith("nvidia/"):
+                return [only]
             for key in ("nvidia_nim_model", "nvidia_model"):
                 value = str(request.get(key) or metadata.get(key) or "").strip()
                 if value:
@@ -1903,6 +1996,14 @@ _TURN_GOVERNOR_ROUTE_DECISION: "contextvars.ContextVar[dict | None]" = contextva
 # the meeting-room dispatch lane live on 2026-07-31).
 _TURN_CHAT_ONLY: "contextvars.ContextVar[bool]" = contextvars.ContextVar(
     "engel_turn_chat_only", default=False
+)
+
+# Champion shortlist for this turn. Receipts read it at finalize. Not trusted memory.
+_TURN_CATALOG_ROUTE: "contextvars.ContextVar[dict | None]" = contextvars.ContextVar(
+    "engel_turn_catalog_route", default=None
+)
+_TURN_GROUNDED_SPEAK: "contextvars.ContextVar[bool]" = contextvars.ContextVar(
+    "engel_turn_grounded_speak", default=False
 )
 
 
@@ -2946,7 +3047,7 @@ def _provider_system_prompt(provider: str, prompt: str, request: dict[str, Any] 
         parts.append(
             "ENGEL'S REAL ARCHITECTURE (facts, correct any wrong assumption from model names): "
             "Engel AI Main runs on Joshua's OWN hardware - a Dell PowerEdge server (Proxmox host 'engel-spine-01', "
-            "192.0.2.50) hosting container CT 246 'engel-ai-main' on SSD storage. The ROG laptop is the controller "
+            "192.168.4.50) hosting container CT 246 'engel-ai-main' on SSD storage. The ROG laptop is the controller "
             "running the desktop app + provider bridges. Chat flows: app/Discord -> CT 246 server over a LAN SSH reverse "
             "tunnel -> provider bridges back on the ROG. This is NOT RunPod, NOT a cloud VPS, NOT behind public NAT - it "
             "is a home lab on the local network. If a model route id contains 'runpod' it is only a legacy name; the real "
@@ -3575,6 +3676,94 @@ def _call_gemini_api_bridge(prompt: str, request: dict[str, Any], started: float
     }
 
 
+def _openrouter_bridge_status() -> dict[str, Any]:
+    enabled = _env_truth("ENGEL_OPENROUTER_BRIDGE_FIRST", default=True)
+    status = {
+        "schema": "engel_rog_openrouter_bridge_route_status_v1",
+        "ok": False,
+        "enabled": enabled,
+        "usable": False,
+        "url": ROG_OPENROUTER_BRIDGE_URL,
+        "route": "CT 246 -> SSH reverse tunnel -> Windows OpenRouter relay",
+        "provider": "openrouter",
+        "provider_label": "OpenRouter relay on Windows",
+        "oauth_tokens_exposed": False,
+        "updated_at_utc": _iso_now(),
+    }
+    if not enabled:
+        status["reason"] = "ENGEL_OPENROUTER_BRIDGE_FIRST disabled"
+        return status
+    try:
+        req = urllib.request.Request(
+            ROG_OPENROUTER_BRIDGE_URL + "/health",
+            headers={"Accept": "application/json"},
+            method="GET",
+        )
+        with urllib.request.urlopen(req, timeout=1.2) as resp:
+            data = json.loads(resp.read().decode("utf-8", errors="replace"))
+        if isinstance(data, dict):
+            status["ok"] = bool(data.get("ok") is True)
+            status["usable"] = bool(data.get("usable") is True or data.get("secret_present") is True)
+            status["oauth_tokens_exposed"] = False
+        return status
+    except Exception as exc:
+        status["reason"] = _redact_provider_error(str(exc))
+        return status
+
+
+def _call_openrouter_bridge(prompt: str, request: dict[str, Any], started: float) -> dict[str, Any]:
+    del started
+    bridge_request = {
+        "prompt": prompt,
+        "model": request.get("model") or request.get("provider_model") or "",
+        "timeout_seconds": _provider_request_timeout_seconds(
+            request,
+            90,
+            minimum=20,
+            maximum=180,
+        ),
+        "max_tokens": request.get("max_tokens") or request.get("max_completion_tokens") or 4096,
+        "temperature": request.get("temperature") or 0.2,
+    }
+    result = _provider_http_json(
+        ROG_OPENROUTER_BRIDGE_URL + "/chat",
+        bridge_request,
+        {"X-Engel-Bridge": "ct246-openrouter"},
+        int(bridge_request["timeout_seconds"]) + 5,
+    )
+    attempt = {
+        "provider": "openrouter",
+        "bridge_kind": "rog_openrouter",
+        "url": ROG_OPENROUTER_BRIDGE_URL,
+        "ok": result.get("ok"),
+        "status_code": result.get("status_code"),
+        "error": result.get("error", ""),
+    }
+    if not result.get("ok"):
+        return {
+            "ok": False,
+            "provider": "openrouter",
+            "assistant_reply": "",
+            "attempts": [attempt],
+            "error": _redact_provider_error(result.get("error") or "Windows OpenRouter relay unavailable"),
+            "bridge_kind": "rog_openrouter",
+        }
+    data = result.get("json") if isinstance(result.get("json"), dict) else {}
+    reply = str(data.get("assistant_reply") or "").strip()
+    model = str(data.get("runtime_provider") or bridge_request["model"] or "")
+    attempt["model"] = model
+    attempt["ok"] = bool(reply)
+    return {
+        "ok": bool(reply),
+        "provider": "openrouter",
+        "model": model,
+        "assistant_reply": reply,
+        "attempts": [attempt],
+        "bridge_kind": "rog_openrouter",
+        "error": "" if reply else str(data.get("error") or "Windows OpenRouter relay returned no assistant reply"),
+    }
+
+
 def _grok_cli_bridge_status() -> dict[str, Any]:
     enabled = _env_truth("ENGEL_GROK_CLI_BRIDGE_ENABLED", default=True)
     status = {
@@ -3854,9 +4043,14 @@ def _call_provider_with_account_pool(
     started: float,
     call_fn: Any,
 ) -> dict[str, Any]:
-    """Try each ready account for this provider. Usage-out rotates; memory stays shared."""
+    """Use the current account until its usage is gone, then the next.
+
+    The prompt and Engel memory stay on this request. An account home is
+    only the sign-in slot.
+    """
     try:
         from engel_provider_account_pool import (
+            active_account_id,
             error_is_usage_exhausted,
             iter_ready_accounts,
             mark_exhausted,
@@ -3864,6 +4058,7 @@ def _call_provider_with_account_pool(
         )
     except Exception:
         return call_fn(prompt, request, started)
+    before = active_account_id(provider)
     last: dict[str, Any] | None = None
     tried = False
     for acc in iter_ready_accounts(provider):
@@ -3877,7 +4072,7 @@ def _call_provider_with_account_pool(
         if last.get("ok") is True:
             mark_used(provider, str(acc.get("id") or ""))
             last["account_id"] = acc.get("id")
-            last["account_switched"] = True
+            last["account_switched"] = bool(before) and str(acc.get("id") or "") != before
             last["memory_core_shared"] = True
             return last
         if error_is_usage_exhausted(err):
@@ -4159,12 +4354,49 @@ def _nvidia_full_turn_text(prompt: str, request: dict[str, Any]) -> str:
     return packed[:180000]
 
 
+def _reply_narrates_the_request(text: str) -> bool:
+    low = " ".join(str(text or "").casefold().split())
+    return (
+        low.startswith("we need to")
+        or low.startswith("the user wants")
+        or low.startswith("we must respond")
+        or "reply with only the item" in low[:240]
+    )
+
+
+def _nvidia_message_text(message: dict[str, Any]) -> str:
+    """Read a NIM chat message. Reasoning models sometimes leave content empty."""
+    content = message.get("content")
+    if isinstance(content, str) and content.strip():
+        return content.strip()
+    if isinstance(content, list):
+        parts: list[str] = []
+        for part in content:
+            if isinstance(part, str) and part.strip():
+                parts.append(part.strip())
+            elif isinstance(part, dict):
+                text = str(part.get("text") or part.get("content") or "").strip()
+                if text:
+                    parts.append(text)
+        if parts:
+            return " ".join(parts)
+    parked = str(message.get("reasoning_content") or "")
+    if "</think>" in parked:
+        tail = parked.split("</think>")[-1].strip()
+        if tail:
+            return tail
+    return ""
+
+
 def _call_nvidia_nim_bridge(prompt: str, request: dict[str, Any], *, secret: str, started: float) -> dict[str, Any]:
     try:
         requested_tokens = int(request.get("max_tokens") or request.get("max_completion_tokens") or 0)
     except (TypeError, ValueError):
         requested_tokens = 0
-    max_tokens = max(4096, min(16384, requested_tokens or 4096))
+    if request.get("_discord_mouth_nvidia_item") is True:
+        max_tokens = max(320, min(1024, requested_tokens or 320))
+    else:
+        max_tokens = max(4096, min(16384, requested_tokens or 4096))
     temperature = float(request.get("temperature") or 0.35)
     system_prompt = _provider_system_prompt("nvidia", prompt, request)
     user_text = _nvidia_full_turn_text(prompt, request)
@@ -4186,6 +4418,8 @@ def _call_nvidia_nim_bridge(prompt: str, request: dict[str, Any], *, secret: str
             "max_tokens": max_tokens,
             "stream": False,
         }
+        if request.get("_discord_mouth_nvidia_item") is True:
+            payload["chat_template_kwargs"] = {"enable_thinking": False}
         result = _provider_http_json(
             NVIDIA_CHAT_COMPLETIONS_URL,
             payload,
@@ -4207,7 +4441,9 @@ def _call_nvidia_nim_bridge(prompt: str, request: dict[str, Any], *, secret: str
             data = result.get("json") if isinstance(result.get("json"), dict) else {}
             choices = data.get("choices") if isinstance(data.get("choices"), list) else []
             message = choices[0].get("message") if choices and isinstance(choices[0], dict) else {}
-            reply = str(message.get("content") or "").strip() if isinstance(message, dict) else ""
+            reply = _nvidia_message_text(message if isinstance(message, dict) else {})
+            if not reply and isinstance(message, dict):
+                attempts[-1]["message_keys"] = sorted(str(key) for key in message.keys())[:12]
             if reply:
                 return {
                     "ok": True,
@@ -4368,7 +4604,22 @@ def _call_provider_bridge(provider: str, prompt: str, request: dict[str, Any], s
             "attempts": [],
         }
     source = _provider_secret_source(provider)
-    if provider == "openai" and _env_truth("ENGEL_CHATGPT_BROWSER_BRIDGE_FIRST", default=True):
+    pinned_openai_model = ""
+    if provider == "openai":
+        pinned_openai_model = str(request.get("model") or request.get("provider_model") or "").strip()
+    # A strict chat pin names an API model. The browser worker is a different lane,
+    # and a refused browser must not hide the API key that is already loaded.
+    strict_openai_api = (
+        provider == "openai"
+        and bool(pinned_openai_model)
+        and pinned_openai_model.casefold() not in {"chatgpt-browser", "chatgpt-browser-ui"}
+        and not _provider_fallback_allowed(request)
+    )
+    if (
+        provider == "openai"
+        and not strict_openai_api
+        and _env_truth("ENGEL_CHATGPT_BROWSER_BRIDGE_FIRST", default=True)
+    ):
         chatgpt_browser_status = _chatgpt_browser_bridge_status()
         browser_result: dict[str, Any] | None = None
         browser_enabled = chatgpt_browser_status.get("enabled") is not False
@@ -4520,6 +4771,19 @@ def _call_provider_bridge(provider: str, prompt: str, request: dict[str, Any], s
                 "value_length": 0,
             },
         }
+    if provider == "openrouter" and _env_truth("ENGEL_OPENROUTER_BRIDGE_FIRST", default=True):
+        openrouter_status = _openrouter_bridge_status()
+        if openrouter_status.get("usable") is True:
+            result = _call_openrouter_bridge(prompt, request, started)
+            result["secret_source"] = {
+                "present": True,
+                "provider": "openrouter",
+                "source_type": "rog_local_openrouter",
+                "name": "OPENROUTER_ROG_LOCAL_BRIDGE_AUTH",
+                "path": "",
+                "value_length": 0,
+            }
+            return result
     if source.get("present") is not True:
         return {
             "ok": False,
@@ -4573,6 +4837,16 @@ def _call_provider_bridge(provider: str, prompt: str, request: dict[str, Any], s
         result = _call_codex_cli_bridge(prompt, request, started)
     elif provider == "nvidia":
         result = _call_nvidia_nim_bridge(prompt, request, secret=secret, started=started)
+    elif provider == "openrouter":
+        from engel_openai_compatible import OPENROUTER_CHAT_COMPLETIONS_URL, complete_chat
+
+        result = complete_chat(
+            OPENROUTER_CHAT_COMPLETIONS_URL,
+            secret,
+            prompt,
+            request,
+            provider="openrouter",
+        )
     else:
         result = {"ok": False, "provider": provider, "assistant_reply": "", "error": f"unknown provider bridge: {provider}", "attempts": []}
     result["secret_source"] = _public_secret_source(source)
@@ -4944,7 +5218,7 @@ def _self_upgrade_status_snapshot() -> dict[str, Any]:
     try:
         from engel_self_upgrade_loop_stream import snapshot_to_stream
 
-        state = snapshot_to_stream()
+        state = snapshot_to_stream(probe_pipes=False)
         return {
             "schema": "ENGEL_SELF_UPGRADE_HTTP_STATUS_V1",
             "ok": True,
@@ -5646,11 +5920,11 @@ def _dispatch_sub_engel_direct_work_request(request: dict[str, Any]) -> dict[str
     node_url = str(
         selected.get("url")
         or selected.get("node_url")
-        or "http://198.51.100.227:8776"
+        or "http://192.168.5.227:8776"
     ).strip()
     if node_id.upper() != "DESKTOP-UE5A6GG":
         raise ValueError(f"unapproved Sub-Engel node: {node_id}")
-    if node_url.rstrip("/") != "http://198.51.100.227:8776":
+    if node_url.rstrip("/") != "http://192.168.5.227:8776":
         raise ValueError(f"unapproved Sub-Engel URL: {node_url}")
     order.update(
         {
@@ -5715,9 +5989,9 @@ def _seconds_since_utc(value: Any) -> float | None:
 
 def _probe_sub_engel_http_health(url: str, timeout: float = 1.5) -> dict[str, Any]:
     """Live LAN probe. A stale JSON live_health_ok flag is not connection proof."""
-    target = str(url or "http://198.51.100.227:8776").rstrip("/")
+    target = str(url or "http://192.168.5.227:8776").rstrip("/")
     if not target:
-        target = "http://198.51.100.227:8776"
+        target = "http://192.168.5.227:8776"
     try:
         with urllib.request.urlopen(target + "/health", timeout=timeout) as response:
             payload = json.loads(response.read().decode("utf-8", errors="replace"))
@@ -5850,7 +6124,7 @@ def _sub_engel_bridge_snapshot() -> dict[str, Any]:
             or node.get("last_resolved_at_utc")
             or ""
         )
-        probe_url = url or "http://198.51.100.227:8776"
+        probe_url = url or "http://192.168.5.227:8776"
         health_probe = _probe_sub_engel_http_health(probe_url)
         live = bool(paired and (health_probe.get("ok") is True or node.get("live_health_ok") is True))
         if paired and health_probe.get("ok") is True:
@@ -7990,6 +8264,160 @@ def _discord_checkout_turn(prompt: str, started: float) -> tuple[dict[str, Any],
     return receipt, reply
 
 
+def _discord_user_text(prompt: str, request: dict[str, Any]) -> str:
+    """Route on what the person wrote, not on the conductor instruction."""
+    metadata = request.get("metadata") if isinstance(request.get("metadata"), dict) else {}
+    original = str(metadata.get("discord_original_prompt") or "").strip()
+    return original or str(prompt or "").strip()
+
+
+def _discord_conductor_ready(prompt: str, request: dict[str, Any]) -> str | None:
+    """Return the person's message when this turn is the main Discord conductor."""
+    if not isinstance(request, dict):
+        return None
+    source = str(request.get("source") or request.get("client") or "").strip().casefold()
+    if not source.startswith("discord"):
+        return None
+    if request.get("prefer_fast_local_chat") is True:
+        return None
+    metadata = request.get("metadata") if isinstance(request.get("metadata"), dict) else {}
+    if metadata.get("discord_conductor") is not True or metadata.get("discord_desk_work") is True:
+        return None
+    user = _discord_user_text(prompt, request)
+    if not user:
+        return None
+    if _prompt_requests_live_runtime_status(user) or _prompt_requests_computer_memory(user):
+        return None
+    return user
+
+
+def _save_conductor_tool_calls(reply: str, source: str) -> None:
+    try:
+        from engel_tool_call_later_training import extract_tool_calls, save_tool_call_for_later_training
+
+        for call in extract_tool_calls(reply):
+            save_tool_call_for_later_training(
+                tool=str(call.get("tool") or ""),
+                args=str(call.get("args") or ""),
+                result=reply[:400],
+                source=source,
+                ok=True,
+            )
+    except Exception:
+        pass
+
+
+def _discord_conductor_nemotron_turn(
+    prompt: str,
+    request: dict[str, Any],
+    started: float,
+) -> tuple[dict[str, Any], str] | None:
+    """The room conductor speaks through the loaded Nemotron 3.5 Lightning server.
+
+    The official NVFP4 checkpoint needs an NVIDIA GPU. CT246 serves the same
+    model as the local GGUF on 127.0.0.1:8905. A dead server falls through.
+    """
+    user = _discord_conductor_ready(prompt, request)
+    if user is None:
+        return None
+    forced = dict(request)
+    forced["_force_nemotron"] = True
+    spoken = (
+        "You conduct the Engel AI Main Discord room. "
+        "Answer in Engel's voice. "
+        "Lead toward the next real fix. "
+        "Do not invent a product. Do not claim a file was edited.\n\n"
+        f"Current message:\n{user}"
+    )
+    receipt = _nemotron_lightning_local_model_receipt(spoken, started, forced)
+    if not isinstance(receipt, dict):
+        return None
+    reply = str(receipt.get("assistant_reply") or "").strip()
+    if receipt.get("ok") is not True or not reply:
+        return None
+    receipt["discord_conductor"] = True
+    receipt["discord_brain"] = "nemotron-3.5-lightning"
+    receipt["nemotron_checkpoint_family"] = "nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4"
+    receipt["nemotron_nvfp4_loaded"] = False
+    receipt["selected_provider"] = "ct_nemotron_lightning"
+    receipt = _finalize_chat_receipt(
+        receipt,
+        user,
+        reply,
+        "ct_discord_nemotron_conductor",
+        started,
+        allow_room=False,
+        allow_reps=False,
+    )
+    reply = str(receipt.get("assistant_reply") or reply)
+    _save_conductor_tool_calls(reply, "nemotron-3.5-lightning")
+    return receipt, reply
+
+
+def _discord_conductor_chatgpt_turn(
+    prompt: str,
+    request: dict[str, Any],
+    started: float,
+) -> tuple[dict[str, Any], str] | None:
+    """Engel AI Main's Discord conductor speaks through the ROG ChatGPT browser.
+
+    Desk turns and peer-bot chatter do not enter this lane. If the browser
+    bridge is down, the caller keeps the local model.
+    """
+    if not isinstance(request, dict):
+        return None
+    source = str(request.get("source") or request.get("client") or "").strip().casefold()
+    if not source.startswith("discord"):
+        return None
+    if request.get("prefer_fast_local_chat") is True:
+        return None
+    metadata = request.get("metadata") if isinstance(request.get("metadata"), dict) else {}
+    if metadata.get("discord_conductor") is not True or metadata.get("discord_desk_work") is True:
+        return None
+    if str(request.get("model") or "").strip().casefold() not in {"chatgpt-browser", "chatgpt-browser-ui"}:
+        return None
+    if _prompt_requests_live_runtime_status(prompt) or _prompt_requests_computer_memory(prompt):
+        return None
+    result = _call_chatgpt_browser_bridge(prompt, request, started)
+    reply = str(result.get("assistant_reply") or "").strip()
+    if result.get("ok") is not True or not reply:
+        return None
+    receipt = dict(result)
+    receipt["assistant_reply"] = reply
+    receipt["assistant_output_text"] = reply
+    receipt["selected_provider"] = "rog_chatgpt_browser"
+    receipt["discord_conductor"] = True
+    receipt = _finalize_chat_receipt(
+        receipt,
+        prompt,
+        reply,
+        "ct_discord_chatgpt_conductor",
+        started,
+        allow_room=False,
+        allow_reps=False,
+    )
+    reply = str(receipt.get("assistant_reply") or reply)
+    remote = receipt.get("remote_receipt") if isinstance(receipt.get("remote_receipt"), dict) else {}
+    calls = remote.get("tool_calls") if isinstance(remote.get("tool_calls"), list) else []
+    if calls:
+        try:
+            from engel_tool_call_later_training import save_tool_call_for_later_training
+
+            for call in calls:
+                if not isinstance(call, dict):
+                    continue
+                save_tool_call_for_later_training(
+                    tool=str(call.get("tool") or ""),
+                    args=str(call.get("args") or ""),
+                    result=reply[:400],
+                    source="chatgpt-browser",
+                    ok=True,
+                )
+        except Exception:
+            pass
+    return receipt, reply
+
+
 def _is_discord_owner_turn(request: dict[str, Any] | None) -> bool:
     """Josh talking in Discord must use the full CT246 brain, not the tiny fast lane.
 
@@ -9502,14 +9930,23 @@ def _nemotron_lightning_route_decision(
     except Exception:
         blocked = {"blocked": False}
     if blocked.get("blocked") is True:
-        return {
-            "selected": False,
-            "explicit": False,
-            "automatic": True,
-            "reason": "router auto-selected the small SLM while the container is paging",
-            "slm_fallback": True,
-            "slm_fallback_reason": blocked.get("reason") or "",
-        }
+        resident = False
+        if request.get("_force_nemotron") is True:
+            try:
+                from engel_nemotron_lightning_runtime import dedicated_server_resident
+
+                resident = dedicated_server_resident()
+            except Exception:
+                resident = False
+        if not resident:
+            return {
+                "selected": False,
+                "explicit": False,
+                "automatic": True,
+                "reason": "router auto-selected the small SLM while the container is paging",
+                "slm_fallback": True,
+                "slm_fallback_reason": blocked.get("reason") or "",
+            }
     text = " ".join(str(prompt or "").casefold().split())
     # Prompt-training and the local-only grounding probe must stay on Engel 7B
     # with personality. Auto-Lightning (2026-09-08) answered the grounding ask
@@ -9578,6 +10015,196 @@ def _nemotron_lightning_route_decision(
     return {"selected": False, "reason": "Nemotron Lightning not selected for this turn"}
 
 
+def _serve_discord_mouth_nvidia(
+    prompt: str, request: dict[str, Any], started: float
+) -> tuple[dict[str, Any], str] | None:
+    """Call this desk's NVIDIA model. Leave the secret off the receipt."""
+    source = _provider_secret_source("nvidia")
+    if source.get("present") is not True:
+        request["_mouth_model_miss"] = {"route": "secret_missing", "attempts": []}
+        return None
+    only_model = str(request.get("nvidia_nim_model") or request.get("model") or "").strip()
+    if only_model.startswith("nvidia/"):
+        request["_mouth_model_only"] = only_model
+    result = _call_nvidia_nim_bridge(
+        prompt,
+        request,
+        secret=str(source.get("secret") or ""),
+        started=started,
+    )
+    attempts = []
+    for item in result.get("attempts") or []:
+        if not isinstance(item, dict):
+            continue
+        attempts.append(
+            {
+                "model": str(item.get("model") or "")[:80],
+                "status": item.get("status_code"),
+                "ok": item.get("ok") is True,
+                "error": _redact_provider_error(item.get("error") or "")[:180],
+                "message_keys": item.get("message_keys") or [],
+            }
+        )
+    reply = str(result.get("assistant_reply") or "").strip()
+    if result.get("ok") is True and _reply_narrates_the_request(reply):
+        meta = request.get("metadata") if isinstance(request.get("metadata"), dict) else {}
+        user_text = str(meta.get("discord_original_prompt") or "").strip()
+        retry_request = dict(request)
+        retry_request["prompt"] = (
+            "Answer the person in two sentences. Do not describe instructions.\n\n"
+            f"Current user message:\n{user_text or prompt}"
+        )
+        retry_request["_discord_mouth_nvidia_item"] = True
+        retry = _call_nvidia_nim_bridge(
+            str(retry_request["prompt"]),
+            retry_request,
+            secret=str(source.get("secret") or ""),
+            started=started,
+        )
+        retry_reply = str(retry.get("assistant_reply") or "").strip()
+        if retry.get("ok") is True and retry_reply and not _reply_narrates_the_request(retry_reply):
+            result = retry
+            reply = retry_reply
+        else:
+            request["_mouth_model_miss"] = {"route": "narration", "attempts": attempts[:4]}
+            return None
+    if result.get("ok") is not True or not reply:
+        request["_mouth_model_miss"] = {"route": "nvidia_call", "attempts": attempts[:4]}
+        return None
+    receipt = {
+        "schema": "engel_main_server_provider_bridge_chat_receipt_v1",
+        "ok": True,
+        "status": "discord mouth model replied",
+        "assistant_reply": reply,
+        "assistant_output_text": reply,
+        "provider": "NVIDIA NIM",
+        "runtime_provider": str(result.get("model") or ""),
+        "selected_provider": "nvidia",
+        "provider_bridge_used": True,
+        "discord_mouth_model_used": True,
+        "swap_guard_skipped_for_mouth_model": True,
+        "provider_api_enabled": True,
+        "network_enabled": True,
+    }
+    receipt = _finalize_chat_receipt(
+        receipt,
+        prompt,
+        reply,
+        "ct_provider_bridge_chat",
+        started,
+        allow_room=False,
+        allow_reps=False,
+        persist_memory=False,
+    )
+    reply = str(receipt.get("assistant_reply") or receipt.get("assistant_output_text") or reply)
+    return receipt, reply
+
+
+def _catalog_bridge_attempt(request: dict[str, Any], model_id: str, bridge: str, api_model: str) -> dict[str, Any]:
+    """Router lane for one champion. This is not a picker pin."""
+    attempt = dict(request)
+    attempt["automatic_router_lane"] = True
+    attempt["force_provider"] = True
+    attempt["explicit_provider"] = True
+    attempt["provider"] = bridge
+    attempt["selected_provider"] = bridge
+    attempt["model"] = api_model or model_id
+    attempt["provider_model"] = api_model or model_id
+    attempt["temperature"] = 0.7
+    return attempt
+
+
+def _serve_catalog_shortlist(
+    prompt: str, request: dict[str, Any], started: float
+) -> tuple[dict[str, Any], str] | None:
+    """Try off-box champions before the local 7B. Local hands fall through."""
+    route = request.get("_catalog_route")
+    if not isinstance(route, dict):
+        return None
+    if _is_form_graded_training_prompt(prompt) or _request_local_only_training(request):
+        return None
+    job = str(route.get("job_class") or "")
+    if job not in {"talk", "reason", "vision"}:
+        return None
+    ids: list[str] = []
+    if request.get("automatic_router_lane") is True:
+        chosen = str(request.get("selected_model_id") or "").strip()
+        if chosen and chosen not in {"auto", "auto-best"}:
+            ids = [chosen]
+    if not ids:
+        raw_ids = route.get("shortlist_ids")
+        ids = [str(item) for item in raw_ids if str(item).strip()] if isinstance(raw_ids, list) else []
+    tried: list[dict[str, str]] = []
+    bridged = {"openai", "xai", "nvidia"}
+    for model_id in ids[:8]:
+        try:
+            from engel_model_cohesion import lookup_catalog
+
+            spec = lookup_catalog(model_id)
+        except Exception:
+            spec = {}
+        provider = str(spec.get("provider") or "")
+        if provider not in bridged or spec.get("live") is not True:
+            if provider in {"", "local", "auto"}:
+                continue
+            tried.append({"id": model_id, "reason": "unwired"})
+            continue
+        attempt = _catalog_bridge_attempt(
+            request,
+            model_id,
+            provider,
+            str(spec.get("api_model") or model_id),
+        )
+        turn = _complete_provider_bridge_turn(prompt, attempt, started, persist_memory=True)
+        if turn is None:
+            tried.append({"id": model_id, "reason": "failed"})
+            continue
+        receipt, reply = turn
+        if not str(reply or "").strip():
+            tried.append({"id": model_id, "reason": "failed"})
+            continue
+        receipt["mouth_catalog_id"] = model_id
+        receipt["catalog_router_id"] = model_id
+        receipt["catalog_shortlist"] = ids[:8]
+        receipt["catalog_attempts"] = tried
+        receipt["mouth_is_frontier"] = True
+        receipt["catalog_job_class"] = job
+        return receipt, reply
+    if tried:
+        request["_catalog_attempts"] = tried
+    return None
+
+
+def _speak_grounded_notes(prompt: str, notes: str, route: dict[str, Any], started: float) -> str:
+    """The mouth speaks local notes. Facts stay in the notes."""
+    if route.get("mouth_is_frontier") is not True or _TURN_GROUNDED_SPEAK.get():
+        return ""
+    bridge = str(route.get("mouth_bridge_provider") or "")
+    if bridge not in {"openai", "xai", "nvidia"}:
+        return ""
+    text = " ".join(str(notes or "").split())
+    if not text:
+        return ""
+    token = _TURN_GROUNDED_SPEAK.set(True)
+    try:
+        attempt = _catalog_bridge_attempt(
+            {},
+            str(route.get("mouth_catalog_id") or ""),
+            bridge,
+            str(route.get("mouth_api_model") or route.get("mouth_catalog_id") or ""),
+        )
+        speak_prompt = (
+            "Speak these notes to Joshua in first person. Keep the facts. "
+            "Do not add file paths, receipts, or model names.\nNotes:\n" + text[:2000]
+        )
+        spoken = _provider_bridge_receipt(speak_prompt, attempt, started, persist_memory=False)
+        if not isinstance(spoken, dict) or spoken.get("provider_bridge_used") is not True:
+            return ""
+        return str(spoken.get("assistant_reply") or spoken.get("assistant_output_text") or "").strip()
+    finally:
+        _TURN_GROUNDED_SPEAK.reset(token)
+
+
 def _swap_pressure_slm_receipt(
     prompt: str, started: float, request: dict[str, Any] | None = None
 ) -> dict[str, Any] | None:
@@ -9587,10 +10214,20 @@ def _swap_pressure_slm_receipt(
     when the small model has no usable reply. Fail-open back to the cascade.
     """
     request = request if isinstance(request, dict) else {}
+    if request.get("_catalog_skip_swap_slm") is True or request.get("_catalog_keep_off_box_mouth") is True:
+        return None
+    try:
+        import engel_build_lane
+
+        if engel_build_lane.is_build_request(prompt) is not None:
+            return None
+    except Exception:
+        pass
     if (
         _request_local_only_training(request)
         or _is_training_delivered_prompt(prompt)
         or _is_form_graded_training_prompt(prompt)
+        or _request_needs_vision_lane(request)
     ):
         return None
     try:
@@ -9601,6 +10238,58 @@ def _swap_pressure_slm_receipt(
         return None
     if decision.get("blocked") is not True:
         return None
+    _refusal = _build_lane_refusal(prompt, request)
+    if _refusal is not None:
+        # A build order must never be answered by the 0.5B swap-guard as if it were building.
+        _refusal_reason, _refusal_message, _refusal_exc = _refusal
+        _build_gate_log(
+            "swap_guard_refused_build_order",
+            _refusal_reason,
+            prompt,
+            request,
+            exc=_refusal_exc,
+            always=True,
+            selected_provider="ct_build_lane_down",
+            detail=str(decision.get("reason") or ""),
+        )
+        return _build_lane_nothing_built_receipt(
+            prompt,
+            started,
+            request,
+            reason="swap_guard_blocked_build_order:" + _refusal_reason,
+            selected_provider="ct_build_lane_down",
+            decision=decision,
+            message=_refusal_message,
+        )
+    try:
+        from engel_swap_guard_slm_runtime import generate as guard_generate
+        from engel_swap_guard_slm_runtime import server_healthy as guard_ready
+
+        if guard_ready():
+            result = guard_generate(prompt)
+            text = str(result.get("text") or "").strip()
+            if result.get("ok") is True and text:
+                note = "Answered by the small fallback model while the server is paging."
+                if note.casefold() not in text.casefold():
+                    text = f"{text} {note}"
+                return {
+                    "schema": "engel_main_server_quick_casual_model_receipt_v1",
+                    "ok": True,
+                    "assistant_reply": text,
+                    "assistant_output_text": text,
+                    "provider": "engel-swap-guard-slm (qwen2.5-0.5b-instruct-q5_k_m)",
+                    "runtime_provider": "llama-server-swap-guard",
+                    "selected_provider": "ct_swap_slm_fallback",
+                    "slm_fallback": True,
+                    "slm_fallback_reason": decision.get("reason") or "",
+                    "slm_fallback_model": decision.get("model_id") or "",
+                    "quick_model_path": str(result.get("model_path") or decision.get("model_path") or ""),
+                    "swap_guard_model_created": True,
+                    "provider_api_enabled": False,
+                    "network_enabled": False,
+                }
+    except Exception:
+        pass
     local = dict(request)
     local["_force_quick_casual"] = True
     local.pop("_skip_quick_casual", None)
@@ -9616,7 +10305,219 @@ def _swap_pressure_slm_receipt(
     receipt["slm_fallback_reason"] = decision.get("reason") or ""
     receipt["slm_fallback_model"] = decision.get("model_id") or ""
     receipt["selected_provider"] = "ct_swap_slm_fallback"
+    note = "Answered by the small fallback model while the server is paging."
+    for key in ("assistant_reply", "assistant_output_text"):
+        current = str(receipt.get(key) or "").strip()
+        if current and note.casefold() not in current.casefold():
+            receipt[key] = f"{current} {note}"
     return receipt
+
+
+BUILD_LANE_DOWN_MESSAGE = "build lane down, nothing built"
+# Logging-only shape test (never used for behaviour): keeps gate logs to build-ish prompts.
+_BUILD_GATE_LOG_RX = re.compile(
+    r"\b(?:build|rebuild|recreate|create|make|develop|code|program|write|port)\b.{0,160}"
+    r"\b(?:game|app|application|website|program|tool|script|bot|clone|project)\b",
+    re.I | re.S,
+)
+BUILD_LANE_IMPORT_FAILED_MESSAGE = "build lane down: engel_build_lane failed to import, nothing built"
+# Mirrors the question prefixes engel_main_local_model_worker._requested_app_build skips.
+_BUILD_QUESTION_PREFIXES = (
+    "what ", "how do", "how does", "how can", "why ", "is ", "are ", "does ",
+    "explain ", "tell me about", "can you explain", "do you ", "should i",
+)
+
+
+# (step4c) Build-shaped test for the import-failure answer: a build verb, at most 8 words, then an
+# artifact noun (not "game plan"/"game night"), or retry/continue the build. Mirrors
+# engel_build_lane._NON_ARTIFACT_OBJECT_RX (kept in step) because that module may not import.
+_BUILD_SHAPED_RX = re.compile(
+    r"\b(?:build|rebuild|recreate|create|make|develop|code|program|write|port|generate|implement)\b"
+    r"(?:\s+[\w'&.+#-]+){0,8}?\s+"
+    r"(?:game|app|application|website|site|web\s*app|web\s*page|page|program|tool|script|bot|clone|project|"
+    r"dashboard|widget|api|cli|gui|calculator|tracker|simulator|generator|pdf|spreadsheet)s?\b"
+    r"(?!\s+(?:plans?|night|nights|day|days|show|time)\b)"
+    r"|\b(?:retry|continue|resume|redo)\s+(?:the\s+|my\s+|that\s+)?(?:last\s+)?(?:build|rebuild)\b",
+    re.I,
+)
+_BUILD_NON_ARTIFACT_OBJECT_RX = re.compile(
+    r"\b(?:make|making|create|creating|build|building|come up with|put together|draw up|write|writing|draft|work out|figure out|plan out)\s+"
+    r"(?:(?:me|us|him|her|them)\s+)?"
+    r"(?:(?:a|an|the|my|our|your|his|her|their|some|this|that|one|another)\s+)?"
+    r"(?:[a-z0-9'-]+\s+){0,2}?"
+    r"(?:game\s+plans?|meal\s+plans?|plans?\s+of\s+attack|plans?|schedules?|strateg(?:y|ies)|lists?|budgets?|"
+    r"decisions?|appointments?|reservations?|bookings?|routines?|outlines?|agendas?|itinerar(?:y|ies)|"
+    r"timelines?|roadmaps?|time|dinner|lunch|breakfast|sense|money|friends|sure|progress|effort|calls?|"
+    r"difference|choices?|room|peace|amends)\b"
+    r"(?!\s+(?:apps?|applications?|websites?|sites?|web\s*apps?|pages?|tools?|programs?|scripts?|bots?|games?|"
+    r"trackers?|planners?|generators?|calculators?|dashboards?|widgets?|managers?|organizers?|editors?|viewers?|"
+    r"makers?|builders?|checkers?|timers?|apis?|clis?|guis?|simulators?|spreadsheets?|pdfs?)\b)",
+    re.I,
+)
+
+
+def _build_shaped_fallback(prompt: str) -> bool:
+    """Narrow verb+artifact shape test used ONLY when engel_build_lane cannot be imported (its own
+    is_build_request is then unavailable). Question-style prompts are skipped, the Flutter
+    capability preamble is stripped so only the operator request is judged, and build verbs aimed
+    at plans/schedules/lists/decisions (step4c) are removed before the test."""
+    text = str(prompt or "")
+    marker = re.search(r"(?is)operator request follows:\s*", text)
+    if marker:
+        text = text[marker.end():]
+    text = text.strip()
+    if not text or text.casefold().startswith(_BUILD_QUESTION_PREFIXES):
+        return False
+    text = _BUILD_NON_ARTIFACT_OBJECT_RX.sub(" ", text)
+    return _BUILD_SHAPED_RX.search(text) is not None
+
+
+def _build_gate_redact(value: Any, limit: int = 160) -> str:
+    text = " ".join(str(value or "").split())
+    text = re.sub(
+        r"(?i)\b(api[_-]?key|token|secret|password|passwd|authorization|bearer|cookie)\b\s*[=:]?\s*\S+",
+        r"\1=[redacted]",
+        text,
+    )
+    text = re.sub(r"\b[A-Za-z0-9_\-]{32,}\b", "[redacted]", text)
+    return text[:limit].replace('"', "'")
+
+
+def _build_gate_log(
+    gate: str,
+    reason: str,
+    prompt: str,
+    request: dict[str, Any] | None = None,
+    *,
+    exc: BaseException | None = None,
+    always: bool = False,
+    selected_provider: str = "none",
+    detail: str = "",
+) -> None:
+    """One stderr (journald) line per build-lane gate decision. Never raises. Never logs
+    the prompt text: only its length and a short hash. Non-build-ish prompts are skipped
+    unless always=True (failures are always logged)."""
+    try:
+        text = str(prompt or "")
+        if not always and not _BUILD_GATE_LOG_RX.search(text):
+            return
+        digest = hashlib.sha256(text.encode("utf-8", "replace")).hexdigest()[:10]
+        src = str(request.get("source") or "") if isinstance(request, dict) else ""
+        parts = [
+            "gate=%s" % gate,
+            "reason=%s" % reason.replace(" ", "_"),
+            "prompt_len=%d" % len(text),
+            "prompt_sha10=%s" % digest,
+            "source=%s" % (_build_gate_redact(src, 40) or "none"),
+            "selected_provider=%s" % selected_provider,
+        ]
+        if exc is not None:
+            parts.append("exc_type=%s" % type(exc).__name__)
+            parts.append('exc_msg="%s"' % _build_gate_redact(exc))
+        if detail:
+            parts.append('detail="%s"' % _build_gate_redact(detail))
+        sys.stderr.write("[%s] build-lane-gate %s\n" % (_iso_now(), " ".join(parts)))
+        sys.stderr.flush()
+    except Exception:
+        pass
+
+
+def _build_shaped_exempt(request: dict[str, Any] | None) -> bool:
+    """Turns that keep their old behaviour: declared chat-only turns (pure text
+    generation, e.g. the EngelScript draft flow) and Discord (GIFs/media only)."""
+    try:
+        if _TURN_CHAT_ONLY.get():
+            return True
+    except Exception:
+        pass
+    src = str((request or {}).get("source") or "").strip().lower()
+    return src.startswith("discord")
+
+
+def _build_lane_matched_prompt(prompt: str, request: dict[str, Any] | None = None) -> bool:
+    """True when the repo's own build-order helper (engel_build_lane.is_build_request)
+    says this is a build order AND the lane is enabled and not exempt for this turn."""
+    if str(os.environ.get("ENGEL_BUILD_LANE_ENABLED", "1")).strip().lower() in {"0", "false", "no", "off"}:
+        return False
+    if _build_shaped_exempt(request):
+        return False
+    try:
+        import engel_build_lane
+
+        return engel_build_lane.is_build_request(str(prompt or "")) is not None
+    except Exception:
+        return False
+
+
+def _build_lane_refusal(prompt: str, request: dict[str, Any] | None = None):
+    """None, or (reason, message, exc): what to answer INSTEAD of letting a fallback model answer a
+    build order. If engel_build_lane cannot even be imported, say so honestly (build-shaped prompts only)."""
+    if str(os.environ.get("ENGEL_BUILD_LANE_ENABLED", "1")).strip().lower() in {"0", "false", "no", "off"}:
+        return None
+    if _build_shaped_exempt(request):
+        return None
+    try:
+        import engel_build_lane  # noqa: F401
+    except Exception as exc:
+        if _build_shaped_fallback(prompt):
+            return ("engel_build_lane_import_failed", BUILD_LANE_IMPORT_FAILED_MESSAGE, exc)
+        return None
+    if _build_lane_matched_prompt(prompt, request):
+        return ("build_order_matched", BUILD_LANE_DOWN_MESSAGE, None)
+    return None
+
+
+def _build_lane_nothing_built_receipt(
+    prompt: str,
+    started: float,
+    request: dict[str, Any] | None,
+    *,
+    reason: str,
+    selected_provider: str = "ct_build_lane_down",
+    decision: dict[str, Any] | None = None,
+    message: str = BUILD_LANE_DOWN_MESSAGE,
+) -> dict[str, Any]:
+    receipt: dict[str, Any] = {
+        "schema": "engel_main_server_build_lane_nothing_built_receipt_v1",
+        "ok": False,
+        "assistant_reply": message,
+        "assistant_output_text": message,
+        "nothing_built_message": message,
+        "selected_provider": selected_provider,
+        "nothing_built": True,
+        "build_receipt": None,
+        "workspace_receipt_path": None,
+        "build_lane_down_reason": reason,
+        "provider_api_enabled": False,
+        "network_enabled": False,
+        "persist_memory": False,
+    }
+    if isinstance(decision, dict):
+        receipt["swap_guard_refused_build_order"] = True
+        receipt["slm_fallback_blocked_reason"] = decision.get("reason") or ""
+    return receipt
+
+
+def _finalize_nothing_built(
+    receipt: dict[str, Any], prompt: str, started: float
+) -> tuple[dict[str, Any], str]:
+    """Finalize like any chat turn (no memory persist), then pin the exact plain message
+    and the honest provider so no later decoration can imply a build happened."""
+    reply = str(receipt.get("nothing_built_message") or BUILD_LANE_DOWN_MESSAGE)
+    provider = str(receipt.get("selected_provider") or "ct_build_lane_down")
+    try:
+        receipt = _finalize_chat_receipt(
+            receipt, prompt, reply, provider, started,
+            allow_room=False, allow_reps=False, persist_memory=False,
+        )
+    except Exception:
+        pass
+    receipt["assistant_reply"] = reply
+    receipt["assistant_output_text"] = reply
+    receipt["selected_provider"] = provider
+    receipt["nothing_built"] = True
+    receipt["build_receipt"] = None
+    return receipt, reply
 
 
 def _nemotron_lightning_local_model_receipt(
@@ -10395,13 +11296,98 @@ def _build_lane_rog_gpu_local_generate(
     }
 
 
+def _build_lane_nemotron_resident_generate(
+    prompt: str,
+    n_predict: int,
+    extra_system: str,
+    model_path: str,
+) -> dict[str, Any]:
+    """Ask the resident Nemotron server. Do not start a second llama-cli."""
+    try:
+        from engel_nemotron_lightning_runtime import (
+            _http_json,
+            dedicated_server_resident,
+            server_url,
+            strip_thinking,
+        )
+    except Exception as exc:
+        return {
+            "ok": False,
+            "assistant_reply": "",
+            "provider": "local",
+            "bridge_kind": "ct246_nemotron_resident_server",
+            "model": model_path,
+            "error": str(exc)[:500],
+        }
+    if not dedicated_server_resident():
+        return {
+            "ok": False,
+            "assistant_reply": "",
+            "provider": "local",
+            "bridge_kind": "ct246_nemotron_resident_server",
+            "model": model_path,
+            "error": "Nemotron resident server is not listening",
+        }
+    payload = {
+        "messages": [
+            {"role": "system", "content": extra_system},
+            {"role": "user", "content": prompt},
+        ],
+        "max_tokens": max(32, int(n_predict)),
+        "temperature": 0.2,
+        "chat_template_kwargs": {"enable_thinking": False},
+    }
+    try:
+        data = _http_json(
+            server_url() + "/v1/chat/completions",
+            payload,
+            timeout=480.0,
+        )
+    except Exception as exc:
+        return {
+            "ok": False,
+            "assistant_reply": "",
+            "provider": "local",
+            "bridge_kind": "ct246_nemotron_resident_server",
+            "model": model_path,
+            "error": str(exc)[:500],
+        }
+    choice0: dict[str, Any] = {}
+    choices = data.get("choices")
+    if isinstance(choices, list) and choices and isinstance(choices[0], dict):
+        choice0 = choices[0]
+    message = choice0.get("message") if isinstance(choice0.get("message"), dict) else {}
+    reply = strip_thinking(str(message.get("content") or ""))
+    return {
+        "ok": bool(reply),
+        "assistant_reply": reply,
+        "provider": "local",
+        "bridge_kind": "ct246_nemotron_resident_server",
+        "model": model_path,
+        "error": "" if reply else "empty reply",
+    }
+
+
 def _build_lane_ct246_cpu_generate(
     gen_prompt: str,
     timeout_s: int,
     max_tokens: int,
 ) -> dict[str, Any]:
-    """Attempt a bounded build/review turn on CT246's local coder GGUF."""
-    model_path = os.environ.get(
+    """Attempt a bounded build/review turn on one resident CT246 GGUF.
+
+    The default file stays the coder. A build that names a resident catalog
+    id loads that file instead. Nemotron stays on its resident server.
+    """
+    named_path = ""
+    catalog_model = ""
+    try:
+        from engel_named_local_weight import current_build_catalog_model, gguf_for_catalog_id
+
+        catalog_model = current_build_catalog_model()
+        named_path = gguf_for_catalog_id(catalog_model)
+    except Exception:
+        named_path = ""
+    model_path = named_path or os.environ.get(
         "ENGEL_CODE_LANE_GGUF_MODEL",
         "/opt/engel/models-active/llm/qwen2.5-coder-3b-instruct/"
         "qwen2.5-coder-3b-instruct-q5_k_m.gguf",
@@ -10476,6 +11462,17 @@ def _build_lane_ct246_cpu_generate(
             "JSON. Do not explain or identify yourself."
         )
     )
+    if catalog_model == "ct-nemotron-35-lightning-30b":
+        extra_system = (
+            extra_system
+            + " Keep the file short, finish the document, and close the code fence."
+        )
+        return _build_lane_nemotron_resident_generate(
+            local_prompt,
+            n_predict,
+            extra_system,
+            model_path,
+        )
     try:
         from engel_local_model_service import run_llama_cpp_lora_text_with_model
 
@@ -10528,8 +11525,19 @@ def _build_lane_local_generate(
     timeout_s: int,
     max_tokens: int,
 ) -> dict[str, Any]:
-    """Prefer the ROG-local GPU model, then fall back to CT246's SSD CPU model."""
+    """Prefer the ROG-local GPU model, then fall back to CT246's SSD CPU model.
+
+    A named resident id other than the GPU 7B skips the GPU so the 14B, 30B,
+    Nemotron, 1.5B, and coder files can take their own build turn.
+    """
     attempts: list[dict[str, Any]] = []
+    try:
+        from engel_named_local_weight import current_build_catalog_model, named_weight_skips_gpu
+
+        if named_weight_skips_gpu(current_build_catalog_model()):
+            return _build_lane_ct246_cpu_generate(gen_prompt, timeout_s, max_tokens)
+    except Exception:
+        pass
 
     def record_gpu(result: dict[str, Any], attempt: int) -> tuple[str, bool]:
         reply = str(result.get("assistant_reply") or "").strip()
@@ -10618,6 +11626,57 @@ def _build_lane_local_generate(
     return cpu_result
 
 
+def _build_lane_catalog_generate(
+    gen_prompt: str,
+    timeout_s: int,
+    max_tokens: int,
+    provider_request: dict[str, Any],
+) -> dict[str, Any]:
+    """After the local coder misses, ask the catalog code shortlist for the files."""
+    try:
+        from engel_speech_router import BRIDGE_BY_PROVIDER, lookup_row, route_turn
+    except Exception as exc:
+        return {"ok": False, "assistant_reply": "", "error": str(exc)[:200]}
+    original = str(provider_request.get("_build_original_prompt") or gen_prompt)
+    routed = route_turn(original, provider_request)
+    tried: list[str] = []
+    for model_id in list(routed.get("shortlist_ids") or [])[:8]:
+        row = lookup_row(model_id) or {}
+        bridge = BRIDGE_BY_PROVIDER.get(str(row.get("live_provider") or ""), "")
+        if not bridge or row.get("live_route") is False:
+            continue
+        attempt = _catalog_bridge_attempt(
+            provider_request,
+            model_id,
+            bridge,
+            str(row.get("api_model") or model_id),
+        )
+        attempt["max_tokens"] = int(max_tokens)
+        attempt["timeout_seconds"] = min(300, max(30, int(timeout_s)))
+        started = time.perf_counter()
+        try:
+            spoken = _provider_bridge_receipt(
+                gen_prompt, attempt, started, persist_memory=False
+            )
+        except Exception as exc:
+            tried.append(model_id)
+            continue
+        reply = str((spoken or {}).get("assistant_reply") or "").strip()
+        if isinstance(spoken, dict) and spoken.get("provider_bridge_used") is True and reply:
+            result = dict(spoken)
+            result["model"] = model_id
+            result["catalog_router_id"] = model_id
+            result["provider"] = bridge
+            return result
+        tried.append(model_id)
+    return {
+        "ok": False,
+        "assistant_reply": "",
+        "error": "catalog code shortlist missed",
+        "catalog_tried": tried,
+    }
+
+
 def _build_lane_generate(
     gen_prompt: str,
     timeout_s: int,
@@ -10676,6 +11735,41 @@ def _build_lane_generate(
         or provider_request.get("provider_model")
         or ""
     ).strip()
+    pinned_model = str(provider_request.get("user_pinned_model_id") or "").strip()
+    if pinned_model.casefold() in {"auto", "auto-best"}:
+        pinned_model = ""
+    # Auto Best leaves this empty and keeps the local cascade. A model the
+    # chat UI pinned is the writer, including a resident GGUF id.
+    if not requested_model and pinned_model:
+        requested_model = pinned_model
+    # The face sometimes collapses every GPT row onto gpt-5.5. The catalog
+    # id the chat UI pinned is the API model for that row.
+    if (
+        requested_provider == "openai"
+        and pinned_model
+        and pinned_model not in {
+            "openai-api-gpt-5-5",
+            "gpt-5-5-vision",
+            "chatgpt-browser",
+            "gpt-5.5",
+        }
+        and requested_model in {"", "gpt-5.5", "openai-api-gpt-5-5"}
+    ):
+        requested_model = pinned_model
+    # The face sometimes collapses every other Grok row onto grok-4.6.
+    # Grok 4.5 and Grok 4.7 stay on the id the chat UI pinned.
+    if (
+        requested_provider == "xai"
+        and pinned_model in {"grok-4.7", "grok-4.5"}
+        and requested_model in {"", "grok-4.6", "grok-4-6", "grok46"}
+    ):
+        requested_model = pinned_model
+    try:
+        from engel_named_local_weight import set_build_catalog_model
+
+        set_build_catalog_model(requested_model)
+    except Exception:
+        pass
     req = {
         "timeout_seconds": min(300, max(30, int(timeout_s))),
         "max_tokens": int(max_tokens),
@@ -10688,6 +11782,8 @@ def _build_lane_generate(
         "provider_model": requested_model,
         "lane": "build",
     }
+    if "allow_provider_fallback" in provider_request:
+        req["allow_provider_fallback"] = provider_request.get("allow_provider_fallback") is True
     if requested_provider:
         req["provider"] = requested_provider
         req["selected_provider"] = requested_provider
@@ -10768,6 +11864,7 @@ def _build_lane_generate(
             {
                 "requested_provider": requested_provider,
                 "requested_model": requested_model,
+                "user_pinned_model_id": pinned_model,
                 "local_only": local_only,
                 "external_provider_gate_enabled": allow_provider_apis,
                 "attached_codex_gate_enabled": allow_attached_codex,
@@ -10781,11 +11878,25 @@ def _build_lane_generate(
         )
 
     if requested_provider == "local":
-        # Explicit local means local only for this build generation; do not let
-        # an opt-in Grok or attached-Codex route override the user's choice.
+        # Explicit local means the local coder goes first. Auto Best still
+        # allows the catalog code shortlist after that miss. A pinned local
+        # turn with fallback off stays on the local coder only.
         routes = list(local_routes)
+        if explicit_fallback_allowed:
+            routes.append(
+                (
+                    "catalog_code_router",
+                    lambda prompt, timeout_s, max_tokens, _request=provider_request: (
+                        _build_lane_catalog_generate(prompt, timeout_s, max_tokens, _request)
+                    ),
+                    True,
+                    True,
+                    1,
+                )
+            )
         if provider_selection is not None:
-            provider_selection["selection_honored"] = bool(routes)
+            provider_selection["selection_honored"] = bool(local_routes)
+            provider_selection["catalog_router_after_local_miss"] = explicit_fallback_allowed
     elif requested_provider:
         preferred: list[tuple[str, Any, bool, bool, int]] = []
         preferred_name = ""
@@ -10797,20 +11908,66 @@ def _build_lane_generate(
             else:
                 gate_reason = "ENGEL_BUILD_ALLOW_ATTACHED_CODEX disabled"
         elif requested_provider == "xai":
-            preferred_name = "rog_grok46_super_cli"
-            if grok_first:
-                preferred.append(
-                    ("rog_grok46_super_cli", _call_grok46_build_bridge, False, True, 1)
+            # The UI named Grok. Call that bridge for this build only.
+            # Do not flip ENGEL_BUILD_ALLOW_PROVIDER_APIS for the cascade.
+            preferred_name = "rog_xai_build_bridge"
+            preferred.append(
+                (
+                    "rog_xai_build_bridge",
+                    lambda prompt, request, started: _call_provider_bridge(
+                        "xai", prompt, request, started
+                    ),
+                    True,
+                    True,
+                    1,
                 )
-            else:
-                gate_reason = "ENGEL_BUILD_GROK46_FIRST disabled"
+            )
+        elif requested_provider == "nvidia":
+            preferred_name = "rog_nvidia_build_bridge"
+            preferred.append(
+                (
+                    "rog_nvidia_build_bridge",
+                    lambda prompt, request, started: _call_provider_bridge(
+                        "nvidia", prompt, request, started
+                    ),
+                    True,
+                    True,
+                    1,
+                )
+            )
+        elif requested_provider == "openrouter":
+            preferred_name = "rog_openrouter_build_bridge"
+            preferred.append(
+                (
+                    "rog_openrouter_build_bridge",
+                    lambda prompt, request, started: _call_provider_bridge(
+                        "openrouter", prompt, request, started
+                    ),
+                    True,
+                    True,
+                    1,
+                )
+            )
+        elif requested_provider == "openai":
+            preferred_name = "rog_openai_build_bridge"
+            preferred.append(
+                (
+                    "rog_openai_build_bridge",
+                    lambda prompt, request, started: _call_provider_bridge(
+                        "openai", prompt, request, started
+                    ),
+                    True,
+                    True,
+                    1,
+                )
+            )
         elif requested_provider in provider_routes:
             preferred_name = provider_routes[requested_provider][0]
             preferred.append(provider_routes[requested_provider])
         else:
             gate_reason = (
                 "ENGEL_BUILD_ALLOW_PROVIDER_APIS disabled"
-                if requested_provider in {"openai", "anthropic", "gemini"}
+                if requested_provider in {"anthropic", "gemini"}
                 else f"no build route registered for {requested_provider}"
             )
         preferred_names = {row[0] for row in preferred}
@@ -10833,7 +11990,7 @@ def _build_lane_generate(
     for route_name, fn, provider_api, network_enabled, route_attempt in routes:
         route_started = time.perf_counter()
         try:
-            if route_name == "ct246_local_coder_gguf":
+            if route_name in {"ct246_local_coder_gguf", "catalog_code_router"}:
                 r = fn(gen_prompt, timeout_s, max_tokens)
             else:
                 r = fn(gen_prompt, req, route_started)
@@ -11023,21 +12180,34 @@ def _build_lane_receipt(prompt: str, started: float, request: dict[str, Any] | N
     (20260711 Joshua) DISCORD IS EXCLUDED: Discord keeps GIFs/media only — build orders
     there fall through to normal chat; building happens in the Engel AI Main app."""
     if str(os.environ.get("ENGEL_BUILD_LANE_ENABLED", "1")).strip().lower() in {"0", "false", "no", "off"}:
+        _build_gate_log("build_lane_receipt", "lane_disabled_ENGEL_BUILD_LANE_ENABLED", prompt, request)
         return None
     # A declared chat-only turn is pure text generation and never a build order,
     # whatever its wording. The EngelScript draft instruction says "no code
     # fences" -- a build verb plus a build target -- and CT scaffolded a project
     # for it (live 2026-07-31). Narrow-only: the flag can only refuse a lane.
     if _TURN_CHAT_ONLY.get():
+        _build_gate_log("build_lane_receipt", "chat_only_turn", prompt, request)
         return None
     src = str((request or {}).get("source") or "").strip().lower()
     if src.startswith("discord"):
+        _build_gate_log("build_lane_receipt", "discord_source", prompt, request)
         return None
     try:
         import engel_build_lane
-    except Exception:
+    except Exception as exc:
+        _build_gate_log("build_lane_receipt", "import_engel_build_lane_failed", prompt, request, exc=exc, always=True)
+        if _build_shaped_fallback(prompt):
+            return _build_lane_nothing_built_receipt(
+                prompt,
+                started,
+                request,
+                reason="engel_build_lane_import_failed_%s" % type(exc).__name__,
+                message=BUILD_LANE_IMPORT_FAILED_MESSAGE,
+            )
         return None
     if engel_build_lane.is_build_request(prompt) is None:
+        _build_gate_log("build_lane_receipt", "is_build_request_none", prompt, request)
         return None
     request = request or {}
     conical_context = (
@@ -11098,7 +12268,13 @@ def _build_lane_receipt(prompt: str, started: float, request: dict[str, Any] | N
                 conical_context,
                 f"CT246 build lane raised before a receipt was returned: {exc}",
             )
-        return None
+        _build_gate_log("build_lane_receipt", "run_build_raised", prompt, request, exc=exc, always=True)
+        return _build_lane_nothing_built_receipt(
+            prompt,
+            started,
+            request,
+            reason="build_lane_raised_%s" % type(exc).__name__,
+        )
     if result is None:
         if conical_context:
             return _conical_build_failure_receipt(
@@ -11108,7 +12284,22 @@ def _build_lane_receipt(prompt: str, started: float, request: dict[str, Any] | N
                 conical_context,
                 "CT246 build lane returned no build receipt",
             )
-        return None
+        _build_gate_log("build_lane_receipt", "run_build_returned_none", prompt, request, always=True)
+        return _build_lane_nothing_built_receipt(
+            prompt,
+            started,
+            request,
+            reason="build_lane_returned_no_build_receipt",
+        )
+    if result.get("ok") is False:
+        _build_gate_log(
+            "build_lane_receipt",
+            "run_build_receipt_not_ok",
+            prompt,
+            request,
+            always=True,
+            detail=str(result.get("error") or result.get("status") or ""),
+        )
     provider_api_used = any(
         row.get("usable") is True and row.get("provider_api_enabled") is True
         for row in generation_routes
@@ -11119,6 +12310,7 @@ def _build_lane_receipt(prompt: str, started: float, request: dict[str, Any] | N
     local_model_routes = {
         "ct246_local_coder_gguf",
         "ct246_to_rog_gpu_local_llm",
+        "ct246_nemotron_resident_server",
     }
     local_model_used = any(
         row.get("usable") is True and row.get("route") in local_model_routes
@@ -12207,7 +13399,18 @@ def _prompt_requests_meeting_room_dispatch(prompt: str) -> bool:
     # the EngelScript draft instruction was dispatched as a room order twice.
     if _TURN_CHAT_ONLY.get():
         return False
-    low = _intent_gate_text(prompt).casefold()
+    try:
+        from engel_discord_android_worker_pipe import order_is_desk_system_prompt
+
+        if order_is_desk_system_prompt(prompt):
+            return False
+    except Exception:
+        pass
+    user_part = str(prompt or "")
+    marker = "Current user message:"
+    if marker in user_part:
+        user_part = user_part.split(marker, 1)[1]
+    low = _intent_gate_text(user_part).casefold()
     stripped = low.lstrip()
     # (2026-07-09 audit — meeting-room hijack fix) An INFORMATIONAL question about the
     # room/fleet ("what does the meeting room do", "explain the agent room") must be
@@ -12863,10 +14066,35 @@ def _finalize_chat_receipt(
         receipt["universal_reps_runtime_skipped"] = True
         receipt["universal_reps_runtime_skip_reason"] = "desktop chat response path stays nonblocking"
     reply = str(receipt.get("assistant_reply") or reply or "")
+    catalog_route = _TURN_CATALOG_ROUTE.get()
+    if isinstance(catalog_route, dict):
+        receipt["mouth_catalog_id"] = catalog_route.get("mouth_catalog_id") or receipt.get("mouth_catalog_id") or ""
+        receipt["catalog_router_id"] = receipt.get("catalog_router_id") or receipt.get("mouth_catalog_id") or ""
+        receipt["catalog_job_class"] = catalog_route.get("job_class") or ""
+        receipt["catalog_shortlist"] = list(catalog_route.get("shortlist_ids") or [])
+        if catalog_route.get("frontier_mouth_unavailable") is True:
+            receipt["frontier_mouth_unavailable"] = True
+        if catalog_route.get("mouth_is_frontier") is True:
+            receipt["mouth_is_frontier"] = True
+        job = str(catalog_route.get("job_class") or "")
+        if (
+            job in {"remember", "private", "make"}
+            and "provider_bridge" not in str(source)
+            and receipt.get("catalog_grounded_spoken") is not True
+        ):
+            spoken_notes = _speak_grounded_notes(prompt, reply, catalog_route, started)
+            receipt["catalog_grounded_spoken"] = True
+            receipt["grounded_hand_catalog_id"] = catalog_route.get("hand_catalog_id") or ""
+            if spoken_notes:
+                reply = spoken_notes
+                receipt["assistant_reply"] = reply
+                receipt["assistant_output_text"] = reply
+                receipt["mouth_is_frontier"] = True
     try:
         from engel_chat_humanization_slm import humanize_chat_reply
 
-        spoken, spoken_meta = humanize_chat_reply(prompt, reply, source=source)
+        spoken_source = source + "|frontier_mouth" if receipt.get("mouth_is_frontier") is True else source
+        spoken, spoken_meta = humanize_chat_reply(prompt, reply, source=spoken_source)
         spoken_text = str(spoken or "").strip()
         if spoken_text:
             reply = spoken_text
@@ -12874,6 +14102,17 @@ def _finalize_chat_receipt(
             receipt["assistant_output_text"] = reply
             receipt["chat_spoken_as_person"] = True
             receipt["humanization_slm_reason"] = spoken_meta.get("reason")
+    except Exception:
+        pass
+    try:
+        from engel_swap_guard_slm_runtime import repair_creation_denial
+
+        repaired = repair_creation_denial(prompt, reply)
+        if repaired != reply:
+            reply = repaired
+            receipt["assistant_reply"] = reply
+            receipt["assistant_output_text"] = reply
+            receipt["creation_denial_repaired"] = True
     except Exception:
         pass
     if persist_memory:
@@ -13533,8 +14772,12 @@ _FALSE_HF_ORG = {
     "models-active",
     "hf-src",
     "logs",
+    "app",
+    "src",
+    "build",
+    "desktop",
 }
-_FALSE_HF_NAME = {"runtime", "code", "logs"}
+_FALSE_HF_NAME = {"runtime", "code", "logs", "build", "src", "app"}
 
 
 def _installable_hf_repo(text: str) -> str:
@@ -13903,10 +15146,20 @@ def _start_model_download(repo: str) -> tuple[str, dict[str, Any]]:
     )
 
 
-def _model_install_action(prompt: str, started: float) -> tuple[dict[str, Any], str] | None:
+def _model_install_action(
+    prompt: str, started: float, request: dict[str, Any] | None = None
+) -> tuple[dict[str, Any], str] | None:
     """REAL work lane: 'install/download <model>' actually does something.
     Already-present models get the truth; new HF repos start a genuine
-    background download to the server with a log + receipt."""
+    background download to the server with a log + receipt.
+
+    Desk standing-watch and bot-to-bot lines must not start a download.
+    Only Joshua's own turn, or the Engel AI Main window, can.
+    """
+    request = request if isinstance(request, dict) else {}
+    source = str(request.get("source") or request.get("client") or "").strip().casefold()
+    if source.startswith("discord") and not _is_discord_owner_turn(request):
+        return None
     text = _intent_gate_text(prompt)
     low = text.casefold()
     if not re.search(r"\b(install|download)\b", low):
@@ -15081,6 +16334,7 @@ def _run_chat_turn(prompt: str, request: dict[str, Any], started: float) -> tupl
     _chat_only_tok = _TURN_CHAT_ONLY.set(
         isinstance(request, dict) and request.get("chat_only") is True
     )
+    _catalog_route_tok = _TURN_CATALOG_ROUTE.set(None)
     try:
         receipt, reply = _run_chat_turn_inner(prompt, request, started)
         # Central local-only training stamp: only the main lane used to set
@@ -15105,12 +16359,37 @@ def _run_chat_turn(prompt: str, request: dict[str, Any], started: float) -> tupl
         return receipt, reply
     finally:
         _TURN_CHAT_ONLY.reset(_chat_only_tok)
+        _TURN_CATALOG_ROUTE.reset(_catalog_route_tok)
         _TURN_GOVERNOR_ROUTE_DECISION.reset(_gov_route_tok)
         _TURN_GOVERNOR_CONTEXT.reset(_gov_tok)
         _end_turn_recall_cache(_recall_tok)
 
 
 def _run_chat_turn_inner(prompt: str, request: dict[str, Any], started: float) -> tuple[dict[str, Any], str]:
+    # Products and Google surfaces are known facts. Answer those before a model guess.
+    try:
+        from engel_team_context import answer_team_turn
+
+        team = answer_team_turn(_discord_user_text(prompt, request), allow_google=True)
+    except Exception:
+        team = None
+    if isinstance(team, dict) and str(team.get("reply") or "").strip():
+        reply = str(team["reply"])
+        receipt = team.get("receipt") if isinstance(team.get("receipt"), dict) else {}
+        receipt = {
+            "schema": "engel_main_server_provider_bridge_chat_receipt_v1",
+            "ok": True,
+            "status": str(receipt.get("status") or "team context"),
+            "assistant_reply": reply,
+            "assistant_output_text": reply,
+            "provider": "engel_team_context",
+            "selected_provider": "engel_team_context",
+            "runtime_provider": "engel_team_context",
+            "provider_bridge_used": False,
+            "persist_memory": False,
+            "safe_to_auto_apply": False,
+        }
+        return receipt, reply
     # Cosmic Swarm and Josh Discord share one standing brain. Discord is the
     # room; Sub-Engel / future subs stay off this pipe.
     if _is_discord_owner_turn(request):
@@ -15127,10 +16406,19 @@ def _run_chat_turn_inner(prompt: str, request: dict[str, Any], started: float) -
             remember_desktop_standing_chat_brain(request)
         except Exception:
             pass
+    conductor_turn = _discord_conductor_nemotron_turn(prompt, request, started)
+    if conductor_turn is not None:
+        return conductor_turn
+    conductor_turn = _discord_conductor_chatgpt_turn(prompt, request, started)
+    if conductor_turn is not None:
+        return conductor_turn
     try:
         from engel_model_cohesion import apply_to_request as apply_model_cohesion
 
         apply_model_cohesion(request, prompt)
+        route = request.get("_catalog_route")
+        if isinstance(route, dict):
+            _TURN_CATALOG_ROUTE.set(route)
     except Exception:
         pass
     self_model_introspection = _prompt_requests_self_model_introspection(prompt)
@@ -15367,7 +16655,10 @@ def _run_chat_turn_inner(prompt: str, request: dict[str, Any], started: float) -
             )
             reply = str(receipt.get("assistant_reply") or receipt.get("assistant_output_text") or reply)
             return receipt, reply
-    install_turn = _model_install_action(prompt, started)
+    vision_turn = _complete_vision_lane_turn(prompt, request, started)
+    if vision_turn is not None:
+        return vision_turn
+    install_turn = _model_install_action(prompt, started, request)
     if install_turn is not None:
         return install_turn
     creation_receipt = _skill_agent_creation_receipt(prompt, started)
@@ -15396,8 +16687,41 @@ def _run_chat_turn_inner(prompt: str, request: dict[str, Any], started: float) -
     # words those keyword routes match, and a canned fast reply must never eat a
     # build order (20260711: "modules" in help-next hijacked one). Fails open.
     # App-only: Discord is excluded inside _build_lane_receipt (GIFs/media stay).
+    build_wanted = False
+    try:
+        import engel_build_lane as _build_lane_for_turn
+
+        build_wanted = _build_lane_for_turn.is_build_request(prompt) is not None
+    except Exception:
+        build_wanted = False
     if not request.get("_escalate_past_quick"):
         build_receipt = _build_lane_receipt(prompt, started, request)
+        if build_receipt is not None and build_receipt.get("nothing_built") is True:
+            return _finalize_nothing_built(build_receipt, prompt, started)
+        src = str(request.get("source") or "").strip().lower()
+        if (
+            build_receipt is None
+            and build_wanted
+            and not _TURN_CHAT_ONLY.get()
+            and not src.startswith("discord")
+        ):
+            missed = (
+                "I did not finish that build. The local coder missed, and the model router "
+                "did not return runnable code. I am not going to answer a build order with a chat guess."
+            )
+            build_receipt = {
+                "schema": "engel_main_server_build_router_miss_v1",
+                "ok": False,
+                "status": "build router missed",
+                "assistant_reply": missed,
+                "assistant_output_text": missed,
+                "provider": "engel-build-router",
+                "runtime_provider": "catalog-code-router",
+                "selected_provider": "ct_build_router_miss",
+                "build_lane_used": True,
+                "build_verified": False,
+                "slm_fallback": False,
+            }
         if build_receipt is not None:
             reply = str(build_receipt.get("assistant_reply") or build_receipt.get("assistant_output_text") or "")
             build_receipt = _finalize_chat_receipt(
@@ -15418,6 +16742,8 @@ def _run_chat_turn_inner(prompt: str, request: dict[str, Any], started: float) -
             )
             reply = str(ws_receipt.get("assistant_reply") or ws_receipt.get("assistant_output_text") or reply)
             return ws_receipt, reply
+    else:
+        _build_gate_log("chat_turn_build_lane", "skipped_request_escalate_past_quick", prompt, request)
     if _explicit_provider_bridge_requested(prompt, request):
         provider_turn = _complete_provider_bridge_turn(prompt, request, started)
         if provider_turn is not None:
@@ -15535,10 +16861,46 @@ def _run_chat_turn_inner(prompt: str, request: dict[str, Any], started: float) -
         )
         reply = str(receipt.get("assistant_reply") or receipt.get("assistant_output_text") or reply)
         return receipt, reply
-    # While the container is paging, ordinary turns stay on the 0.5B SLM.
-    # Nemotron stays loaded. An explicit Nemotron request still reaches it.
+    # A Discord desk item names its NVIDIA model. Use that model before the
+    # 0.5B swap-guard. Ordinary chat still takes the swap-guard while paging.
+    mouth_item = request.get("_discord_mouth_nvidia_item") is True
+    if not mouth_item:
+        try:
+            from engel_model_cohesion import discord_mouth_nvidia_item
+
+            mouth_item = discord_mouth_nvidia_item(request)
+        except Exception:
+            mouth_item = False
+    if mouth_item:
+        request["_discord_mouth_nvidia_item"] = True
+        mouth_turn = _serve_discord_mouth_nvidia(prompt, request, started)
+        if mouth_turn is not None:
+            return mouth_turn
+        miss = request.get("_mouth_model_miss") if isinstance(request.get("_mouth_model_miss"), dict) else {}
+        if str(miss.get("route") or "") == "narration":
+            receipt = {
+                "schema": "engel_main_server_provider_bridge_chat_receipt_v1",
+                "ok": False,
+                "status": "narration is not the Engel AI Main answer",
+                "assistant_reply": "",
+                "mouth_model_miss": miss,
+                "persist_memory": False,
+            }
+            return receipt, ""
+    # Catalog shortlist speaks before the 7B and before the 0.5B swap-guard.
+    # Remember, private, and make turns keep their local hand; finalize speaks the notes.
+    catalog_turn = _serve_catalog_shortlist(prompt, request, started)
+    if catalog_turn is not None:
+        return catalog_turn
+    # While the container is paging or near its RAM cap, ordinary turns stay
+    # on the created 0.5B swap-guard model only when no off-box champion is callable.
+    # Nemotron stays loaded.
     slm_receipt = _swap_pressure_slm_receipt(prompt, started, request)
+    if slm_receipt is not None and slm_receipt.get("nothing_built") is True:
+        return _finalize_nothing_built(slm_receipt, prompt, started)
     if slm_receipt is not None and slm_receipt.get("ok") is True:
+        if request.get("_mouth_model_miss"):
+            slm_receipt["mouth_model_miss"] = request.get("_mouth_model_miss")
         reply = str(
             slm_receipt.get("assistant_reply")
             or slm_receipt.get("assistant_output_text")
@@ -16459,10 +17821,15 @@ def _run_chat_turn_inner(prompt: str, request: dict[str, Any], started: float) -
                 or ""
             ).strip()
             blocked_reply = (
-                "I stopped this turn because the local draft and every available fallback failed the "
-                "missing-input safety checks. I did not accept those drafts into training or use their "
-                "assumptions. Please retry the request; the confirmed facts and open questions will stay separate."
+                "I need one missing piece before I can answer that cleanly. "
+                "Which input should I treat as still open?"
             )
+            if not _prompt_has_incomplete_project_inputs(prompt):
+                blocked_reply = (
+                    "I stopped this turn because the local draft and every available fallback failed the "
+                    "missing-input safety checks. I did not accept those drafts into training or use their "
+                    "assumptions. Please retry the request; the confirmed facts and open questions will stay separate."
+                )
             blocked_path = CHAT_RECEIPT_DIR / f"ENGEL_MAIN_SERVER_CHAT_QUALITY_BLOCKED_{_stamp()}.json"
             blocked_receipt = dict(local_failure_receipt)
             blocked_receipt.update(
@@ -16677,6 +18044,54 @@ def _completion_response(payload: dict[str, Any], reply: str, receipt: dict[str,
     }
 
 
+def _room_spoken_reply(channel: str, text: str) -> str:
+    """A typed room line gets a live answer. A build writes the app and proves it."""
+    cleaned = " ".join(str(text or "").split())
+    if not cleaned:
+        return ""
+    selected = str(channel or "general").strip().lower() or "general"
+    try:
+        from engel_collab_build import complete_collab_build, message_is_build_request
+        from engel_main_room import CHANNEL_OWNER
+
+        if message_is_build_request(cleaned):
+            desk = CHANNEL_OWNER.get(selected, "main")
+            built = complete_collab_build(str(desk or "main"), ROOT)
+            if built.get("ok") is True:
+                return "The shop app was written and the proof passed."
+            return "The build ran and the proof did not pass."
+    except Exception:
+        pass
+    try:
+        from engel_team_context import catalog_recital
+    except Exception:
+        catalog_recital = None
+    try:
+        _receipt, reply = _run_chat_turn(
+            cleaned,
+            {"chat_only": True, "source": "engel_room"},
+            time.perf_counter(),
+        )
+        spoken = " ".join(str(reply or "").split())
+        if spoken and not (callable(catalog_recital) and catalog_recital(spoken)):
+            return spoken[:500]
+    except Exception:
+        pass
+    return ""
+
+
+
+def _agent_upgrade_real_health() -> dict[str, Any]:
+    """2026-10-25: connected is not ready. See tools/engel_real_health.py."""
+    try:
+        from engel_real_health import real_health
+
+        return real_health()
+    except Exception as exc:  # noqa: BLE001
+        return {"schema": "engel_real_health_v1", "chat_ready": False, "build_ready": False,
+                "label": "degraded", "problems": ["real health check failed: " + type(exc).__name__]}
+
+
 class Handler(BaseHTTPRequestHandler):
     server_version = "EngelMainServerChat/1.0"
 
@@ -16726,31 +18141,24 @@ class Handler(BaseHTTPRequestHandler):
             )
             return
         if path == "/discord/room":
-            room_path = Path("/opt/engel/run/discord_bridge/room_transcript.json")
-            lines: list[dict[str, Any]] = []
+            query = urllib.parse.parse_qs(urllib.parse.urlsplit(self.path).query)
+            requested = str((query.get("channel") or ["general"])[0] or "general")
             try:
-                if room_path.is_file():
-                    loaded = json.loads(room_path.read_text(encoding="utf-8"))
-                    raw = loaded.get("lines") if isinstance(loaded, dict) else None
-                    if isinstance(raw, list):
-                        lines = [row for row in raw if isinstance(row, dict)]
+                tools_dir = Path(__file__).resolve().parent
+                if str(tools_dir) not in sys.path:
+                    sys.path.insert(0, str(tools_dir))
+                from engel_main_room import room_payload
+
+                payload = room_payload(requested, root=ROOT)
             except Exception:
-                lines = []
-            _json_response(
-                self,
-                200,
-                {
-                    "schema": "engel_discord_room_v1",
-                    "ok": True,
-                    "lines": [
-                        {
-                            "author": str(row.get("author") or "")[:80],
-                            "text": str(row.get("text") or "")[:500],
-                        }
-                        for row in lines[-40:]
-                    ],
-                },
-            )
+                payload = {
+                    "schema": "engel_main_room_v1",
+                    "ok": False,
+                    "channel": "general",
+                    "channels": [],
+                    "lines": [],
+                }
+            _json_response(self, 200, payload)
             return
         if path == "/health":
             snap = _process_resource_snapshot()
@@ -16764,9 +18172,13 @@ class Handler(BaseHTTPRequestHandler):
                     "server_role": "engel-ai-main CT 246",
                     "custom_runtime_ready": True,
                     "resource_pressure": snap,
+                    "real_health": _agent_upgrade_real_health(),
                     "updated_at_utc": _iso_now(),
                 },
             )
+            return
+        if path in {"/health/real", "/v1/health/real"}:
+            _json_response(self, 200, _agent_upgrade_real_health())
             return
         if path in {"/health/full", "/v1/health/full"}:
             _json_response(
@@ -17249,6 +18661,36 @@ class Handler(BaseHTTPRequestHandler):
 
     def do_POST(self) -> None:  # noqa: N802
         path = self.path.split("?", 1)[0].rstrip("/") or "/"
+        if path == "/discord/room":
+            client_host = str(self.client_address[0] if self.client_address else "")
+            if not _loopback_client_address(client_host):
+                _json_response(self, 403, {"ok": False, "status": "room chat stays on this machine"})
+                return
+            try:
+                request = _read_json(self)
+                tools_dir = Path(__file__).resolve().parent
+                if str(tools_dir) not in sys.path:
+                    sys.path.insert(0, str(tools_dir))
+                from engel_main_room import accept_room_message
+
+                reply = _room_spoken_reply(
+                    str(request.get("channel") or "general"),
+                    str(request.get("text") or ""),
+                )
+                result = accept_room_message(
+                    str(request.get("channel") or "general"),
+                    str(request.get("text") or ""),
+                    root=ROOT,
+                    reply=reply,
+                )
+            except ValueError as exc:
+                _json_response(self, 400, {"ok": False, "status": "invalid room message", "error": str(exc)[:200]})
+                return
+            except Exception:
+                _json_response(self, 500, {"ok": False, "status": "room message failed"})
+                return
+            _json_response(self, 200, result)
+            return
         _wait_chat_admission(path)
         if path in {"/rag/query", "/v1/rag/query"}:
             client_host = str(self.client_address[0] if self.client_address else "")
@@ -17714,6 +19156,26 @@ def main() -> int:
     httpd.serve_forever()
     return 0
 
+
+
+# truthrule-20261026: Joshua's standing rule "never false information" on every chat-model call
+# from this process. Module: engel_truth_rule.py. Kill switch: ENGEL_TRUTH_RULE=0.
+try:
+    import engel_truth_rule as _engel_truth_rule
+    _engel_truth_rule.install()
+except Exception:
+    pass
+try:
+    _TRUTHRULE_ORIG_PROVIDER_SYSTEM_PROMPT = _provider_system_prompt
+
+    def _provider_system_prompt(provider, prompt, request=None):  # noqa: F811
+        text = _TRUTHRULE_ORIG_PROVIDER_SYSTEM_PROMPT(provider, prompt, request)
+        try:
+            return _engel_truth_rule.add_rule(text) if _engel_truth_rule.enabled() else text
+        except Exception:
+            return text
+except Exception:
+    pass
 
 if __name__ == "__main__":
     raise SystemExit(main())
