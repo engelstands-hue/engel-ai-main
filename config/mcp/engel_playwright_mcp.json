@@ -1,0 +1,12 @@
+{
+  "schema": "engel_mcp_server_stage_v1",
+  "name": "engel-playwright-browser",
+  "enabled_by_default": false,
+  "transport": "stdio",
+  "command": "node",
+  "args": ["cli.js"],
+  "cwd": "D:\\b.WorkSpace\\Engel App\\runtime\\next_stage\\playwright_mcp",
+  "note": "Staged Playwright MCP modules. Needs Node + full playwright-core to launch. Default origins: localhost only. Not registered as a live Grok MCP until Josh turns it on.",
+  "allowed_origins": ["http://127.0.0.1", "http://localhost"],
+  "unrestricted_web": false
+}

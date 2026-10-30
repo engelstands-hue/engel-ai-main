@@ -63,6 +63,7 @@ def complete_chat(
         "Content-Type": "application/json",
         "HTTP-Referer": "https://engel.local/model-parts",
         "X-Title": "Engel AI Main",
+        "User-Agent": "EngelAI-Main/1.0",
     }
     call = urllib.request.Request(url, data=body, headers=headers, method="POST")
     try:

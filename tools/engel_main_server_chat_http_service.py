@@ -9,6 +9,7 @@ from datetime import datetime, timezone
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import hashlib
 import json
+import logging
 import math
 import mimetypes
 import os
@@ -356,6 +357,15 @@ NVIDIA_CHAT_COMPLETIONS_URL = os.environ.get(
     "ENGEL_NVIDIA_CHAT_COMPLETIONS_URL",
     "https://integrate.api.nvidia.com/v1/chat/completions",
 ).strip()
+# OpenAI-compatible key bridges (graphwright 2026-10-30). Base URLs verified by GET /models.
+OPENAI_COMPATIBLE_EXTRA_URLS = {
+    "cohere": "https://api.cohere.ai/compatibility/v1/chat/completions",
+    "deepseek": "https://api.deepseek.com/chat/completions",
+    "zai": "https://api.z.ai/api/paas/v4/chat/completions",
+    "groq": "https://api.groq.com/openai/v1/chat/completions",
+    "minimax": "https://api.minimax.io/v1/chat/completions",
+    "moonshot": "https://api.moonshot.ai/v1/chat/completions",
+}
 GEMINI_GENERATE_CONTENT_URL_TEMPLATE = os.environ.get(
     "ENGEL_GEMINI_GENERATE_CONTENT_URL_TEMPLATE",
     "https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent",
@@ -410,6 +420,12 @@ PROVIDER_BRIDGE_SECRET_NAMES: dict[str, list[str]] = {
     "codex": [],
     "nvidia": ["ENGEL_NVIDIA_API_KEY", "NVIDIA_API_KEY", "NGC_API_KEY", "NIM_API_KEY"],
     "openrouter": ["ENGEL_OPENROUTER_API_KEY", "OPENROUTER_API_KEY"],
+    "cohere": ["ENGEL_COHERE_API_KEY"],
+    "deepseek": ["ENGEL_DEEPSEEK_API_KEY"],
+    "zai": ["ENGEL_ZAI_API_KEY"],
+    "groq": ["ENGEL_GROQ_API_KEY"],
+    "minimax": ["ENGEL_MINIMAX_API_KEY"],
+    "moonshot": ["ENGEL_MOONSHOT_API_KEY"],
 }
 PROVIDER_BRIDGE_LABELS = {
     "openai": "ChatGPT/OpenAI",
@@ -419,6 +435,12 @@ PROVIDER_BRIDGE_LABELS = {
     "codex": "Codex/OpenAI",
     "nvidia": "NVIDIA NIM",
     "openrouter": "OpenRouter",
+    "cohere": "Cohere",
+    "deepseek": "DeepSeek",
+    "zai": "Z.ai",
+    "groq": "Groq",
+    "minimax": "MiniMax",
+    "moonshot": "Moonshot/Kimi",
 }
 PROVIDER_MODEL_ENV_NAMES = {
     "openai": ["ENGEL_OPENAI_CHAT_MODEL", "ENGEL_CHATGPT_MODEL", "OPENAI_MODEL"],
@@ -432,7 +454,14 @@ PROVIDER_MODEL_FALLBACKS = {
     "openai": ["gpt-4.1-mini", "gpt-4o-mini", "gpt-4o"],
     "anthropic": ["claude-3-5-haiku-latest", "claude-3-5-sonnet-latest"],
     "xai": ["grok-4.6", "grok-4.5"],
-    "gemini": ["gemini-3.5-flash", "gemini-2.0-flash", "gemini-1.5-flash"],
+    "gemini": ["gemini-3.5-flash", "gemini-2.5-flash", "gemini-flash-latest"],
+    "cohere": ["command-r7b-12-2024"],
+    "deepseek": ["deepseek-flash"],
+    "zai": ["glm-5.3-flash"],
+    "groq": ["openai/gpt-oss-20b"],
+    "minimax": ["MiniMax-M3.1-Flash"],
+    "moonshot": ["kimi-k2.6"],
+    "openrouter": ["nvidia/nemotron-3.5-lightning:free"],
     "codex": [],
     "nvidia": [
         "nvidia/nemotron-3-super-120b-a12b",
@@ -1653,6 +1682,17 @@ def _normalize_provider_name(value: Any) -> str:
         "nim": "nvidia",
         "nvidia-nim": "nvidia",
         "nvidia_nim": "nvidia",
+        "openrouter": "openrouter",
+        "cohere": "cohere",
+        "deepseek": "deepseek",
+        "zai": "zai",
+        "z.ai": "zai",
+        "z-ai": "zai",
+        "glm": "zai",
+        "groq": "groq",
+        "minimax": "minimax",
+        "moonshot": "moonshot",
+        "kimi": "moonshot",
     }
     return aliases.get(text, "")
 
@@ -1665,6 +1705,12 @@ PROVIDER_SPECIFIC_ENABLED_ENV_NAMES = {
     "codex": ("ENGEL_CODEX_BRIDGE_ENABLED", "ENGEL_CODEX_CLI_BRIDGE_ENABLED"),
     "nvidia": ("ENGEL_NVIDIA_BRIDGE_ENABLED", "ENGEL_NIM_BRIDGE_ENABLED"),
     "openrouter": ("ENGEL_OPENROUTER_BRIDGE_ENABLED",),
+    "cohere": ("ENGEL_COHERE_BRIDGE_ENABLED",),
+    "deepseek": ("ENGEL_DEEPSEEK_BRIDGE_ENABLED",),
+    "zai": ("ENGEL_ZAI_BRIDGE_ENABLED",),
+    "groq": ("ENGEL_GROQ_BRIDGE_ENABLED",),
+    "minimax": ("ENGEL_MINIMAX_BRIDGE_ENABLED",),
+    "moonshot": ("ENGEL_MOONSHOT_BRIDGE_ENABLED",),
 }
 
 PROVIDER_ROUTE_DEFAULT_ENABLED = {
@@ -1675,6 +1721,12 @@ PROVIDER_ROUTE_DEFAULT_ENABLED = {
     "openrouter": True,
     "codex": True,
     "nvidia": True,
+    "cohere": True,
+    "deepseek": True,
+    "zai": True,
+    "groq": True,
+    "minimax": True,
+    "moonshot": True,
 }
 
 
@@ -3715,7 +3767,7 @@ def _call_openrouter_bridge(prompt: str, request: dict[str, Any], started: float
     del started
     bridge_request = {
         "prompt": prompt,
-        "model": request.get("model") or request.get("provider_model") or "",
+        "model": request.get("model") or request.get("provider_model") or (_provider_model_candidates("openrouter", request) or [""])[0],
         "timeout_seconds": _provider_request_timeout_seconds(
             request,
             90,
@@ -4840,13 +4892,32 @@ def _call_provider_bridge(provider: str, prompt: str, request: dict[str, Any], s
     elif provider == "openrouter":
         from engel_openai_compatible import OPENROUTER_CHAT_COMPLETIONS_URL, complete_chat
 
+        openrouter_models = _provider_model_candidates("openrouter", request) or [""]
         result = complete_chat(
             OPENROUTER_CHAT_COMPLETIONS_URL,
             secret,
             prompt,
-            request,
+            {**request, "model": openrouter_models[0]},
             provider="openrouter",
         )
+    elif provider in OPENAI_COMPATIBLE_EXTRA_URLS:
+        from engel_openai_compatible import complete_chat
+
+        attempts: list[dict[str, Any]] = []
+        result = {"ok": False, "provider": provider, "assistant_reply": "", "error": f"no {provider} model candidates", "attempts": attempts}
+        for model in _provider_model_candidates(provider, request)[:3]:
+            result = complete_chat(
+                OPENAI_COMPATIBLE_EXTRA_URLS[provider],
+                secret,
+                prompt,
+                {**request, "model": model},
+                provider=provider,
+            )
+            attempts.extend(result.get("attempts") or [])
+            result["attempts"] = attempts
+            if result.get("ok") is True or "401" in str(result.get("error")) or "403" in str(result.get("error")):
+                break
+        result.setdefault("bridge_kind", "openai_compatible")
     else:
         result = {"ok": False, "provider": provider, "assistant_reply": "", "error": f"unknown provider bridge: {provider}", "attempts": []}
     result["secret_source"] = _public_secret_source(source)
@@ -18286,7 +18357,19 @@ class Handler(BaseHTTPRequestHandler):
             _json_response(self, 200 if report.get("ok") is True else 503, report)
             return
         if path == "/registry":
-            _json_response(self, 200, _custom_runtime_registry())
+            registry = _custom_runtime_registry()
+            try:
+                from engel_mcp_loader import registry_snapshot
+
+                registry["mcp"] = registry_snapshot()
+            except Exception as exc:  # noqa: BLE001 -- MCP must never break /registry
+                registry["mcp"] = {"ok": False, "error": f"{type(exc).__name__}: {str(exc)[:160]}"}
+            _json_response(self, 200, registry)
+            return
+        if path in {"/mcp/registry", "/v1/mcp/registry"}:
+            from engel_mcp_loader import registry_snapshot
+
+            _json_response(self, 200, registry_snapshot())
             return
         if path in {"/providers/status", "/bridges/status", "/v1/providers/status"}:
             _json_response(self, 200, _cached_snapshot("provider_bridges", _provider_bridge_status))
@@ -18953,6 +19036,21 @@ class Handler(BaseHTTPRequestHandler):
                     {"ok": False, "status": "standing brain save failed", "error": str(exc)[:300]},
                 )
             return
+        if path in {"/mcp/call", "/v1/mcp/call"}:
+            try:
+                request = _read_json(self)
+                from engel_mcp_loader import call_tool
+
+                receipt = call_tool(
+                    str(request.get("server") or ""),
+                    str(request.get("tool") or ""),
+                    request.get("arguments") if isinstance(request.get("arguments"), dict) else {},
+                    source="http",
+                )
+                _json_response(self, 200 if receipt.get("ok") else 502, receipt)
+            except Exception as exc:
+                _json_response(self, 400, {"ok": False, "status": "mcp call failed", "error": str(exc)[:300]})
+            return
         if path in {"/chat/stream", "/v1/chat/stream"}:
             _acquire_chat_slot()
             try:
@@ -18967,6 +19065,33 @@ class Handler(BaseHTTPRequestHandler):
         started = time.perf_counter()
         try:
             request = _read_json(self)
+            mcp_tool = request.get("mcp_tool") if isinstance(request.get("mcp_tool"), dict) else None
+            if mcp_tool:
+                # Chat tool-use: one explicit MCP tool call, receipted, no model turn.
+                from engel_mcp_loader import call_tool
+
+                mcp_receipt = call_tool(
+                    str(mcp_tool.get("server") or ""),
+                    str(mcp_tool.get("tool") or ""),
+                    mcp_tool.get("arguments") if isinstance(mcp_tool.get("arguments"), dict) else {},
+                    source="chat",
+                )
+                mcp_reply = str(mcp_receipt.get("result_text") or mcp_receipt.get("error") or "")
+                _json_response(
+                    self,
+                    200,
+                    {
+                        "schema": "engel_main_server_chat_mcp_tool_v1",
+                        "ok": bool(mcp_receipt.get("ok")),
+                        "status": "mcp tool replied" if mcp_receipt.get("ok") else "mcp tool failed",
+                        "assistant_reply": mcp_reply,
+                        "provider": f"mcp:{mcp_receipt.get('server')}",
+                        "runtime_provider": "engel-mcp-loader",
+                        "receipt": mcp_receipt,
+                        "updated_at_utc": _iso_now(),
+                    },
+                )
+                return
             attachment_intake = _prepare_chat_attachments(request.get("attachments"))
             _stamp_stored_paths_on_request(request, attachment_intake)
             request["attachments"] = attachment_intake.get("attachments") or []
